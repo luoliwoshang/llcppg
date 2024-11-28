@@ -1,0 +1,8 @@
+[
+    {
+      "mangle": "lua_getstack",
+      "c++": "lua_getstack",
+      "go": "Getstack"
+    }
+  ]
+  

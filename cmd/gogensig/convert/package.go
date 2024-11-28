@@ -216,18 +216,13 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 
 // handleTypeDecl creates a new type declaration or retrieves existing one
 func (p *Package) handleTypeDecl(name string, typeDecl *ast.TypeDecl, changed bool) *gogen.TypeDecl {
-	var decl *gogen.TypeDecl
-	if !p.cvt.inComplete(typeDecl.Type) {
-		if existDecl, exists := p.incomplete[name]; exists {
-			decl = existDecl
-		} else {
-			decl = p.emptyTypeDecl(name, typeDecl.Doc)
-		}
-	} else {
-		decl = p.emptyTypeDecl(name, typeDecl.Doc)
+	if existDecl, exists := p.incomplete[name]; exists {
+		return existDecl
+	}
+	decl := p.emptyTypeDecl(name, typeDecl.Doc)
+	if p.cvt.inComplete(typeDecl.Type) {
 		p.incomplete[name] = decl
 	}
-
 	if changed {
 		substObj(p.p.Types, p.p.Types.Scope(), typeDecl.Name.Name, decl.Type().Obj())
 	}

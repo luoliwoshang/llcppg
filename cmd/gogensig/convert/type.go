@@ -130,13 +130,17 @@ func (p *TypeConv) handleIdentRefer(t ast.Expr) (types.Type, error) {
 		if err != nil {
 			return nil, err
 		}
+		// system type
 		if obj != nil {
 			return obj.Type(), nil
 		}
 
 		obj = gogen.Lookup(p.Types.Scope(), name)
 		if obj == nil {
-			return nil, fmt.Errorf("%s not found", name)
+			// implicit forward decl
+			decl := p.conf.Package.emptyTypeDecl(name, nil)
+			p.conf.Package.incomplete[name] = decl
+			return decl.Type(), nil
 		}
 		return obj.Type(), nil
 	}

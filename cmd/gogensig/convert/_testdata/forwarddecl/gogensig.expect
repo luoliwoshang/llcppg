@@ -31,7 +31,38 @@ type PcacheMethods2 struct {
 	XShrink    func(*Pcache)
 }
 
+type State struct {
+	Unused [8]uint8
+}
+
+type Debug struct {
+	Event           c.Int
+	Name            *int8
+	Namewhat        *int8
+	What            *int8
+	Source          *int8
+	Currentline     c.Int
+	Linedefined     c.Int
+	Lastlinedefined c.Int
+	Nups            int8
+	Nparams         int8
+	Isvararg        int8
+	Istailcall      int8
+	Ftransfer       uint16
+	Ntransfer       uint16
+	ShortSrc        [60]int8
+	ICi             *CallInfo
+}
+//go:linkname Getstack C.lua_getstack
+func Getstack(L *State, level c.Int, ar *Debug) c.Int
+
+type CallInfo struct {
+	Unused [8]uint8
+}
+
 ===== llcppg.pub =====
+lua_Debug Debug
+lua_State State
 sqlite3_pcache Pcache
 sqlite3_pcache_methods2 PcacheMethods2
 sqlite3_pcache_page PcachePage

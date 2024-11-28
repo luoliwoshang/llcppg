@@ -22,3 +22,31 @@ struct sqlite3_pcache_methods2 {
     void (*xDestroy)(sqlite3_pcache *);
     void (*xShrink)(sqlite3_pcache *);
 };
+
+#define LUA_IDSIZE 60
+
+typedef struct lua_State lua_State;
+
+typedef struct lua_Debug lua_Debug;
+
+int(lua_getstack)(lua_State *L, int level, lua_Debug *ar);
+
+struct lua_Debug {
+    int event;
+    const char *name;
+    const char *namewhat;
+    const char *what;
+    const char *source;
+    int currentline;
+    int linedefined;
+    int lastlinedefined;
+    unsigned char nups;
+    unsigned char nparams;
+    char isvararg;
+    char istailcall;
+    unsigned short ftransfer;
+    unsigned short ntransfer;
+    char short_src[LUA_IDSIZE]; 
+    /* private part */
+    struct CallInfo *i_ci; /* active function */
+};

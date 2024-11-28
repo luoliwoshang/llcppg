@@ -1447,9 +1447,24 @@ const (
 }
 
 func TestIdentRefer(t *testing.T) {
-	t.Run("undef ident ref", func(t *testing.T) {
-		pkg := createTestPkg(t, &convert.PackageConfig{})
+	pkg := createTestPkg(t, &convert.PackageConfig{})
+	pkg.SetCurFile("/path/to/stdio.h", "stdio.h", true, false, true)
+	pkg.NewTypedefDecl(&ast.TypedefDecl{
+		DeclBase: ast.DeclBase{
+			Loc: &ast.Location{File: "/path/to/stdio.h"},
+		},
+		Name: &ast.Ident{Name: "undefType"},
+		Type: &ast.BuiltinType{
+			Kind:  ast.Char,
+			Flags: ast.Signed,
+		},
+	})
+	pkg.SetCurFile("/path/to/notsys.h", "notsys.h", true, true, false)
+	t.Run("undef sys ident ref", func(t *testing.T) {
 		err := pkg.NewTypeDecl(&ast.TypeDecl{
+			DeclBase: ast.DeclBase{
+				Loc: &ast.Location{File: "/path/to/notsys.h"},
+			},
 			Name: &ast.Ident{Name: "Foo"},
 			Type: &ast.RecordType{
 				Tag: ast.Struct,
@@ -1468,9 +1483,8 @@ func TestIdentRefer(t *testing.T) {
 		compareError(t, err, "undefType not found")
 	})
 	t.Run("undef tag ident ref", func(t *testing.T) {
-		pkg := createTestPkg(t, &convert.PackageConfig{})
 		err := pkg.NewTypeDecl(&ast.TypeDecl{
-			Name: &ast.Ident{Name: "Foo"},
+			Name: &ast.Ident{Name: "Bar"},
 			Type: &ast.RecordType{
 				Tag: ast.Struct,
 				Fields: &ast.FieldList{
