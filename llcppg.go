@@ -56,8 +56,8 @@ func llcppsigfetch(conf []byte, out *io.PipeWriter) {
 	out.Close()
 }
 
-func gogensig(in io.Reader) error {
-	cmd := command("gogensig", "-")
+func gogensig(in io.Reader, cfg string) error {
+	cmd := command("gogensig", "-", "-cfg="+cfg)
 	cmd.Stdin = in
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -65,9 +65,9 @@ func gogensig(in io.Reader) error {
 }
 
 func main() {
-	ags, _ := args.ParseArgs(os.Args[1:], nil)
+	ags, _ := args.ParseArgs(os.Args[1:], args.LLCPPG_CFG, nil)
 	if ags.Help {
-		fmt.Fprintln(os.Stderr, "Usage: llcppg [config-file]")
+		fmt.Fprintln(os.Stderr, "Usage: llcppg [config-file] [-v]")
 		return
 	}
 	verbose = ags.Verbose
@@ -90,7 +90,7 @@ func main() {
 	r, w := io.Pipe()
 	go llcppsigfetch(b, w)
 
-	err = gogensig(r)
+	err = gogensig(r, ags.CfgFile)
 	check(err)
 }
 
