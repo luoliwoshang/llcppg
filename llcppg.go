@@ -24,12 +24,22 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/goplus/llcppg/_xtool/llcppsymg/args"
 	"github.com/goplus/llcppg/types"
 	"github.com/goplus/llgo/xtool/env"
 )
 
+var verbose bool
+
+func command(name string, args ...string) *exec.Cmd {
+	if verbose {
+		args = append([]string{"-v"}, args...)
+	}
+	return exec.Command(name, args...)
+}
+
 func llcppsymg(conf []byte) error {
-	cmd := exec.Command("llcppsymg", "-")
+	cmd := command("llcppsymg", "-")
 	cmd.Stdin = bytes.NewReader(conf)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -37,7 +47,7 @@ func llcppsymg(conf []byte) error {
 }
 
 func llcppsigfetch(conf []byte, out *io.PipeWriter) {
-	cmd := exec.Command("llcppsigfetch", "-")
+	cmd := command("llcppsigfetch", "-")
 	cmd.Stdin = bytes.NewReader(conf)
 	cmd.Stdout = out
 	cmd.Stderr = os.Stderr
@@ -47,7 +57,7 @@ func llcppsigfetch(conf []byte, out *io.PipeWriter) {
 }
 
 func gogensig(in io.Reader) error {
-	cmd := exec.Command("gogensig", "-")
+	cmd := command("gogensig", "-")
 	cmd.Stdin = in
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -55,16 +65,14 @@ func gogensig(in io.Reader) error {
 }
 
 func main() {
-	cfgFile := "llcppg.cfg"
-	if len(os.Args) > 1 {
-		cfgFile = os.Args[1]
-	}
-	if cfgFile == "-h" || cfgFile == "--help" {
+	ags, _ := args.ParseArgs(os.Args[1:], nil)
+	if ags.Help {
 		fmt.Fprintln(os.Stderr, "Usage: llcppg [config-file]")
 		return
 	}
+	verbose = ags.Verbose
 
-	f, err := os.Open(cfgFile)
+	f, err := os.Open(ags.CfgFile)
 	check(err)
 	defer f.Close()
 
