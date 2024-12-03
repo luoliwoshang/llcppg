@@ -82,6 +82,7 @@ func (p *Context) processFile(path string) error {
 	}
 
 	p.Files = append(p.Files, parsedFiles...)
+	fmt.Fprintln(os.Stderr, "processFile:end")
 	return nil
 }
 
@@ -98,7 +99,7 @@ func (p *Context) parseFile(path string) ([]*FileEntry, error) {
 	if err != nil {
 		return nil, errors.New("failed to create converter " + path)
 	}
-	defer converter.Dispose()
+	// defer converter.Dispose() // 如果单独放开这里的注释，会导致空指针异常错误
 
 	files, err := converter.Convert()
 
@@ -122,6 +123,6 @@ func (p *Context) parseFile(path string) ([]*FileEntry, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Fprintln(os.Stderr, "parseFile:end")
 	return files, nil
 }

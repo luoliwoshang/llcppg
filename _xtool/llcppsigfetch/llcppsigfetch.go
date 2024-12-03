@@ -143,7 +143,8 @@ func runFromConfig(cfgFile string, useStdin bool, outputToFile bool, verbose boo
 
 	conf, err := config.GetConf(data)
 	check(err)
-	defer conf.Delete()
+	// defer fmt.Fprintln(os.Stderr, "conf.Delete()")
+	defer conf.Delete() //只放开这个注释，会导致空指针异常，但是不会卡住
 
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to parse config file:", cfgFile)
@@ -172,6 +173,7 @@ func runFromConfig(cfgFile string, useStdin bool, outputToFile bool, verbose boo
 		IncFlags: incFlags,
 	})
 	err = context.ProcessFiles(files)
+	fmt.Fprintln(os.Stderr, "ProcessFiles End")
 	check(err)
 
 	outputInfo(context, outputToFile)
