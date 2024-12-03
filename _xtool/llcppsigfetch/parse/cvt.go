@@ -5,7 +5,6 @@ import (
 	"os"
 	"runtime"
 	"strings"
-	"unsafe"
 
 	"github.com/goplus/llcppg/_xtool/llcppsymg/clangutils"
 	"github.com/goplus/llcppg/ast"
@@ -47,14 +46,6 @@ type Config struct {
 }
 
 func NewConverter(config *clangutils.Config) (*Converter, error) {
-	if debugParse {
-		fmt.Fprintln(os.Stderr, "NewConverter: config")
-		fmt.Fprintln(os.Stderr, "config.File", config.File)
-		fmt.Fprintln(os.Stderr, "config.Args", config.Args)
-		fmt.Fprintln(os.Stderr, "config.IsCpp", config.IsCpp)
-		fmt.Fprintln(os.Stderr, "config.Temp", config.Temp)
-	}
-
 	index, unit, err := clangutils.CreateTranslationUnit(config)
 	if err != nil {
 		return nil, err
@@ -94,27 +85,6 @@ func initFileEntries(unit *clang.TranslationUnit) []*FileEntry {
 		})
 	})
 	return files
-}
-
-func (ct *Converter) GetTokens(cursor clang.Cursor) []*ast.Token {
-	ran := cursor.Extent()
-	var numTokens c.Uint
-	var tokens *clang.Token
-	ct.unit.Tokenize(ran, &tokens, &numTokens)
-	defer ct.unit.DisposeTokens(tokens, numTokens)
-
-	tokensSlice := unsafe.Slice(tokens, int(numTokens))
-
-	result := make([]*ast.Token, 0, int(numTokens))
-	for _, tok := range tokensSlice {
-		tokStr := ct.unit.Token(tok)
-		result = append(result, &ast.Token{
-			Token: toToken(tok),
-			Lit:   c.GoString(tokStr.CStr()),
-		})
-		tokStr.Dispose()
-	}
-	return result
 }
 
 func (ct *Converter) logBase() string {
@@ -157,6 +127,7 @@ func (ct *Converter) GetCurFile(cursor clang.Cursor) *ast.File {
 		ct.logln("GetCurFile: NO FILE")
 		return nil
 	}
+
 	ct.curLoc = ast.Location{File: filePath}
 
 	// todo(zzy): more efficient
@@ -226,82 +197,17 @@ func (ct *Converter) ParseComment(rawComment string) *ast.CommentGroup {
 
 // visit top decls (struct,class,function,enum & macro,include)
 func (ct *Converter) visitTop(cursor, parent clang.Cursor) clang.ChildVisitResult {
-	ct.incIndent()
-	defer ct.decIndent()
-
 	curFile := ct.GetCurFile(cursor)
-
-	name := toStr(cursor.String())
-	ct.logf("visitTop: Cursor: %s\n", name)
-
 	if curFile == nil {
 		return clang.ChildVisit_Continue
 	}
-
 	switch cursor.Kind {
-	case clang.CursorInclusionDirective:
-		include, err := ct.ProcessInclude(cursor)
-		if err != nil {
-			ct.logln(err)
-			return clang.ChildVisit_Continue
-		}
-		curFile.Includes = append(curFile.Includes, include)
-		ct.logln("visitTop: ProcessInclude END ", include.Path)
-	case clang.CursorMacroDefinition:
-		macro := ct.ProcessMacro(cursor)
-		curFile.Macros = append(curFile.Macros, macro)
-		ct.logln("visitTop: ProcessMacro END ", macro.Name, "Tokens Length:", len(macro.Tokens))
-	case clang.CursorEnumDecl:
-		enum := ct.ProcessEnumDecl(cursor)
-		curFile.Decls = append(curFile.Decls, enum)
-
-		ct.logf("visitTop: ProcessEnumDecl END")
-		if enum.Name != nil {
-			ct.logln(enum.Name.Name)
-		} else {
-			ct.logln("ANONY")
-		}
-
-	case clang.CursorClassDecl:
-		classDecl := ct.ProcessClassDecl(cursor)
-		curFile.Decls = append(curFile.Decls, classDecl)
-		// class havent anonymous situation
-		ct.logln("visitTop: ProcessClassDecl END", classDecl.Name.Name)
-	case clang.CursorStructDecl:
-		structDecl := ct.ProcessStructDecl(cursor)
-		curFile.Decls = append(curFile.Decls, structDecl)
-
-		ct.logf("visitTop: ProcessStructDecl END")
-		if structDecl.Name != nil {
-			ct.logln(structDecl.Name.Name)
-		} else {
-			ct.logln("ANONY")
-		}
-	case clang.CursorUnionDecl:
-		unionDecl := ct.ProcessUnionDecl(cursor)
-		curFile.Decls = append(curFile.Decls, unionDecl)
-
-		ct.logf("visitTop: ProcessUnionDecl END")
-		if unionDecl.Name != nil {
-			ct.logln(unionDecl.Name.Name)
-		} else {
-			ct.logln("ANONY")
-		}
 	case clang.CursorFunctionDecl, clang.CursorCXXMethod, clang.CursorConstructor, clang.CursorDestructor:
 		// Handle functions and class methods (including out-of-class method)
 		// Example: void MyClass::myMethod() { ... } out-of-class method
 		funcDecl := ct.ProcessFuncDecl(cursor)
+		fmt.Fprintln(os.Stderr, "visitTop: funcDecl:", funcDecl.Name.Name)
 		curFile.Decls = append(curFile.Decls, funcDecl)
-		ct.logln("visitTop: ProcessFuncDecl END", funcDecl.Name.Name, funcDecl.MangledName, "isStatic:", funcDecl.IsStatic, "isInline:", funcDecl.IsInline)
-	case clang.CursorTypedefDecl:
-		typedefDecl := ct.ProcessTypeDefDecl(cursor)
-		if typedefDecl == nil {
-			return clang.ChildVisit_Continue
-		}
-		curFile.Decls = append(curFile.Decls, typedefDecl)
-		ct.logln("visitTop: ProcessTypeDefDecl END", typedefDecl.Name.Name)
-	case clang.CursorNamespace:
-		clangutils.VisitChildren(cursor, ct.visitTop)
 	}
 	return clang.ChildVisit_Continue
 }
@@ -310,12 +216,11 @@ func (ct *Converter) Convert() ([]*FileEntry, error) {
 	cursor := ct.unit.Cursor()
 	// visit top decls (struct,class,function & macro,include)
 	clangutils.VisitChildren(cursor, ct.visitTop)
+	fmt.Fprintln(os.Stderr, "Convert:end")
 	return ct.Files, nil
 }
 
 func (ct *Converter) ProcessType(t clang.Type) ast.Expr {
-	ct.incIndent()
-	defer ct.decIndent()
 
 	typeName, typeKind := getTypeDesc(t)
 	ct.logln("ProcessType: TypeName:", typeName, "TypeKind:", typeKind)
@@ -335,38 +240,13 @@ func (ct *Converter) ProcessType(t clang.Type) ast.Expr {
 	var expr ast.Expr
 	switch t.Kind {
 	case clang.TypePointer:
-		name, kind := getTypeDesc(t.PointeeType())
-		ct.logln("ProcessType: PointerType  Pointee TypeName:", name, "TypeKind:", kind)
 		expr = &ast.PointerType{X: ct.ProcessType(t.PointeeType())}
-	case clang.TypeLValueReference:
-		name, kind := getTypeDesc(t.NonReferenceType())
-		ct.logln("ProcessType: LvalueRefType  NonReference TypeName:", name, "TypeKind:", kind)
-		expr = &ast.LvalueRefType{X: ct.ProcessType(t.NonReferenceType())}
-	case clang.TypeRValueReference:
-		name, kind := getTypeDesc(t.NonReferenceType())
-		ct.logln("ProcessType: RvalueRefType  NonReference TypeName:", name, "TypeKind:", kind)
-		expr = &ast.RvalueRefType{X: ct.ProcessType(t.NonReferenceType())}
 	case clang.TypeFunctionProto, clang.TypeFunctionNoProto:
 		// treating TypeFunctionNoProto as a general function without parameters
 		// function type will only collect return type, params will be collected in ProcessFuncDecl
 		name, kind := getTypeDesc(t)
 		ct.logln("ProcessType: FunctionType  TypeName:", name, "TypeKind:", kind)
 		expr = ct.ProcessFunctionType(t)
-	case clang.TypeConstantArray, clang.TypeIncompleteArray, clang.TypeVariableArray, clang.TypeDependentSizedArray:
-		if t.Kind == clang.TypeConstantArray {
-			len := (*c.Char)(c.Malloc(unsafe.Sizeof(c.Char(0)) * 20))
-			c.Sprintf(len, c.Str("%lld"), t.ArraySize())
-			defer c.Free(unsafe.Pointer(len))
-			expr = &ast.ArrayType{
-				Elt: ct.ProcessType(t.ArrayElementType()),
-				Len: &ast.BasicLit{Kind: ast.IntLit, Value: c.GoString(len)},
-			}
-		} else if t.Kind == clang.TypeIncompleteArray {
-			// incomplete array havent len expr
-			expr = &ast.ArrayType{
-				Elt: ct.ProcessType(t.ArrayElementType()),
-			}
-		}
 	default:
 		name, kind := getTypeDesc(t)
 		ct.logln("ProcessType: Unknown Type TypeName:", name, "TypeKind:", kind)
@@ -379,7 +259,6 @@ func (ct *Converter) ProcessType(t clang.Type) ast.Expr {
 // Note: For function declarations, parameter names are collected in the ProcessFuncDecl method.
 func (ct *Converter) ProcessFunctionType(t clang.Type) *ast.FuncType {
 	ct.incIndent()
-	defer ct.decIndent()
 	typeName, typeKind := getTypeDesc(t)
 	ct.logln("ProcessFunctionType: TypeName:", typeName, "TypeKind:", typeKind)
 	// Note: Attempting to get the type declaration for a function type will result in CursorNoDeclFound
@@ -413,7 +292,6 @@ func (ct *Converter) ProcessFunctionType(t clang.Type) *ast.FuncType {
 
 func (ct *Converter) ProcessTypeDefDecl(cursor clang.Cursor) *ast.TypedefDecl {
 	ct.incIndent()
-	defer ct.decIndent()
 	name, kind := getCursorDesc(cursor)
 	ct.logln("ProcessTypeDefDecl: CursorName:", name, "CursorKind:", kind, "CursorTypeKind:", toStr(cursor.Type().Kind.String()))
 
@@ -454,8 +332,6 @@ func (ct *Converter) ProcessUnderlyingType(cursor clang.Cursor) ast.Expr {
 
 // converts functions, methods, constructors, destructors (including out-of-class decl) to ast.FuncDecl nodes.
 func (ct *Converter) ProcessFuncDecl(cursor clang.Cursor) *ast.FuncDecl {
-	ct.incIndent()
-	defer ct.decIndent()
 	name, kind := getCursorDesc(cursor)
 	mangledName := toStr(cursor.Mangling())
 	ct.logln("ProcessFuncDecl: CursorName:", name, "CursorKind:", kind)
@@ -534,66 +410,6 @@ func (ct *Converter) ProcessMethodAttributes(cursor clang.Cursor, fn *ast.FuncDe
 	overridden.DisposeOverriddenCursors()
 }
 
-func (ct *Converter) ProcessEnumType(cursor clang.Cursor) *ast.EnumType {
-	items := make([]*ast.EnumItem, 0)
-
-	clangutils.VisitChildren(cursor, func(cursor, parent clang.Cursor) clang.ChildVisitResult {
-		if cursor.Kind == clang.CursorEnumConstantDecl {
-			name := cursor.String()
-			defer name.Dispose()
-
-			val := (*c.Char)(c.Malloc(unsafe.Sizeof(c.Char(0)) * 20))
-			c.Sprintf(val, c.Str("%lld"), cursor.EnumConstantDeclValue())
-			defer c.Free(unsafe.Pointer(val))
-
-			enum := &ast.EnumItem{
-				Name: &ast.Ident{Name: c.GoString(name.CStr())},
-				Value: &ast.BasicLit{
-					Kind:  ast.IntLit,
-					Value: c.GoString(val),
-				},
-			}
-			items = append(items, enum)
-		}
-		return clang.ChildVisit_Continue
-	})
-
-	return &ast.EnumType{
-		Items: items,
-	}
-}
-
-func (ct *Converter) ProcessEnumDecl(cursor clang.Cursor) *ast.EnumTypeDecl {
-	cursorName, cursorKind := getCursorDesc(cursor)
-	ct.logln("ProcessEnumDecl: CursorName:", cursorName, "CursorKind:", cursorKind)
-
-	decl := &ast.EnumTypeDecl{
-		DeclBase: ct.CreateDeclBase(cursor),
-		Type:     ct.ProcessEnumType(cursor),
-	}
-
-	anony := cursor.IsAnonymous()
-	if anony == 0 {
-		decl.Name = &ast.Ident{Name: cursorName}
-		ct.logln("ProcessEnumDecl: has name", cursorName)
-	} else {
-		ct.logln("ProcessRecordDecl: is anonymous")
-	}
-
-	return decl
-}
-
-// current only collect macro which defined in file
-func (ct *Converter) ProcessMacro(cursor clang.Cursor) *ast.Macro {
-	name := toStr(cursor.String())
-
-	macro := &ast.Macro{
-		Name:   name,
-		Tokens: ct.GetTokens(cursor),
-	}
-	return macro
-}
-
 func (ct *Converter) ProcessInclude(cursor clang.Cursor) (*ast.Include, error) {
 	name := toStr(cursor.String())
 	includedFile := cursor.IncludedFile()
@@ -605,15 +421,10 @@ func (ct *Converter) ProcessInclude(cursor clang.Cursor) (*ast.Include, error) {
 }
 
 func (ct *Converter) createBaseField(cursor clang.Cursor) *ast.Field {
-	ct.incIndent()
-	defer ct.decIndent()
 
 	fieldName := toStr(cursor.String())
 
 	typ := cursor.Type()
-	typeName, typeKind := getTypeDesc(typ)
-
-	ct.logf("createBaseField: ProcessType %s TypeKind: %s", typeName, typeKind)
 
 	field := &ast.Field{
 		Type: ct.ProcessType(typ),
@@ -635,8 +446,6 @@ func (ct *Converter) createBaseField(cursor clang.Cursor) *ast.Field {
 
 // For Record Type(struct,union ...) & Func 's FieldList
 func (ct *Converter) ProcessFieldList(cursor clang.Cursor) *ast.FieldList {
-	ct.incIndent()
-	defer ct.decIndent()
 
 	params := &ast.FieldList{}
 	ct.logln("ProcessFieldList: VisitChildren")
@@ -699,8 +508,6 @@ func (ct *Converter) ProcessMethods(cursor clang.Cursor) []*ast.FuncDecl {
 }
 
 func (ct *Converter) ProcessRecordDecl(cursor clang.Cursor) *ast.TypeDecl {
-	ct.incIndent()
-	defer ct.decIndent()
 	cursorName, cursorKind := getCursorDesc(cursor)
 	ct.logln("ProcessRecordDecl: CursorName:", cursorName, "CursorKind:", cursorKind)
 
@@ -746,8 +553,6 @@ func (ct *Converter) ProcessClassDecl(cursor clang.Cursor) *ast.TypeDecl {
 }
 
 func (ct *Converter) ProcessRecordType(cursor clang.Cursor) *ast.RecordType {
-	ct.incIndent()
-	defer ct.decIndent()
 
 	cursorName, cursorKind := getCursorDesc(cursor)
 	ct.logln("ProcessRecordType: CursorName:", cursorName, "CursorKind:", cursorKind)
@@ -778,8 +583,6 @@ func (ct *Converter) ProcessRecordType(cursor clang.Cursor) *ast.RecordType {
 // - Examples: struct { int x; int y; }, union { int a; float b; }
 // - Handling: Retrieve their corresponding concrete types
 func (ct *Converter) ProcessElaboratedType(t clang.Type) ast.Expr {
-	ct.incIndent()
-	defer ct.decIndent()
 	typeName, typeKind := getTypeDesc(t)
 	ct.logln("ProcessElaboratedType: TypeName:", typeName, "TypeKind:", typeKind)
 
@@ -787,9 +590,6 @@ func (ct *Converter) ProcessElaboratedType(t clang.Type) ast.Expr {
 
 	if decl.IsAnonymous() != 0 {
 		// anonymous type refer (except anonymous RecordType&EnumType in TypedefDecl)
-		if decl.Kind == clang.CursorEnumDecl {
-			return ct.ProcessEnumType(decl)
-		}
 		return ct.ProcessRecordType(decl)
 	}
 
@@ -819,8 +619,6 @@ func (ct *Converter) ProcessTypeDefType(t clang.Type) ast.Expr {
 }
 
 func (ct *Converter) ProcessBuiltinType(t clang.Type) *ast.BuiltinType {
-	ct.incIndent()
-	defer ct.decIndent()
 	typeName, typeKind := getTypeDesc(t)
 	ct.logln("ProcessBuiltinType: TypeName:", typeName, "TypeKind:", typeKind)
 
@@ -977,6 +775,8 @@ func getOffset(location clang.SourceLocation) c.Uint {
 
 func toStr(clangStr clang.String) (str string) {
 	defer clangStr.Dispose()
+	// 1.只放开这里的注释，不会出现错误
+	// 2.注释该行，但放开conf.Delete()以及converter.Dispose()，会导致bus error或者卡住
 	if clangStr.CStr() != nil {
 		str = c.GoString(clangStr.CStr())
 	}
