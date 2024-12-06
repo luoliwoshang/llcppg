@@ -1,7 +1,7 @@
 package processor
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cmd/gogensig/config"
@@ -42,18 +42,12 @@ type ProcesserConfig struct {
 	DepIncs []string // abs path
 }
 
-func defaultExec(file *unmarshal.FileEntry) error {
-	fmt.Println(file.Path)
-	return nil
-}
-
 // allDepIncs is the absolute path of all dependent include files
 // such as /path/to/foo.h, etc. skip these files,because they are already processed
 func NewDocFileSetProcessor(cfg *ProcesserConfig) *DocFileSetProcessor {
 	p := &DocFileSetProcessor{
 		processing:  make(map[string]struct{}),
 		visitedFile: make(map[string]struct{}),
-		exec:        defaultExec,
 		done:        cfg.Done,
 		depIncs:     cfg.DepIncs,
 	}
@@ -79,7 +73,12 @@ func (p *DocFileSetProcessor) visitFile(path string, files unmarshal.FileSet) {
 	for _, include := range findFile.Doc.Includes {
 		p.visitFile(include.Path, files)
 	}
-	p.exec(&findFile)
+	if p.exec != nil {
+		err := p.exec(&findFile)
+		if err != nil {
+			log.Panic("visit file error: ", err, " file: ", findFile.Path)
+		}
+	}
 	p.visitedFile[findFile.Path] = struct{}{}
 	delete(p.processing, findFile.Path)
 }

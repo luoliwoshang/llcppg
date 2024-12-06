@@ -1,6 +1,7 @@
 package processor_test
 
 import (
+	"errors"
 	"os"
 	"reflect"
 	"testing"
@@ -136,16 +137,30 @@ func TestProcessInvalidSigfetchContent(t *testing.T) {
 	}
 }
 
-func TestDefaultExec(t *testing.T) {
+var errCustomExec = errors.New("custom exec error")
+
+func TestCustomExec(t *testing.T) {
+	defer func() {
+		if e := recover(); e == nil {
+			t.Errorf("%s", "expect panic")
+		}
+	}()
 	file := unmarshal.FileSet{
 		{
-			Path:  "foo.h",
+			Path:  "/path/to/foo.h",
 			IsSys: false,
 			Doc:   &ast.File{},
 		},
 	}
-	p := processor.NewDocFileSetProcessor(&processor.ProcesserConfig{})
-	p.ProcessFileSet(file)
+	p := processor.NewDocFileSetProcessor(&processor.ProcesserConfig{
+		Exec: func(file *unmarshal.FileEntry) error {
+			return errCustomExec
+		},
+	})
+	err := p.ProcessFileSet(file)
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestExecOrder(t *testing.T) {

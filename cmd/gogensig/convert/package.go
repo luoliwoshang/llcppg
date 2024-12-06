@@ -2,7 +2,6 @@ package convert
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"go/token"
 	"go/types"
@@ -98,15 +97,6 @@ func NewPackage(config *PackageConfig) *Package {
 	p.SetCurFile(p.Name(), "", false, false, false)
 	return p
 }
-
-// get current pkg's include file
-// func (p *Package) GetIncPaths() []string {
-// 	incPaths, err := p.conf.GetIncPaths()
-// 	if err != nil {
-// 		log.Println("failed to gen include paths: \n", err.Error())
-// 	}
-// 	return incPaths
-// }
 
 func (p *Package) SetCurFile(file string, incPath string, isHeaderFile bool, inCurPkg bool, isSys bool) error {
 	curHeaderFile, err := NewHeaderFile(file, incPath, isHeaderFile, inCurPkg, isSys)
@@ -712,7 +702,7 @@ type CPackage struct {
 
 func Import(mod *Module, pkgPath string) (p *CPackage, err error) {
 	if mod == nil {
-		return nil, errors.New("go.mod not found")
+		return nil, errs.NewModNotFoundError()
 	}
 	pkg, err := mod.Lookup(pkgPath)
 	if err != nil {

@@ -2027,3 +2027,56 @@ func TestIncPathToPkg(t *testing.T) {
 		}
 	}
 }
+
+func TestErrDepsPub(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatal("expected panic")
+		}
+	}()
+	pkg := createTestPkg(t, &convert.PackageConfig{
+		OutputDir: ".",
+		CppgConf: &cppgtypes.Config{
+			Deps: []string{
+				"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/invaliddep/cfg",
+			},
+		},
+	})
+	pkg.AllDepIncs()
+}
+
+func TestImport(t *testing.T) {
+	t.Run("no mod", func(t *testing.T) {
+		_, err := convert.LoadDeps(os.TempDir(), []string{})
+		if err == nil {
+			t.Fatal("expected error")
+		}
+		_, err = convert.Import(nil, "pkg")
+		if err == nil {
+			t.Fatal("expected error")
+		}
+	})
+	t.Run("no config", func(t *testing.T) {
+		_, err := convert.LoadDeps(".", []string{"pkg1"})
+		if err == nil {
+			t.Fatal("expected error")
+		}
+	})
+	t.Run("invalid pkg path", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Fatal("expected panic")
+			}
+		}()
+		_, err := convert.LoadDeps(".", []string{""})
+		if err == nil {
+			t.Fatal("expected error")
+		}
+	})
+	t.Run("invalid pub file", func(t *testing.T) {
+		_, err := convert.LoadDeps(".", []string{"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/invaliddep/pub"})
+		if err == nil {
+			t.Fatal("expected error")
+		}
+	})
+}

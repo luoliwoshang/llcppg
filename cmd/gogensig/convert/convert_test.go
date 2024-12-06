@@ -14,6 +14,7 @@ import (
 	"github.com/goplus/llcppg/cmd/gogensig/convert"
 	"github.com/goplus/llcppg/cmd/gogensig/convert/basic"
 	"github.com/goplus/llcppg/cmd/gogensig/unmarshal"
+	cppgtypes "github.com/goplus/llcppg/types"
 	"github.com/goplus/llgo/xtool/env"
 )
 
@@ -384,4 +385,22 @@ type Foo struct {
 	if strings.TrimSpace(expectedOutput) != strings.TrimSpace(buf.String()) {
 		t.Errorf("does not match expected.\nExpected:\n%s\nGot:\n%s", expectedOutput, buf.String())
 	}
+}
+
+func TestGetIncPathFail(t *testing.T) {
+	cfg, err := config.CreateJSONFile("llcppg.cfg", &cppgtypes.Config{
+		Include: []string{"unexist.h"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	converter, err := convert.NewAstConvert(&convert.AstConvertConfig{
+		PkgName:  "test",
+		SymbFile: "",
+		CfgFile:  cfg,
+	})
+	if err != nil {
+		t.Fatal("NewAstConvert Fail")
+	}
+	converter.VisitStart("test.h", "", false)
 }
