@@ -2,6 +2,7 @@ package convert
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/token"
 	"go/types"
@@ -11,13 +12,14 @@ import (
 	"regexp"
 
 	"github.com/goplus/gogen"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/args"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/config/cfgparse"
 	"github.com/goplus/llcppg/ast"
 	cfg "github.com/goplus/llcppg/cmd/gogensig/config"
-	"github.com/goplus/llcppg/cmd/gogensig/convert/deps"
 	"github.com/goplus/llcppg/cmd/gogensig/convert/names"
 	"github.com/goplus/llcppg/cmd/gogensig/errs"
 	cppgtypes "github.com/goplus/llcppg/types"
+	"github.com/goplus/mod/gopmod"
 )
 
 const (
@@ -502,11 +504,11 @@ func (p *Package) WritePubFile() error {
 	return cfg.WritePubFile(filepath.Join(p.GetOutputDir(), "llcppg.pub"), p.conf.Public)
 }
 
-func (p *Package) getAllDepPkgs(deps []*deps.CPackage) []string {
+func (p *Package) getAllDepPkgs(deps []*CPackage) []string {
 	allDepIncs := make([]string, 0)
 	scope := p.p.Types.Scope()
 	for _, dep := range deps {
-		allDepIncs = append(allDepIncs, dep.StdIncs...)
+		allDepIncs = append(allDepIncs, dep.CppgConf.Include...)
 		depPkg := p.p.Import(dep.Path)
 		for cName, pubGoName := range dep.Pubs {
 			if pubGoName == "" {
@@ -551,7 +553,7 @@ func (p *Package) DeclName(name string, collect bool) (pubName string, changed b
 
 // AllDepIncs returns all std include paths of dependent packages
 func (p *Package) AllDepIncs() []string {
-	deps, err := deps.LoadDeps(p.conf.OutputDir, p.conf.CppgConf.Deps)
+	deps, err := LoadDeps(p.conf.OutputDir, p.conf.CppgConf.Deps)
 	if err != nil {
 		log.Println("failed to load deps: \n", err.Error())
 	}
@@ -666,4 +668,56 @@ func IncPathToPkg(incPath string) (pkg string, isDefault bool) {
 		}
 	}
 	return LLGO_C, true
+}
+
+func LoadDeps(dir string, deps []string) (pkgs []*CPackage, err error) {
+	mod, err := gopmod.Load(dir)
+	if err != nil {
+		return nil, err
+	}
+	return Imports(mod, deps)
+}
+
+type Module = gopmod.Module
+
+func Imports(mod *Module, pkgPaths []string) (pkgs []*CPackage, err error) {
+	pkgs = make([]*CPackage, len(pkgPaths))
+	for i, pkgPath := range pkgPaths {
+		pkgs[i], err = Import(mod, pkgPath)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return
+}
+
+type CPackage struct {
+	*gopmod.Package
+	Path     string // package path
+	Dir      string // absolue local path of the package
+	Pubs     map[string]string
+	CppgConf *cppgtypes.Config
+}
+
+func Import(mod *Module, pkgPath string) (p *CPackage, err error) {
+	if mod == nil {
+		return nil, errors.New("go.mod not found")
+	}
+	pkg, err := mod.Lookup(pkgPath)
+	if err != nil {
+		return nil, err
+	}
+	pkgDir, err := filepath.Abs(pkg.Dir)
+	if err != nil {
+		return nil, err
+	}
+	pubs, err := cfg.ReadPubFile(filepath.Join(pkgDir, args.LLCPPG_PUB))
+	if err != nil {
+		return nil, err
+	}
+	cfg, err := cfg.GetCppgCfgFromPath(filepath.Join(pkgDir, args.LLCPPG_CFG))
+	if err != nil {
+		return nil, err
+	}
+	return &CPackage{Package: pkg, Path: pkgPath, Dir: pkgDir, Pubs: pubs, CppgConf: cfg}, nil
 }
