@@ -149,7 +149,7 @@ func TestDefaultExec(t *testing.T) {
 }
 
 func TestExecOrder(t *testing.T) {
-	depIncs := []string{"int16_t.h"}
+	depIncs := []string{"/path/to/int16_t.h"}
 	fileSet := unmarshal.FileSet{
 		{
 			Path:    "/path/to/foo.h",

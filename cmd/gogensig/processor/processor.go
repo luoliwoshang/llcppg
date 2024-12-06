@@ -31,7 +31,7 @@ type DocFileSetProcessor struct {
 	processing  map[string]struct{}
 	exec        Exec     // execute a single file
 	done        func()   // done callback
-	depIncs     []string // rel path
+	depIncs     []string // abs path
 }
 
 type Exec func(*unmarshal.FileEntry) error
@@ -39,7 +39,7 @@ type Exec func(*unmarshal.FileEntry) error
 type ProcesserConfig struct {
 	Exec    Exec
 	Done    func()
-	DepIncs []string // rel path
+	DepIncs []string // abs path
 }
 
 func defaultExec(file *unmarshal.FileEntry) error {
@@ -47,8 +47,8 @@ func defaultExec(file *unmarshal.FileEntry) error {
 	return nil
 }
 
-// allDepIncs is the std path of all dependent include files
-// such as sys/_types/_int8_t.h, etc. skip these files,because they are already processed
+// allDepIncs is the absolute path of all dependent include files
+// such as /path/to/foo.h, etc. skip these files,because they are already processed
 func NewDocFileSetProcessor(cfg *ProcesserConfig) *DocFileSetProcessor {
 	p := &DocFileSetProcessor{
 		processing:  make(map[string]struct{}),
@@ -71,7 +71,7 @@ func (p *DocFileSetProcessor) visitFile(path string, files unmarshal.FileSet) {
 		return
 	}
 	p.processing[path] = struct{}{}
-	idx := FindEntry(files, path, false)
+	idx := FindEntry(files, path)
 	if idx < 0 {
 		return
 	}
@@ -85,9 +85,8 @@ func (p *DocFileSetProcessor) visitFile(path string, files unmarshal.FileSet) {
 }
 
 func (p *DocFileSetProcessor) ProcessFileSet(files unmarshal.FileSet) error {
-	//todo(zzy): may have same incPath
 	for _, inc := range p.depIncs {
-		idx := FindEntry(files, inc, true)
+		idx := FindEntry(files, inc)
 		if idx < 0 {
 			continue
 		}
@@ -119,16 +118,10 @@ func (p *DocFileSetProcessor) ProcessFileSetFromPath(filePath string) error {
 }
 
 // FindEntry finds the entry in FileSet. If useIncPath is true, it searches by IncPath, otherwise by Path
-func FindEntry(files unmarshal.FileSet, path string, isInc bool) int {
+func FindEntry(files unmarshal.FileSet, path string) int {
 	for i, e := range files {
-		if isInc {
-			if e.IncPath == path {
-				return i
-			}
-		} else {
-			if e.Path == path {
-				return i
-			}
+		if e.Path == path {
+			return i
 		}
 	}
 	return -1
