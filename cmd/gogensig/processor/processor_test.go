@@ -47,13 +47,17 @@ func TestProcessValidSigfetchContent(t *testing.T) {
 		},
 	}
 
-	tempFileName, err := config.CreateJSONFile("llcppg.sigfetch-test.json", content)
+	tempFileName, err := config.CreateTmpJSONFile("llcppg.sigfetch-test.json", content)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer os.Remove(tempFileName)
 
-	tempDir, err := os.MkdirTemp("", "gogensig-test")
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	tempDir, err := os.MkdirTemp(dir, "gogensig-test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +112,7 @@ func TestProcessInvalidSigfetchContent(t *testing.T) {
 	}()
 
 	invalidContent := "invalid json content"
-	tempFileName, err := config.CreateJSONFile("llcppg.sigfetch-panic.json", invalidContent)
+	tempFileName, err := config.CreateTmpJSONFile("llcppg.sigfetch-panic.json", invalidContent)
 	if err != nil {
 		t.Fatal(err)
 	}
