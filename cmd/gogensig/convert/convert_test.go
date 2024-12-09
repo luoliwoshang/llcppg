@@ -186,27 +186,28 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 	config.RunCommand(outputDir, "go", "get", "github.com/goplus/llcppg")
 	config.RunCommand(outputDir, "go", "mod", "edit", "-replace", "github.com/goplus/llcppg="+projectRoot)
 
+	// patch the test file's cflags
 	preprocess := func(p *convert.Package) {
-		deps, err := p.AllDeps()
-		if err != nil {
-			t.Fatal(err)
-		}
+		var patchFlags func(pkg *convert.Pkg)
+		patchFlags = func(pkg *convert.Pkg) {
+			if pkg.PkgPath != "." {
+				incFlags := " -I" + filepath.Join(pkg.Dir, "hfile")
+				pkg.CppgConf.CFlags += incFlags
+				cfg.CFlags += incFlags
+			}
 
-		for _, dep := range deps {
+			deps, err := pkg.LoadDeps()
 			if err != nil {
 				t.Fatal(err)
 			}
-			if err != nil {
-				t.Fatal(err)
-			}
-			incFlags := " -I" + filepath.Join(dep.Dir, "hfile")
-			dep.CppgConf.CFlags += incFlags
-			cfg.CFlags += incFlags
-			if err != nil {
-				t.Fatal(err)
+			for _, dep := range deps {
+				patchFlags(dep)
+				if err != nil {
+					t.Fatal(err)
+				}
 			}
 		}
-
+		patchFlags(p.Pkg)
 		err = config.CreateJSONFile(flagedCfgPath, cfg)
 		if err != nil {
 			t.Fatal(err)

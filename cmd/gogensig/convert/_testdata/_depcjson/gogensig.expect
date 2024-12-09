@@ -2,6 +2,7 @@
 package _depcjson
 
 import (
+	"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/basicdep"
 	"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/cjson"
 	"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/thirddep"
 	"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/thirddep2"
@@ -15,7 +16,7 @@ func ParseClientRequest(json_string *int8, error_buffer *int8, buffer_size uintp
 //go:linkname SerializeResponse C.serialize_response
 func SerializeResponse(response *cjson.CJSON, buffer *int8, length c.Int, pretty_print cjson.CJSONBool) cjson.CJSONBool
 //go:linkname ThirdDepfn C.third_depfn
-func ThirdDepfn(a *thirddep.ThirdDep, b *thirddep2.ThirdDep2, c X_DepcjsonType) thirddep.ThirdDep
+func ThirdDepfn(a *thirddep.ThirdDep, b *thirddep2.ThirdDep2, c X_DepcjsonType, d basicdep.BasicDep) thirddep.ThirdDep
 
 ===== type.go =====
 package _depcjson

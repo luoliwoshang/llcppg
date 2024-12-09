@@ -90,7 +90,7 @@ func NewPackage(config *PackageConfig) *Package {
 		log.Panicf("failed to load mod: %s", err.Error())
 	}
 
-	p.Pkg = NewPkg(config.PkgPath, mod, p.p, config.CppgConf, config.Public)
+	p.Pkg = NewPkg(config.PkgPath, config.OutputDir, mod, p.p, config.CppgConf, config.Public)
 
 	clib := p.p.Import("github.com/goplus/llgo/c")
 	typeMap := NewBuiltinTypeMapWithPkgRefS(clib, p.p.Unsafe())
@@ -638,8 +638,39 @@ func IncPathToPkg(incPath string) (pkg string, isDefault bool) {
 
 type Module = gopmod.Module
 
-func (p *Pkg) Imports(pkgPaths []string) (pkgs []*CPackage, err error) {
-	pkgs = make([]*CPackage, len(pkgPaths))
+// for current package & dependent packages
+type Pkg struct {
+	*Module
+	*gogen.Package
+
+	deps     []*Pkg
+	PkgPath  string            // package path, e.g. github.com/goplus/llgo/cjson
+	Dir      string            // absolute local path of the package
+	CppgConf *cppgtypes.Config // llcppg.cfg
+	Pubs     map[string]string // llcppg.pub
+	includes []string          // abs header paths
+}
+
+func NewPkg(pkgPath string, pkgDir string, mod *Module, genPkg *gogen.Package, conf *cppgtypes.Config, pubs map[string]string) *Pkg {
+	return &Pkg{PkgPath: pkgPath, Dir: pkgDir, CppgConf: conf, Pubs: pubs, Module: mod, Package: genPkg}
+}
+
+// LoadDeps loads direct dependencies of the current package and recursively loads their
+// dependencies, to get the complete dependency.
+func (p *Pkg) LoadDeps() ([]*Pkg, error) {
+	if p.deps != nil {
+		return p.deps, nil
+	}
+	deps, err := p.Imports(p.CppgConf.Deps)
+	if err != nil {
+		return nil, err
+	}
+	p.deps = deps
+	return deps, nil
+}
+
+func (p *Pkg) Imports(pkgPaths []string) (pkgs []*Pkg, err error) {
+	pkgs = make([]*Pkg, len(pkgPaths))
 	for i, pkgPath := range pkgPaths {
 		pkgs[i], err = p.Import(pkgPath)
 		if err != nil {
@@ -649,13 +680,7 @@ func (p *Pkg) Imports(pkgPaths []string) (pkgs []*CPackage, err error) {
 	return
 }
 
-type CPackage struct {
-	*gopmod.Package
-	*Pkg
-	Dir string // absolute local path of the package
-}
-
-func (p *Pkg) Import(pkgPath string) (*CPackage, error) {
+func (p *Pkg) Import(pkgPath string) (*Pkg, error) {
 	if p.Module == nil {
 		return nil, errs.NewModNotFoundError()
 	}
@@ -675,26 +700,18 @@ func (p *Pkg) Import(pkgPath string) (*CPackage, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &CPackage{Package: pkg, Dir: pkgDir, Pkg: NewPkg(pkgPath, p.Module, p.Package, cfg, pubs)}, nil
-}
-
-// for current package & dependent packages
-type Pkg struct {
-	*Module
-	*gogen.Package
-	deps     []*CPackage
-	PkgPath  string            // package path, e.g. github.com/goplus/llgo/cjson
-	CppgConf *cppgtypes.Config // llcppg.cfg
-	Pubs     map[string]string // llcppg.pub
-	includes []string          // abs header paths
-}
-
-func NewPkg(pkgPath string, mod *Module, genPkg *gogen.Package, conf *cppgtypes.Config, pubs map[string]string) *Pkg {
-	return &Pkg{PkgPath: pkgPath, CppgConf: conf, Pubs: pubs, Module: mod, Package: genPkg}
+	newPkg := NewPkg(pkgPath, pkgDir, p.Module, p.Package, cfg, pubs)
+	if len(cfg.Deps) > 0 {
+		_, err := newPkg.LoadDeps()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get deps for package %s: %w", pkgPath, err)
+		}
+	}
+	return newPkg, nil
 }
 
 func (p *Pkg) GetIncPaths() ([]string, []string, error) {
-	if len(p.includes) > 0 {
+	if p.includes != nil {
 		return p.includes, nil, nil
 	}
 	expandedIncFlags := env.ExpandEnv(p.CppgConf.CFlags)
@@ -706,54 +723,51 @@ func (p *Pkg) GetIncPaths() ([]string, []string, error) {
 
 // AllDepIncs returns all std include paths of dependent packages
 func (p *Pkg) AllDepIncs() []string {
-	deps, err := p.AllDeps()
+	_, err := p.LoadDeps()
 	if err != nil {
 		log.Println("failed to load deps: \n", err.Error())
 	}
-	return p.getAllDepPkgs(deps)
+	return p.RegisterDeps()
 }
 
-func (p *Pkg) AllDeps() ([]*CPackage, error) {
-	if p.deps != nil {
-		return p.deps, nil
-	}
-	deps, err := p.Imports(p.CppgConf.Deps)
-	if err != nil {
-		return nil, err
-	}
-	p.deps = deps
-	return deps, nil
-}
-
-// get dependent packages' absoulte include paths
-func (p *Pkg) getAllDepPkgs(deps []*CPackage) []string {
-	genPkg := p.Package
+// RegisterDeps registers types from dependent packages into the current conversion project's scope
+func (p *Pkg) RegisterDeps() []string {
 	allDepIncs := make([]string, 0)
+	for _, dep := range p.deps {
+		allDepIncs = append(allDepIncs, p.RegisterDep(dep)...)
+	}
+	return allDepIncs
+}
+
+func (p *Pkg) RegisterDep(dep *Pkg) []string {
+	allDepIncs := make([]string, 0)
+	genPkg := p.Package
 	scope := genPkg.Types.Scope()
-	for _, dep := range deps {
-		incPaths, notFounds, err := dep.GetIncPaths()
-		if len(notFounds) > 0 {
-			log.Println("failed to find some include paths: from ", dep.PkgPath, "\n", notFounds)
-			if err != nil {
-				log.Println("failed to get any include paths: from ", dep.PkgPath, err.Error())
-			}
+	incPaths, notFounds, err := dep.GetIncPaths()
+	if len(notFounds) > 0 {
+		log.Println("failed to find some include paths: from ", dep.PkgPath, "\n", notFounds)
+		if err != nil {
+			log.Println("failed to get any include paths: from ", dep.PkgPath, err.Error())
 		}
-		allDepIncs = append(allDepIncs, incPaths...)
-		depPkg := genPkg.Import(dep.PkgPath)
-		for cName, pubGoName := range dep.Pubs {
-			if pubGoName == "" {
-				pubGoName = cName
+	}
+	allDepIncs = append(allDepIncs, incPaths...)
+	if len(dep.CppgConf.Deps) > 0 {
+		allDepIncs = append(allDepIncs, dep.RegisterDeps()...)
+	}
+	depPkg := genPkg.Import(dep.PkgPath)
+	for cName, pubGoName := range dep.Pubs {
+		if pubGoName == "" {
+			pubGoName = cName
+		}
+		if obj := depPkg.TryRef(pubGoName); obj != nil {
+			var preObj types.Object
+			if pubGoName == cName {
+				preObj = obj
+			} else {
+				preObj = gogen.NewSubst(token.NoPos, genPkg.Types, cName, obj)
 			}
-			if obj := depPkg.TryRef(pubGoName); obj != nil {
-				var preObj types.Object
-				if pubGoName == cName {
-					preObj = obj
-				} else {
-					preObj = gogen.NewSubst(token.NoPos, genPkg.Types, cName, obj)
-				}
-				if old := scope.Insert(preObj); old != nil {
-					log.Printf("conflicted name `%v` in %v, previous definition is %v\n", pubGoName, dep.PkgPath, old)
-				}
+			if old := scope.Insert(preObj); old != nil {
+				log.Printf("conflicted name `%v` in %v, previous definition is %v\n", pubGoName, dep.PkgPath, old)
 			}
 		}
 	}
