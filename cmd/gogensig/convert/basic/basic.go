@@ -31,12 +31,17 @@ func ConvertProcesser(cfg *Config) (*processor.DocFileSetProcessor, *convert.Pac
 	docVisitors := []visitor.DocVisitor{astConvert}
 	visitorManager := processor.NewDocVisitorManager(docVisitors)
 
+	incs, err := astConvert.Pkg.InitDeps()
+	if err != nil {
+		return nil, nil, err
+	}
+
 	return processor.NewDocFileSetProcessor(&processor.ProcesserConfig{
 		Exec: func(file *unmarshal.FileEntry) error {
 			visitorManager.Visit(file.Doc, file.Path, file.IncPath, file.IsSys)
 			return nil
 		},
-		DepIncs: astConvert.Pkg.AllDepIncs(),
+		DepIncs: incs,
 		Done: func() {
 			astConvert.WriteLinkFile()
 			astConvert.WritePubFile()

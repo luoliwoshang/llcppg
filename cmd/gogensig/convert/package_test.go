@@ -2041,23 +2041,6 @@ func TestIncPathToPkg(t *testing.T) {
 	}
 }
 
-func TestErrDepsPub(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Fatal("expected panic")
-		}
-	}()
-	pkg := createTestPkg(t, &convert.PackageConfig{
-		OutputDir: ".",
-		CppgConf: &cppgtypes.Config{
-			Deps: []string{
-				"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/invaliddep/cfg",
-			},
-		},
-	})
-	pkg.AllDepIncs()
-}
-
 func TestImport(t *testing.T) {
 	t.Run("invalid mod", func(t *testing.T) {
 		pkg := &convert.Pkg{}
@@ -2066,8 +2049,7 @@ func TestImport(t *testing.T) {
 			t.Fatal("expected error")
 		}
 	})
-
-	t.Run("invalid cfg file", func(t *testing.T) {
+	t.Run("invalid include path", func(t *testing.T) {
 		defer func() {
 			if r := recover(); r == nil {
 				t.Fatal("expected panic")
@@ -2077,26 +2059,43 @@ func TestImport(t *testing.T) {
 			OutputDir: ".",
 			CppgConf: &cppgtypes.Config{
 				Deps: []string{
-					"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/invaliddep/cfg",
+					"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/invalidpath",
 				},
 			},
 		})
-		_, err := pkg.LoadDeps()
+		_, err := pkg.InitDeps()
 		if err != nil {
 			t.Fatal(err)
 		}
-		pkg.AllDepIncs()
 	})
 	t.Run("invalid pub file", func(t *testing.T) {
 		pkg := createTestPkg(t, &convert.PackageConfig{
 			OutputDir: ".",
 			CppgConf: &cppgtypes.Config{
 				Deps: []string{
-					"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/invaliddep/pub",
+					"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/invalidpub",
 				},
 			},
 		})
 		_, err := pkg.LoadDeps()
+		if err == nil {
+			t.Fatal("expected error")
+		}
+	})
+	t.Run("invalid dep", func(t *testing.T) {
+		pkg := createTestPkg(t, &convert.PackageConfig{
+			OutputDir: ".",
+			CppgConf: &cppgtypes.Config{
+				Deps: []string{
+					"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/invaliddep",
+				},
+			},
+		})
+		_, err := pkg.InitDeps()
+		if err == nil {
+			t.Fatal(err)
+		}
+		_, err = pkg.Import("github.com/goplus/invaliddep")
 		if err == nil {
 			t.Fatal("expected error")
 		}

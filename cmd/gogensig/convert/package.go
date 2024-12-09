@@ -84,7 +84,7 @@ func NewPackage(config *PackageConfig) *Package {
 		log.Panicf("failed to load mod: %s", err.Error())
 	}
 
-	p.Pkg = NewPkg(config.PkgPath, config.OutputDir, mod, p.p, config.CppgConf, config.Public)
+	p.Pkg = NewPkg(config.PkgPath, config.OutputDir, mod, p.p, config.CppgConf, config.Public, nil, nil)
 
 	clib := p.p.Import("github.com/goplus/llgo/c")
 	typeMap := NewBuiltinTypeMapWithPkgRefS(clib, p.p.Unsafe())
@@ -638,15 +638,23 @@ type Pkg struct {
 	*gogen.Package
 
 	deps     []*Pkg
-	PkgPath  string            // package path, e.g. github.com/goplus/llgo/cjson
-	Dir      string            // absolute local path of the package
-	CppgConf *cppgtypes.Config // llcppg.cfg
-	Pubs     map[string]string // llcppg.pub
-	includes []string          // abs header paths
+	PkgPath  string              // package path, e.g. github.com/goplus/llgo/cjson
+	Dir      string              // absolute local path of the package
+	CppgConf *cppgtypes.Config   // llcppg.cfg
+	Pubs     map[string]string   // llcppg.pub
+	pkgCache map[string]*Pkg     // pkgPath -> *Pkg
+	regCache map[string]struct{} // pkgPath
+	includes []string            // abs header path
 }
 
-func NewPkg(pkgPath string, pkgDir string, mod *Module, genPkg *gogen.Package, conf *cppgtypes.Config, pubs map[string]string) *Pkg {
-	return &Pkg{PkgPath: pkgPath, Dir: pkgDir, CppgConf: conf, Pubs: pubs, Module: mod, Package: genPkg}
+func NewPkg(pkgPath string, pkgDir string, mod *Module, genPkg *gogen.Package, conf *cppgtypes.Config, pubs map[string]string, pkgCache map[string]*Pkg, regCache map[string]struct{}) *Pkg {
+	if pkgCache == nil {
+		pkgCache = make(map[string]*Pkg)
+	}
+	if regCache == nil {
+		regCache = make(map[string]struct{})
+	}
+	return &Pkg{PkgPath: pkgPath, Dir: pkgDir, CppgConf: conf, Pubs: pubs, Module: mod, Package: genPkg, pkgCache: pkgCache, regCache: regCache}
 }
 
 // LoadDeps loads direct dependencies of the current package and recursively loads their
@@ -678,6 +686,9 @@ func (p *Pkg) Import(pkgPath string) (*Pkg, error) {
 	if p.Module == nil {
 		return nil, errs.NewModNotFoundError()
 	}
+	if pkg, exist := p.pkgCache[pkgPath]; exist {
+		return pkg, nil
+	}
 	pkg, err := p.Module.Lookup(pkgPath)
 	if err != nil {
 		return nil, err
@@ -694,7 +705,9 @@ func (p *Pkg) Import(pkgPath string) (*Pkg, error) {
 	if err != nil {
 		return nil, err
 	}
-	newPkg := NewPkg(pkgPath, pkgDir, p.Module, p.Package, cfg, pubs)
+	newPkg := NewPkg(pkgPath, pkgDir, p.Module, p.Package, cfg, pubs, p.pkgCache, p.regCache)
+	p.pkgCache[pkgPath] = newPkg
+
 	if len(cfg.Deps) > 0 {
 		_, err := newPkg.LoadDeps()
 		if err != nil {
@@ -715,13 +728,13 @@ func (p *Pkg) GetIncPaths() ([]string, []string, error) {
 	return incPaths, notFounds, err
 }
 
-// AllDepIncs returns all std include paths of dependent packages
-func (p *Pkg) AllDepIncs() []string {
+// InitDeps returns all std include paths of dependent packages
+func (p *Pkg) InitDeps() ([]string, error) {
 	_, err := p.LoadDeps()
 	if err != nil {
-		log.Println("failed to load deps: \n", err.Error())
+		return nil, err
 	}
-	return p.RegisterDeps()
+	return p.RegisterDeps(), nil
 }
 
 // RegisterDeps registers types from dependent packages into the current conversion project's scope
@@ -734,6 +747,11 @@ func (p *Pkg) RegisterDeps() []string {
 }
 
 func (p *Pkg) RegisterDep(dep *Pkg) []string {
+	// todo: check whether the dependent package has been registered
+	if _, ok := dep.regCache[dep.PkgPath]; ok {
+		return []string{}
+	}
+	dep.regCache[dep.PkgPath] = struct{}{}
 	allDepIncs := make([]string, 0)
 	genPkg := p.Package
 	scope := genPkg.Types.Scope()
