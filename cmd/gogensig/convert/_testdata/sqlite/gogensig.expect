@@ -66,17 +66,99 @@ type IoMethods struct {
 	XUnfetch               unsafe.Pointer
 }
 
+type Value struct {
+	Unused [8]uint8
+}
+
+type Context struct {
+	Unused [8]uint8
+}
+
+type Fts5ExtensionApi struct {
+	IVersion           c.Int
+	XUserData          unsafe.Pointer
+	XColumnCount       unsafe.Pointer
+	XRowCount          unsafe.Pointer
+	XColumnTotalSize   unsafe.Pointer
+	XTokenize          unsafe.Pointer
+	XPhraseCount       unsafe.Pointer
+	XPhraseSize        unsafe.Pointer
+	XInstCount         unsafe.Pointer
+	XInst              unsafe.Pointer
+	XRowid             unsafe.Pointer
+	XColumnText        unsafe.Pointer
+	XColumnSize        unsafe.Pointer
+	XQueryPhrase       unsafe.Pointer
+	XSetAuxdata        unsafe.Pointer
+	XGetAuxdata        unsafe.Pointer
+	XPhraseFirst       unsafe.Pointer
+	XPhraseNext        unsafe.Pointer
+	XPhraseFirstColumn unsafe.Pointer
+	XPhraseNextColumn  unsafe.Pointer
+	XQueryToken        unsafe.Pointer
+	XInstToken         unsafe.Pointer
+	XColumnLocale      unsafe.Pointer
+	XTokenizeV2        unsafe.Pointer
+}
+
+type Fts5Context struct {
+	Unused [8]uint8
+}
+
+type Fts5PhraseIter struct {
+	A *int8
+	B *int8
+}
+// llgo:type C
+type Fts5ExtensionFunction func(*Fts5ExtensionApi, *Fts5Context, *Context, c.Int, **Value)
+
+type Fts5Tokenizer struct {
+	Unused [8]uint8
+}
+
+type Fts5TokenizerV2 struct {
+	IVersion  c.Int
+	XCreate   unsafe.Pointer
+	XDelete   unsafe.Pointer
+	XTokenize unsafe.Pointer
+}
+
+type Fts5Tokenizer__1 struct {
+	XCreate   unsafe.Pointer
+	XDelete   unsafe.Pointer
+	XTokenize unsafe.Pointer
+}
+
+type Fts5Api struct {
+	IVersion           c.Int
+	XCreateTokenizer   unsafe.Pointer
+	XFindTokenizer     unsafe.Pointer
+	XCreateFunction    unsafe.Pointer
+	XCreateTokenizerV2 unsafe.Pointer
+	XFindTokenizerV2   unsafe.Pointer
+}
+
 ===== sqlite_autogen_link.go =====
 package sqlite
 
 const LLGoPackage string = "link: $(pkg-config --libs sqlite3);"
 
 ===== llcppg.pub =====
+Fts5Context
+Fts5ExtensionApi
+Fts5PhraseIter
+Fts5Tokenizer
+fts5_api Fts5Api
+fts5_extension_function Fts5ExtensionFunction
+fts5_tokenizer Fts5Tokenizer__1
+fts5_tokenizer_v2 Fts5TokenizerV2
 sqlite3 Sqlite3
 sqlite3_callback Callback
+sqlite3_context Context
 sqlite3_file File
 sqlite3_int64 Int64
 sqlite3_io_methods IoMethods
 sqlite3_uint64 Uint64
+sqlite3_value Value
 sqlite_int64 SqliteInt64
 sqlite_uint64 SqliteUint64

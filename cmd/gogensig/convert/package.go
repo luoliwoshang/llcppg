@@ -34,12 +34,13 @@ func SetDebug(flags int) {
 // In Processing Package
 type Package struct {
 	*PkgInfo
-	p          *gogen.Package             // package writer
-	conf       *PackageConfig             // package config
-	cvt        *TypeConv                  // package type convert
-	curFile    *HeaderFile                // current processing c header file.
-	incomplete map[string]*gogen.TypeDecl // originname -> TypeDecl
-	deferTypes map[*gogen.TypeDecl]func() (types.Type, error)
+	p            *gogen.Package             // package writer
+	conf         *PackageConfig             // package config
+	cvt          *TypeConv                  // package type convert
+	curFile      *HeaderFile                // current processing c header file.
+	incomplete   map[string]*gogen.TypeDecl // originname -> TypeDecl
+	deferTypes   map[*gogen.TypeDecl]func() (types.Type, error)
+	pubNameCount map[string]int
 }
 
 type PackageConfig struct {
@@ -54,10 +55,11 @@ type PackageConfig struct {
 // If SetCurFile is not called, all type conversions will be written to this default Go file.
 func NewPackage(config *PackageConfig) *Package {
 	p := &Package{
-		p:          gogen.NewPackage(config.PkgPath, config.Name, config.GenConf),
-		conf:       config,
-		incomplete: make(map[string]*gogen.TypeDecl),
-		deferTypes: make(map[*gogen.TypeDecl]func() (types.Type, error)),
+		p:            gogen.NewPackage(config.PkgPath, config.Name, config.GenConf),
+		conf:         config,
+		incomplete:   make(map[string]*gogen.TypeDecl),
+		deferTypes:   make(map[*gogen.TypeDecl]func() (types.Type, error)),
+		pubNameCount: make(map[string]int),
 	}
 
 	mod, err := gopmod.Load(config.OutputDir)
@@ -284,7 +286,7 @@ func (p *Package) handleCompleteType(decl *gogen.TypeDecl, typ *ast.RecordType, 
 // For such declarations, create a empty type decl and store it in the
 // incomplete map, but not in the public symbol table.
 func (p *Package) handleImplicitForwardDecl(name string) *gogen.TypeDecl {
-	pubName, _ := p.GetGoName(name)
+	pubName, _ := p.GetGoName(name, false)
 	decl := p.emptyTypeDecl(pubName, nil)
 	p.incomplete[name] = decl
 	return decl
@@ -543,7 +545,7 @@ func (p *Package) WritePubFile() error {
 
 // For a decl name, it should be unique
 func (p *Package) DeclName(name string) (pubName string, changed bool, err error) {
-	pubName, changed = p.GetGoName(name)
+	pubName, changed = p.GetGoName(name, true)
 	// if the type is incomplete,it's ok to have the same name
 	if obj := p.p.Types.Scope().Lookup(name); obj != nil && p.incomplete[name] == nil {
 		return "", false, errs.NewTypeDefinedError(pubName, name)
@@ -552,7 +554,7 @@ func (p *Package) DeclName(name string) (pubName string, changed bool, err error
 }
 
 // For a decl name, if it's a current package, remove the prefixed name
-func (p *Package) GetGoName(name string) (pubName string, changed bool) {
+func (p *Package) GetGoName(name string, countName bool) (pubName string, changed bool) {
 	if goName, exists := p.Pubs[name]; exists {
 		if goName == "" {
 			return name, false
@@ -563,8 +565,17 @@ func (p *Package) GetGoName(name string) (pubName string, changed bool) {
 	if p.curFile.inCurPkg {
 		prefixes = p.CppgConf.TrimPrefixes
 	}
-
 	pubName = names.GoName(name, prefixes)
+
+	if countName {
+		count := p.pubNameCount[pubName]
+		p.pubNameCount[pubName]++
+
+		if count > 0 {
+			pubName = fmt.Sprintf("%s__%d", pubName, count)
+		}
+	}
+
 	return pubName, pubName != name
 }
 
