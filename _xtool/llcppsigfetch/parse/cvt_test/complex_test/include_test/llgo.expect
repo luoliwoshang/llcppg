@@ -3,6 +3,9 @@
 	"./hfile/temp.h":	{
 		"_Type":	"File",
 		"decls":	[{
+				"_Type":	"Include",
+				"Path":	"./hfile/compact.h"
+			}, {
 				"_Type":	"EnumTypeDecl",
 				"Loc":	{
 					"_Type":	"Location",

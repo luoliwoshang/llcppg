@@ -116,6 +116,9 @@ func MarshalASTDecl(decl ast.Decl) *cjson.JSON {
 	}
 	root := cjson.Object()
 	switch d := decl.(type) {
+	case *ast.Include:
+		root.SetItem(c.Str("_Type"), stringField("Include"))
+		root.SetItem(c.Str("Path"), stringField(d.Path))
 	case *ast.EnumTypeDecl:
 		root.SetItem(c.Str("_Type"), stringField("EnumTypeDecl"))
 		MarshalASTDeclBase(d.DeclBase, root)

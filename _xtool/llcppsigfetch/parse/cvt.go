@@ -246,6 +246,7 @@ func (ct *Converter) visitTop(cursor, parent clang.Cursor) clang.ChildVisitResul
 			return clang.ChildVisit_Continue
 		}
 		curFile.Includes = append(curFile.Includes, include)
+		curFile.Decls = append(curFile.Decls, include)
 		ct.logln("visitTop: ProcessInclude END ", include.Path)
 	case clang.CursorMacroDefinition:
 		macro := ct.ProcessMacro(cursor)
