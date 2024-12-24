@@ -77,7 +77,9 @@ jobs:
 
     - name: Test Convert Success
       if: startsWith(matrix.os, 'macos')
-      run: llcppgtest libcjson
+      run: | 
+        llcppgtest libcjson
+        llcppgtest openssl
 
     - name: Test demos
       run: |
