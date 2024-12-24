@@ -114,7 +114,8 @@ func (*BuiltinType) exprNode() {}
 
 // Name
 type Ident struct {
-	Name string
+	Name   string
+	DefLoc *Location
 }
 
 func (*Ident) exprNode() {}
@@ -352,8 +353,7 @@ type Include struct {
 	Path string `json:"path"`
 }
 
-func (*Include) ppdNode()  {}
-func (*Include) declNode() {}
+func (*Include) ppdNode() {}
 
 // ------------------------------------------------
 

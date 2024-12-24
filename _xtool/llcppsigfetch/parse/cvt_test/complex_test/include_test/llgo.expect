@@ -3,9 +3,6 @@
 	"./hfile/temp.h":	{
 		"_Type":	"File",
 		"decls":	[{
-				"_Type":	"Include",
-				"Path":	"./hfile/compact.h"
-			}, {
 				"_Type":	"EnumTypeDecl",
 				"Loc":	{
 					"_Type":	"Location",
@@ -15,6 +12,7 @@
 				"Parent":	null,
 				"Name":	{
 					"_Type":	"Ident",
+					"DefLoc":	null,
 					"Name":	"gnutls_cipher_algorithm"
 				},
 				"Type":	{
@@ -23,6 +21,7 @@
 							"_Type":	"EnumItem",
 							"Name":	{
 								"_Type":	"Ident",
+								"DefLoc":	null,
 								"Name":	"GNUTLS_CIPHER_UNKNOWN"
 							},
 							"Value":	{
@@ -34,6 +33,7 @@
 							"_Type":	"EnumItem",
 							"Name":	{
 								"_Type":	"Ident",
+								"DefLoc":	null,
 								"Name":	"GNUTLS_CIPHER_NULL"
 							},
 							"Value":	{
@@ -53,12 +53,17 @@
 				"Parent":	null,
 				"Name":	{
 					"_Type":	"Ident",
+					"DefLoc":	null,
 					"Name":	"gnutls_cipher_algorithm_t"
 				},
 				"Type":	{
 					"_Type":	"TagExpr",
 					"Name":	{
 						"_Type":	"Ident",
+						"DefLoc":	{
+							"_Type":	"Location",
+							"File":	"./hfile/temp.h"
+						},
 						"Name":	"gnutls_cipher_algorithm"
 					},
 					"Tag":	2
@@ -82,10 +87,15 @@
 				"Parent":	null,
 				"Name":	{
 					"_Type":	"Ident",
+					"DefLoc":	null,
 					"Name":	"gnutls_cipher_algorithm"
 				},
 				"Type":	{
 					"_Type":	"Ident",
+					"DefLoc":	{
+						"_Type":	"Location",
+						"File":	"./hfile/temp.h"
+					},
 					"Name":	"gnutls_cipher_algorithm_t"
 				}
 			}],

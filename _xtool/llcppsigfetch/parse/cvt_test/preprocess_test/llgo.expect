@@ -125,9 +125,6 @@ TestMacroExpansionOtherFile:
 	"./testdata/macroexpan/ref.h":	{
 		"_Type":	"File",
 		"decls":	[{
-				"_Type":	"Include",
-				"Path":	"./testdata/macroexpan/def.h"
-			}, {
 				"_Type":	"TypeDecl",
 				"Loc":	{
 					"_Type":	"Location",
@@ -137,6 +134,7 @@ TestMacroExpansionOtherFile:
 				"Parent":	null,
 				"Name":	{
 					"_Type":	"Ident",
+					"DefLoc":	null,
 					"Name":	"NewType"
 				},
 				"Type":	{
@@ -165,6 +163,7 @@ TestMacroExpansionOtherFile:
 								"Access":	1,
 								"Names":	[{
 										"_Type":	"Ident",
+										"DefLoc":	null,
 										"Name":	"__val"
 									}]
 							}]
