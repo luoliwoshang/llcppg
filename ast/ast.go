@@ -352,7 +352,8 @@ type Include struct {
 	Path string `json:"path"`
 }
 
-func (*Include) ppdNode() {}
+func (*Include) ppdNode()  {}
+func (*Include) declNode() {}
 
 // ------------------------------------------------
 
