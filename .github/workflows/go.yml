@@ -75,6 +75,10 @@ jobs:
       if: startsWith(matrix.os, 'macos')
       run: go test -v -coverprofile="coverage.txt" -covermode=atomic ./...
 
+    - name: Test Convert Success
+      if: startsWith(matrix.os, 'macos')
+      run: llcppgtest libcjson
+
     - name: Test demos
       run: |
         # TODO(lijie): force python3-embed to be linked with python-3.12-embed
