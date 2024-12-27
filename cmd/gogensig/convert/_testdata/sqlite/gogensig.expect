@@ -66,6 +66,283 @@ type IoMethods struct {
 	XUnfetch               unsafe.Pointer
 }
 
+type Mutex struct {
+	Unused [8]uint8
+}
+
+type ApiRoutines struct {
+	AggregateContext     unsafe.Pointer
+	AggregateCount       unsafe.Pointer
+	BindBlob             unsafe.Pointer
+	BindDouble           unsafe.Pointer
+	BindInt              unsafe.Pointer
+	BindInt64            unsafe.Pointer
+	BindNull             unsafe.Pointer
+	BindParameterCount   unsafe.Pointer
+	BindParameterIndex   unsafe.Pointer
+	BindParameterName    unsafe.Pointer
+	BindText             unsafe.Pointer
+	BindText16           unsafe.Pointer
+	BindValue            unsafe.Pointer
+	BusyHandler          unsafe.Pointer
+	BusyTimeout          unsafe.Pointer
+	Changes              unsafe.Pointer
+	Close                unsafe.Pointer
+	CollationNeeded      unsafe.Pointer
+	CollationNeeded16    unsafe.Pointer
+	ColumnBlob           unsafe.Pointer
+	ColumnBytes          unsafe.Pointer
+	ColumnBytes16        unsafe.Pointer
+	ColumnCount          unsafe.Pointer
+	ColumnDatabaseName   unsafe.Pointer
+	ColumnDatabaseName16 unsafe.Pointer
+	ColumnDecltype       unsafe.Pointer
+	ColumnDecltype16     unsafe.Pointer
+	ColumnDouble         unsafe.Pointer
+	ColumnInt            unsafe.Pointer
+	ColumnInt64          unsafe.Pointer
+	ColumnName           unsafe.Pointer
+	ColumnName16         unsafe.Pointer
+	ColumnOriginName     unsafe.Pointer
+	ColumnOriginName16   unsafe.Pointer
+	ColumnTableName      unsafe.Pointer
+	ColumnTableName16    unsafe.Pointer
+	ColumnText           unsafe.Pointer
+	ColumnText16         unsafe.Pointer
+	ColumnType           unsafe.Pointer
+	ColumnValue          unsafe.Pointer
+	CommitHook           unsafe.Pointer
+	Complete             unsafe.Pointer
+	Complete16           unsafe.Pointer
+	CreateCollation      unsafe.Pointer
+	CreateCollation16    unsafe.Pointer
+	CreateFunction       unsafe.Pointer
+	CreateFunction16     unsafe.Pointer
+	CreateModule         unsafe.Pointer
+	DataCount            unsafe.Pointer
+	DbHandle             unsafe.Pointer
+	DeclareVtab          unsafe.Pointer
+	EnableSharedCache    unsafe.Pointer
+	Errcode              unsafe.Pointer
+	Errmsg               unsafe.Pointer
+	Errmsg16             unsafe.Pointer
+	Exec                 unsafe.Pointer
+	Expired              unsafe.Pointer
+	Finalize             unsafe.Pointer
+	Free                 unsafe.Pointer
+	FreeTable            unsafe.Pointer
+	GetAutocommit        unsafe.Pointer
+	GetAuxdata           unsafe.Pointer
+	GetTable             unsafe.Pointer
+	GlobalRecover        unsafe.Pointer
+	Interruptx           unsafe.Pointer
+	LastInsertRowid      unsafe.Pointer
+	Libversion           unsafe.Pointer
+	LibversionNumber     unsafe.Pointer
+	Malloc               unsafe.Pointer
+	Mprintf              unsafe.Pointer
+	Open                 unsafe.Pointer
+	Open16               unsafe.Pointer
+	Prepare              unsafe.Pointer
+	Prepare16            unsafe.Pointer
+	Profile              unsafe.Pointer
+	ProgressHandler      unsafe.Pointer
+	Realloc              unsafe.Pointer
+	Reset                unsafe.Pointer
+	ResultBlob           unsafe.Pointer
+	ResultDouble         unsafe.Pointer
+	ResultError          unsafe.Pointer
+	ResultError16        unsafe.Pointer
+	ResultInt            unsafe.Pointer
+	ResultInt64          unsafe.Pointer
+	ResultNull           unsafe.Pointer
+	ResultText           unsafe.Pointer
+	ResultText16         unsafe.Pointer
+	ResultText16be       unsafe.Pointer
+	ResultText16le       unsafe.Pointer
+	ResultValue          unsafe.Pointer
+	RollbackHook         unsafe.Pointer
+	SetAuthorizer        unsafe.Pointer
+	SetAuxdata           unsafe.Pointer
+	Xsnprintf            unsafe.Pointer
+	Step                 unsafe.Pointer
+	TableColumnMetadata  unsafe.Pointer
+	ThreadCleanup        unsafe.Pointer
+	TotalChanges         unsafe.Pointer
+	Trace                unsafe.Pointer
+	TransferBindings     unsafe.Pointer
+	UpdateHook           unsafe.Pointer
+	UserData             unsafe.Pointer
+	ValueBlob            unsafe.Pointer
+	ValueBytes           unsafe.Pointer
+	ValueBytes16         unsafe.Pointer
+	ValueDouble          unsafe.Pointer
+	ValueInt             unsafe.Pointer
+	ValueInt64           unsafe.Pointer
+	ValueNumericType     unsafe.Pointer
+	ValueText            unsafe.Pointer
+	ValueText16          unsafe.Pointer
+	ValueText16be        unsafe.Pointer
+	ValueText16le        unsafe.Pointer
+	ValueType            unsafe.Pointer
+	Vmprintf             unsafe.Pointer
+	OverloadFunction     unsafe.Pointer
+	PrepareV2            unsafe.Pointer
+	Prepare16V2          unsafe.Pointer
+	ClearBindings        unsafe.Pointer
+	CreateModuleV2       unsafe.Pointer
+	BindZeroblob         unsafe.Pointer
+	BlobBytes            unsafe.Pointer
+	BlobClose            unsafe.Pointer
+	BlobOpen             unsafe.Pointer
+	BlobRead             unsafe.Pointer
+	BlobWrite            unsafe.Pointer
+	CreateCollationV2    unsafe.Pointer
+	FileControl          unsafe.Pointer
+	MemoryHighwater      unsafe.Pointer
+	MemoryUsed           unsafe.Pointer
+	MutexAlloc           unsafe.Pointer
+	MutexEnter           unsafe.Pointer
+	MutexFree            unsafe.Pointer
+	MutexLeave           unsafe.Pointer
+	MutexTry             unsafe.Pointer
+	OpenV2               unsafe.Pointer
+	ReleaseMemory        unsafe.Pointer
+	ResultErrorNomem     unsafe.Pointer
+	ResultErrorToobig    unsafe.Pointer
+	Sleep                unsafe.Pointer
+	SoftHeapLimit        unsafe.Pointer
+	VfsFind              unsafe.Pointer
+	VfsRegister          unsafe.Pointer
+	VfsUnregister        unsafe.Pointer
+	Xthreadsafe          unsafe.Pointer
+	ResultZeroblob       unsafe.Pointer
+	ResultErrorCode      unsafe.Pointer
+	TestControl          unsafe.Pointer
+	Randomness           unsafe.Pointer
+	ContextDbHandle      unsafe.Pointer
+	ExtendedResultCodes  unsafe.Pointer
+	Limit                unsafe.Pointer
+	NextStmt             unsafe.Pointer
+	Sql                  unsafe.Pointer
+	Status               unsafe.Pointer
+	BackupFinish         unsafe.Pointer
+	BackupInit           unsafe.Pointer
+	BackupPagecount      unsafe.Pointer
+	BackupRemaining      unsafe.Pointer
+	BackupStep           unsafe.Pointer
+	CompileoptionGet     unsafe.Pointer
+	CompileoptionUsed    unsafe.Pointer
+	CreateFunctionV2     unsafe.Pointer
+	DbConfig             unsafe.Pointer
+	DbMutex              unsafe.Pointer
+	DbStatus             unsafe.Pointer
+	ExtendedErrcode      unsafe.Pointer
+	Log                  unsafe.Pointer
+	SoftHeapLimit64      unsafe.Pointer
+	Sourceid             unsafe.Pointer
+	StmtStatus           unsafe.Pointer
+	Strnicmp             unsafe.Pointer
+	UnlockNotify         unsafe.Pointer
+	WalAutocheckpoint    unsafe.Pointer
+	WalCheckpoint        unsafe.Pointer
+	WalHook              unsafe.Pointer
+	BlobReopen           unsafe.Pointer
+	VtabConfig           unsafe.Pointer
+	VtabOnConflict       unsafe.Pointer
+	CloseV2              unsafe.Pointer
+	DbFilename           unsafe.Pointer
+	DbReadonly           unsafe.Pointer
+	DbReleaseMemory      unsafe.Pointer
+	Errstr               unsafe.Pointer
+	StmtBusy             unsafe.Pointer
+	StmtReadonly         unsafe.Pointer
+	Stricmp              unsafe.Pointer
+	UriBoolean           unsafe.Pointer
+	UriInt64             unsafe.Pointer
+	UriParameter         unsafe.Pointer
+	Xvsnprintf           unsafe.Pointer
+	WalCheckpointV2      unsafe.Pointer
+	AutoExtension        unsafe.Pointer
+	BindBlob64           unsafe.Pointer
+	BindText64           unsafe.Pointer
+	CancelAutoExtension  unsafe.Pointer
+	LoadExtension        unsafe.Pointer
+	Malloc64             unsafe.Pointer
+	Msize                unsafe.Pointer
+	Realloc64            unsafe.Pointer
+	ResetAutoExtension   unsafe.Pointer
+	ResultBlob64         unsafe.Pointer
+	ResultText64         unsafe.Pointer
+	Strglob              unsafe.Pointer
+	ValueDup             unsafe.Pointer
+	ValueFree            unsafe.Pointer
+	ResultZeroblob64     unsafe.Pointer
+	BindZeroblob64       unsafe.Pointer
+	ValueSubtype         unsafe.Pointer
+	ResultSubtype        unsafe.Pointer
+	Status64             unsafe.Pointer
+	Strlike              unsafe.Pointer
+	DbCacheflush         unsafe.Pointer
+	SystemErrno          unsafe.Pointer
+	TraceV2              unsafe.Pointer
+	ExpandedSql          unsafe.Pointer
+	SetLastInsertRowid   unsafe.Pointer
+	PrepareV3            unsafe.Pointer
+	Prepare16V3          unsafe.Pointer
+	BindPointer          unsafe.Pointer
+	ResultPointer        unsafe.Pointer
+	ValuePointer         unsafe.Pointer
+	VtabNochange         unsafe.Pointer
+	ValueNochange        unsafe.Pointer
+	VtabCollation        unsafe.Pointer
+	KeywordCount         unsafe.Pointer
+	KeywordName          unsafe.Pointer
+	KeywordCheck         unsafe.Pointer
+	StrNew               unsafe.Pointer
+	StrFinish            unsafe.Pointer
+	StrAppendf           unsafe.Pointer
+	StrVappendf          unsafe.Pointer
+	StrAppend            unsafe.Pointer
+	StrAppendall         unsafe.Pointer
+	StrAppendchar        unsafe.Pointer
+	StrReset             unsafe.Pointer
+	StrErrcode           unsafe.Pointer
+	StrLength            unsafe.Pointer
+	StrValue             unsafe.Pointer
+	CreateWindowFunction unsafe.Pointer
+	NormalizedSql        unsafe.Pointer
+	StmtIsexplain        unsafe.Pointer
+	ValueFrombind        unsafe.Pointer
+	DropModules          unsafe.Pointer
+	HardHeapLimit64      unsafe.Pointer
+	UriKey               unsafe.Pointer
+	FilenameDatabase     unsafe.Pointer
+	FilenameJournal      unsafe.Pointer
+	FilenameWal          unsafe.Pointer
+	CreateFilename       unsafe.Pointer
+	FreeFilename         unsafe.Pointer
+	DatabaseFileObject   unsafe.Pointer
+	TxnState             unsafe.Pointer
+	Changes64            unsafe.Pointer
+	TotalChanges64       unsafe.Pointer
+	AutovacuumPages      unsafe.Pointer
+	ErrorOffset          unsafe.Pointer
+	VtabRhsValue         unsafe.Pointer
+	VtabDistinct         unsafe.Pointer
+	VtabIn               unsafe.Pointer
+	VtabInFirst          unsafe.Pointer
+	VtabInNext           unsafe.Pointer
+	Deserialize          unsafe.Pointer
+	Serialize            unsafe.Pointer
+	DbName               unsafe.Pointer
+	ValueEncoding        unsafe.Pointer
+	IsInterrupted        unsafe.Pointer
+	StmtExplain          unsafe.Pointer
+	GetClientdata        unsafe.Pointer
+	SetClientdata        unsafe.Pointer
+}
+
 type Value struct {
 	Unused [8]uint8
 }
@@ -138,6 +415,16 @@ type Fts5Api struct {
 	XFindTokenizerV2   unsafe.Pointer
 }
 
+===== sqlite3ext.go =====
+package sqlite
+
+import (
+	"github.com/goplus/llgo/c"
+	"unsafe"
+)
+// llgo:type C
+type LoadextEntry func(*Sqlite3, **int8, *ApiRoutines) c.Int
+
 ===== sqlite_autogen_link.go =====
 package sqlite
 
@@ -153,11 +440,14 @@ fts5_extension_function Fts5ExtensionFunction
 fts5_tokenizer Fts5Tokenizer__1
 fts5_tokenizer_v2 Fts5TokenizerV2
 sqlite3 Sqlite3
+sqlite3_api_routines ApiRoutines
 sqlite3_callback Callback
 sqlite3_context Context
 sqlite3_file File
 sqlite3_int64 Int64
 sqlite3_io_methods IoMethods
+sqlite3_loadext_entry LoadextEntry
+sqlite3_mutex Mutex
 sqlite3_uint64 Uint64
 sqlite3_value Value
 sqlite_int64 SqliteInt64
