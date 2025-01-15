@@ -87,10 +87,10 @@ func (p *Context) parseFile(path string) ([]*ast.FileEntry, error) {
 	}
 	defer converter.Dispose()
 
-	files, err := converter.Convert()
+	fileSet, err := converter.Convert()
 
 	// the entry file is the first file in the files list
-	entryFile := files[0]
+	entryFile := fileSet[0]
 	if entryFile.IncPath != "" {
 		return nil, errors.New("entry file " + entryFile.Path + " has include path " + entryFile.IncPath)
 	}
@@ -110,5 +110,5 @@ func (p *Context) parseFile(path string) ([]*ast.FileEntry, error) {
 		return nil, err
 	}
 
-	return files, nil
+	return fileSet, nil
 }

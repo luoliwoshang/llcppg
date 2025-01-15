@@ -74,7 +74,7 @@ func TestProcessValidSigfetchContent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = p.ProcessFileSetFromPath(tempFileName)
+	err = p.ProcessPackageFromPath(tempFileName)
 	if err != nil {
 		t.Error(err)
 	}
@@ -98,7 +98,7 @@ func TestProcessFileNotExist(t *testing.T) {
 		},
 		DepIncs: []string{},
 	})
-	err = p.ProcessFileSetFromPath("notexist.json")
+	err = p.ProcessPackageFromPath("notexist.json")
 	if !os.IsNotExist(err) {
 		t.Error("expect no such file or directory error")
 	}
@@ -135,7 +135,7 @@ func TestProcessInvalidSigfetchContent(t *testing.T) {
 		},
 		DepIncs: []string{},
 	})
-	err = p.ProcessFileSetFromPath(tempFileName)
+	err = p.ProcessPackageFromPath(tempFileName)
 	if err != nil {
 		panic(err)
 	}

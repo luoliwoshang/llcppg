@@ -9,6 +9,7 @@ import (
 	test "github.com/goplus/llcppg/_xtool/llcppsigfetch/parse/cvt_test"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/clangutils"
 	"github.com/goplus/llcppg/ast"
+	"github.com/goplus/llcppg/types"
 	"github.com/goplus/llgo/c"
 )
 
@@ -48,7 +49,7 @@ func TestInclusionMap() {
 		panic(err)
 	}
 	found := false
-	for _, f := range converter.Files {
+	for _, f := range converter.FileSet {
 		if f.IncPath == "sys/types.h" {
 			found = true
 		}
@@ -70,31 +71,32 @@ func TestSystemHeader() {
 	if err != nil {
 		panic(err)
 	}
+	files := converter.FileSet
 	converter.Convert()
-	if len(converter.Files) < 2 {
+	if len(files) < 2 {
 		panic("expect 2 files")
 	}
-	if converter.Files[0].IsSys {
+	if files[0].IsSys {
 		panic("entry file is not system header")
 	}
 
-	includePath := converter.Files[0].Doc.Includes[0].Path
+	includePath := files[0].Doc.Includes[0].Path
 	if strings.HasSuffix(includePath, "stdio.h") && filepath.IsAbs(includePath) {
 		fmt.Println("stdio.h is absolute path")
 	}
 
-	for i := 1; i < len(converter.Files); i++ {
-		if !converter.Files[i].IsSys {
-			panic(fmt.Errorf("include file is not system header: %s", converter.Files[i].Path))
+	for i := 1; i < len(files); i++ {
+		if !files[i].IsSys {
+			panic(fmt.Errorf("include file is not system header: %s", files[i].Path))
 		}
-		for _, decl := range converter.Files[i].Doc.Decls {
+		for _, decl := range files[i].Doc.Decls {
 			switch decl := decl.(type) {
 			case *ast.TypeDecl:
 			case *ast.EnumTypeDecl:
 			case *ast.FuncDecl:
 			case *ast.TypedefDecl:
-				if decl.DeclBase.Loc.File != converter.Files[i].Path {
-					fmt.Println("Decl is not in the file", decl.DeclBase.Loc.File, "expect", converter.Files[i].Path)
+				if decl.DeclBase.Loc.File != files[i].Path {
+					fmt.Println("Decl is not in the file", decl.DeclBase.Loc.File, "expect", files[i].Path)
 				}
 			}
 		}
@@ -104,9 +106,9 @@ func TestSystemHeader() {
 
 func TestMacroExpansionOtherFile() {
 	c.Printf(c.Str("TestMacroExpansionOtherFile:\n"))
-	test.RunTestWithConfig(&clangutils.Config{
-		File:  "./testdata/macroexpan/ref.h",
-		Temp:  false,
-		IsCpp: false,
+	test.RunTestWithConfig(&parse.ContextConfig{
+		Conf: &types.Config{Cplusplus: false, Include: []string{"macroexpan/ref.h"}},
+	}, []string{
+		"./testdata/macroexpan/ref.h",
 	})
 }

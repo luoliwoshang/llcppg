@@ -1,236 +1,267 @@
 #stdout
 TestEnumDecl Case 1:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"EnumTypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	null,
-				"Type":	{
-					"_Type":	"EnumType",
-					"Items":	[{
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"a"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"0"
-							}
-						}, {
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"b"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"1"
-							}
-						}, {
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"c"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"2"
-							}
-						}]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_1.h",
+		"path":	"temp_1.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"EnumTypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_1.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	null,
+					"Type":	{
+						"_Type":	"EnumType",
+						"Items":	[{
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"a",
+									"USR":	"c:@Ea@a@a"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"0"
+								}
+							}, {
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"b",
+									"USR":	"c:@Ea@a@b"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"1"
+								}
+							}, {
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"c",
+									"USR":	"c:@Ea@a@c"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"2"
+								}
+							}]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestEnumDecl Case 2:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"EnumTypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"Foo"
-				},
-				"Type":	{
-					"_Type":	"EnumType",
-					"Items":	[{
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"a"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"0"
-							}
-						}, {
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"b"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"1"
-							}
-						}, {
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"c"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"2"
-							}
-						}]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_2.h",
+		"path":	"temp_2.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"EnumTypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_2.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"Foo",
+						"USR":	"c:@E@Foo"
+					},
+					"Type":	{
+						"_Type":	"EnumType",
+						"Items":	[{
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"a",
+									"USR":	"c:@E@Foo@a"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"0"
+								}
+							}, {
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"b",
+									"USR":	"c:@E@Foo@b"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"1"
+								}
+							}, {
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"c",
+									"USR":	"c:@E@Foo@c"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"2"
+								}
+							}]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestEnumDecl Case 3:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"EnumTypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"Foo"
-				},
-				"Type":	{
-					"_Type":	"EnumType",
-					"Items":	[{
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"a"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"1"
-							}
-						}, {
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"b"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"2"
-							}
-						}, {
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"c"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"4"
-							}
-						}]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_3.h",
+		"path":	"temp_3.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"EnumTypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_3.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"Foo",
+						"USR":	"c:@E@Foo"
+					},
+					"Type":	{
+						"_Type":	"EnumType",
+						"Items":	[{
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"a",
+									"USR":	"c:@E@Foo@a"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"1"
+								}
+							}, {
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"b",
+									"USR":	"c:@E@Foo@b"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"2"
+								}
+							}, {
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"c",
+									"USR":	"c:@E@Foo@c"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"4"
+								}
+							}]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestEnumDecl Case 4:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"EnumTypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"Foo"
-				},
-				"Type":	{
-					"_Type":	"EnumType",
-					"Items":	[{
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"a"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"1"
-							}
-						}, {
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"b"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"2"
-							}
-						}, {
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"c"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"3"
-							}
-						}]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_4.h",
+		"path":	"temp_4.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"EnumTypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_4.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"Foo",
+						"USR":	"c:@E@Foo"
+					},
+					"Type":	{
+						"_Type":	"EnumType",
+						"Items":	[{
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"a",
+									"USR":	"c:@E@Foo@a"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"1"
+								}
+							}, {
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"b",
+									"USR":	"c:@E@Foo@b"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"2"
+								}
+							}, {
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"c",
+									"USR":	"c:@E@Foo@c"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"3"
+								}
+							}]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 
 #stderr

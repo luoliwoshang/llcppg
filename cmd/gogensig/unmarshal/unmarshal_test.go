@@ -196,10 +196,12 @@ func TestUnmarshalNode(t *testing.T) {
 			name: "Ident",
 			json: `{
 						"_Type":	"Ident",
-						"Name":	"Foo"
+						"Name":	"Foo",
+						"USR":	"c:@Ea@a@a"
 					}`,
 			expected: &ast.Ident{
 				Name: "Foo",
+				USR:  "c:@Ea@a@a",
 			},
 		},
 		{

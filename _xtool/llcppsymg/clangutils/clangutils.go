@@ -82,13 +82,21 @@ func GetLocation(loc clang.SourceLocation) (file clang.File, line c.Uint, column
 	return
 }
 
+type ScopingPart struct {
+	Name string
+	USR  string
+}
+
 // Traverse up the semantic parents
-func BuildScopingParts(cursor clang.Cursor) []string {
-	var parts []string
+func BuildScopingParts(cursor clang.Cursor) []*ScopingPart {
+	var parts []*ScopingPart
 	for cursor.IsNull() != 1 && cursor.Kind != clang.CursorTranslationUnit {
 		name := cursor.String()
-		qualified := c.GoString(name.CStr())
-		parts = append([]string{qualified}, parts...)
+		qualified := &ScopingPart{
+			Name: c.GoString(name.CStr()),
+			USR:  clang.GoString(cursor.USR()),
+		}
+		parts = append([]*ScopingPart{qualified}, parts...)
 		cursor = cursor.SemanticParent()
 		name.Dispose()
 	}

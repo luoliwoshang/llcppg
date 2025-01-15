@@ -2,20 +2,23 @@
 === Test Case: C Header File ===
 CreateTranslationUnit succeeded
 Function/Method: test_function
-Scoping parts: [test_function]
+Scoping part: test_function, c:@F@test_function
 Function/Method: another_function
-Scoping parts: [another_function]
+Scoping part: another_function, c:@F@another_function
 
 === Test Case: C++ Temp File ===
 CreateTranslationUnit succeeded
 Class: TestClass
 Function/Method: test_method
-Scoping parts: [TestClass test_method]
+Scoping part: TestClass, c:@S@TestClass
+Scoping part: test_method, c:@S@TestClass@F@test_method#
 Function/Method: static_method
-Scoping parts: [TestClass static_method]
+Scoping part: TestClass, c:@S@TestClass
+Scoping part: static_method, c:@S@TestClass@F@static_method#f#S
 Namespace: TestNamespace
 Function/Method: namespaced_function
-Scoping parts: [TestNamespace namespaced_function]
+Scoping part: TestNamespace, c:@N@TestNamespace
+Scoping part: namespaced_function, c:@N@TestNamespace@F@namespaced_function#
 
 
 #stderr

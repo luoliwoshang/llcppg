@@ -94,7 +94,9 @@ func TestClangUtil() {
 				funcName := cursor.String()
 				fmt.Printf("Function/Method: %s\n", c.GoString(funcName.CStr()))
 				parts := clangutils.BuildScopingParts(cursor)
-				fmt.Printf("Scoping parts: %v\n", parts)
+				for _, part := range parts {
+					fmt.Printf("Scoping part: %s, %s\n", part.Name, part.USR)
+				}
 				funcName.Dispose()
 			case clang.CursorClassDecl:
 				className := cursor.String()

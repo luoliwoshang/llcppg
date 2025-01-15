@@ -1,212 +1,337 @@
 #stdout
 TestStructDecl Case 1:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	null,
-				"Type":	{
-					"_Type":	"RecordType",
-					"Tag":	0,
-					"Fields":	{
-						"_Type":	"FieldList",
-						"List":	[{
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"a"
-									}]
-							}]
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_1.h",
+		"path":	"temp_1.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_1.h"
 					},
-					"Methods":	[]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	null,
+					"Type":	{
+						"_Type":	"RecordType",
+						"Tag":	0,
+						"Fields":	{
+							"_Type":	"FieldList",
+							"List":	[{
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"a",
+											"USR":	"c:temp_1.h@Sa@FI@a"
+										}]
+								}]
+						},
+						"Methods":	[]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestStructDecl Case 2:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"A"
-				},
-				"Type":	{
-					"_Type":	"RecordType",
-					"Tag":	0,
-					"Fields":	{
-						"_Type":	"FieldList",
-						"List":	[{
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"a"
-									}]
-							}, {
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"b"
-									}]
-							}]
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_2.h",
+		"path":	"temp_2.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_2.h"
 					},
-					"Methods":	[]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"A",
+						"USR":	"c:@S@A"
+					},
+					"Type":	{
+						"_Type":	"RecordType",
+						"Tag":	0,
+						"Fields":	{
+							"_Type":	"FieldList",
+							"List":	[{
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"a",
+											"USR":	"c:@S@A@FI@a"
+										}]
+								}, {
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"b",
+											"USR":	"c:@S@A@FI@b"
+										}]
+								}]
+						},
+						"Methods":	[]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestStructDecl Case 3:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"A"
-				},
-				"Type":	{
-					"_Type":	"RecordType",
-					"Tag":	0,
-					"Fields":	{
-						"_Type":	"FieldList",
-						"List":	[{
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"a"
-									}]
-							}, {
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"b"
-									}]
-							}]
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_3.h",
+		"path":	"temp_3.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_3.h"
 					},
-					"Methods":	[]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"A",
+						"USR":	"c:@S@A"
+					},
+					"Type":	{
+						"_Type":	"RecordType",
+						"Tag":	0,
+						"Fields":	{
+							"_Type":	"FieldList",
+							"List":	[{
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"a",
+											"USR":	"c:@S@A@FI@a"
+										}]
+								}, {
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"b",
+											"USR":	"c:@S@A@FI@b"
+										}]
+								}]
+						},
+						"Methods":	[]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestStructDecl Case 4:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"A"
-				},
-				"Type":	{
-					"_Type":	"RecordType",
-					"Tag":	0,
-					"Fields":	{
-						"_Type":	"FieldList",
-						"List":	[{
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"a"
-									}]
-							}, {
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"PointerType",
-									"X":	{
-										"_Type":	"FuncType",
-										"Params":	{
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_4.h",
+		"path":	"temp_4.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_4.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"A",
+						"USR":	"c:@S@A"
+					},
+					"Type":	{
+						"_Type":	"RecordType",
+						"Tag":	0,
+						"Fields":	{
+							"_Type":	"FieldList",
+							"List":	[{
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"a",
+											"USR":	"c:@S@A@FI@a"
+										}]
+								}, {
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"PointerType",
+										"X":	{
+											"_Type":	"FuncType",
+											"Params":	{
+												"_Type":	"FieldList",
+												"List":	[{
+														"_Type":	"Field",
+														"Type":	{
+															"_Type":	"BuiltinType",
+															"Kind":	6,
+															"Flags":	0
+														},
+														"Doc":	null,
+														"Comment":	null,
+														"IsStatic":	false,
+														"Access":	0,
+														"Names":	null
+													}, {
+														"_Type":	"Field",
+														"Type":	{
+															"_Type":	"BuiltinType",
+															"Kind":	6,
+															"Flags":	0
+														},
+														"Doc":	null,
+														"Comment":	null,
+														"IsStatic":	false,
+														"Access":	0,
+														"Names":	null
+													}]
+											},
+											"Ret":	{
+												"_Type":	"BuiltinType",
+												"Kind":	6,
+												"Flags":	0
+											}
+										}
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"Foo",
+											"USR":	"c:@S@A@FI@Foo"
+										}]
+								}]
+						},
+						"Methods":	[]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
+
+TestStructDecl Case 5:
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_5.h",
+		"path":	"temp_5.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_5.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"Person",
+						"USR":	"c:@S@Person"
+					},
+					"Type":	{
+						"_Type":	"RecordType",
+						"Tag":	0,
+						"Fields":	{
+							"_Type":	"FieldList",
+							"List":	[{
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"age",
+											"USR":	"c:@S@Person@FI@age"
+										}]
+								}, {
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"RecordType",
+										"Tag":	0,
+										"Fields":	{
 											"_Type":	"FieldList",
 											"List":	[{
 													"_Type":	"Field",
@@ -218,8 +343,12 @@ TestStructDecl Case 4:
 													"Doc":	null,
 													"Comment":	null,
 													"IsStatic":	false,
-													"Access":	0,
-													"Names":	null
+													"Access":	1,
+													"Names":	[{
+															"_Type":	"Ident",
+															"Name":	"year",
+															"USR":	"c:@S@Person@S@temp_5.h@31@FI@year"
+														}]
 												}, {
 													"_Type":	"Field",
 													"Type":	{
@@ -230,144 +359,51 @@ TestStructDecl Case 4:
 													"Doc":	null,
 													"Comment":	null,
 													"IsStatic":	false,
-													"Access":	0,
-													"Names":	null
+													"Access":	1,
+													"Names":	[{
+															"_Type":	"Ident",
+															"Name":	"day",
+															"USR":	"c:@S@Person@S@temp_5.h@31@FI@day"
+														}]
+												}, {
+													"_Type":	"Field",
+													"Type":	{
+														"_Type":	"BuiltinType",
+														"Kind":	6,
+														"Flags":	0
+													},
+													"Doc":	null,
+													"Comment":	null,
+													"IsStatic":	false,
+													"Access":	1,
+													"Names":	[{
+															"_Type":	"Ident",
+															"Name":	"month",
+															"USR":	"c:@S@Person@S@temp_5.h@31@FI@month"
+														}]
 												}]
 										},
-										"Ret":	{
-											"_Type":	"BuiltinType",
-											"Kind":	6,
-											"Flags":	0
-										}
-									}
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"Foo"
-									}]
-							}]
-					},
-					"Methods":	[]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
-
-TestStructDecl Case 5:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"Person"
-				},
-				"Type":	{
-					"_Type":	"RecordType",
-					"Tag":	0,
-					"Fields":	{
-						"_Type":	"FieldList",
-						"List":	[{
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"age"
-									}]
-							}, {
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"RecordType",
-									"Tag":	0,
-									"Fields":	{
-										"_Type":	"FieldList",
-										"List":	[{
-												"_Type":	"Field",
-												"Type":	{
-													"_Type":	"BuiltinType",
-													"Kind":	6,
-													"Flags":	0
-												},
-												"Doc":	null,
-												"Comment":	null,
-												"IsStatic":	false,
-												"Access":	1,
-												"Names":	[{
-														"_Type":	"Ident",
-														"Name":	"year"
-													}]
-											}, {
-												"_Type":	"Field",
-												"Type":	{
-													"_Type":	"BuiltinType",
-													"Kind":	6,
-													"Flags":	0
-												},
-												"Doc":	null,
-												"Comment":	null,
-												"IsStatic":	false,
-												"Access":	1,
-												"Names":	[{
-														"_Type":	"Ident",
-														"Name":	"day"
-													}]
-											}, {
-												"_Type":	"Field",
-												"Type":	{
-													"_Type":	"BuiltinType",
-													"Kind":	6,
-													"Flags":	0
-												},
-												"Doc":	null,
-												"Comment":	null,
-												"IsStatic":	false,
-												"Access":	1,
-												"Names":	[{
-														"_Type":	"Ident",
-														"Name":	"month"
-													}]
-											}]
+										"Methods":	[]
 									},
-									"Methods":	[]
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"birthday"
-									}]
-							}]
-					},
-					"Methods":	[]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"birthday",
+											"USR":	"c:@S@Person@FI@birthday"
+										}]
+								}]
+						},
+						"Methods":	[]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 
 #stderr

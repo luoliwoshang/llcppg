@@ -62,7 +62,7 @@ func SigfetchExtract(cfg *SigfetchExtractConfig) ([]byte, error) {
 	return executeSigfetch(args, cfg.Dir)
 }
 
-func SigfetchConfig(configFile string, dir string) ([]byte, error) {
+func SigfetchFromConfig(configFile string, dir string) ([]byte, error) {
 	args := []string{configFile}
 	return executeSigfetch(args, dir)
 }

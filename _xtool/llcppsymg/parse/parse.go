@@ -204,7 +204,7 @@ func (p *SymbolProcessor) genProtoName(cursor clang.Cursor) string {
 
 	var builder strings.Builder
 	for _, part := range scopingParts {
-		builder.WriteString(part)
+		builder.WriteString(part.Name)
 		builder.WriteString("::")
 	}
 

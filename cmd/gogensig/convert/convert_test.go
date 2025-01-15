@@ -210,17 +210,18 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 		t.Fatal(err)
 	}
 
-	bytes, err := config.SigfetchConfig(flagedCfgPath, confPath)
+	bytes, err := config.SigfetchFromConfig(flagedCfgPath, confPath)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	inputdata, err := unmarshal.FileSet(bytes)
+	fileSet, err := unmarshal.FileSet(bytes)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = p.ProcessFileSet(inputdata)
+	err = p.ProcessFileSet(fileSet)
+
 	if err != nil {
 		t.Fatal(err)
 	}
