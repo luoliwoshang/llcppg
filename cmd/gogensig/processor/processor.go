@@ -99,20 +99,20 @@ func (p *DocFileSetProcessor) ProcessFileSet(files []*ast.FileEntry) error {
 	return nil
 }
 
-func (p *DocFileSetProcessor) ProcessFileSetFromByte(data []byte) error {
-	fileSet, err := config.GetCppgSigfetchFromByte(data)
+func (p *DocFileSetProcessor) ProcessPackageFromByte(data []byte) error {
+	fileset, err := config.GetCppgSigfetchFromByte(data)
 	if err != nil {
 		return err
 	}
-	return p.ProcessFileSet(fileSet)
+	return p.ProcessFileSet(fileset)
 }
 
-func (p *DocFileSetProcessor) ProcessFileSetFromPath(filePath string) error {
+func (p *DocFileSetProcessor) ProcessPackageFromPath(filePath string) error {
 	data, err := config.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
-	return p.ProcessFileSetFromByte(data)
+	return p.ProcessPackageFromByte(data)
 }
 
 // FindEntry finds the entry in FileSet. If useIncPath is true, it searches by IncPath, otherwise by Path

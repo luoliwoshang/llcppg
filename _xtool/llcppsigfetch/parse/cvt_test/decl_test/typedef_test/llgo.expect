@@ -1,1061 +1,1182 @@
 #stdout
 TestTypeDefDecl Case 1:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"INT"
-				},
-				"Type":	{
-					"_Type":	"BuiltinType",
-					"Kind":	6,
-					"Flags":	0
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_1.h",
+		"path":	"temp_1.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_1.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"INT",
+						"USR":	"c:temp_1.h@T@INT"
+					},
+					"Type":	{
+						"_Type":	"BuiltinType",
+						"Kind":	6,
+						"Flags":	0
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestTypeDefDecl Case 2:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"INT"
-				},
-				"Type":	{
-					"_Type":	"BuiltinType",
-					"Kind":	6,
-					"Flags":	0
-				}
-			}, {
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"STANDARD_INT"
-				},
-				"Type":	{
-					"_Type":	"Ident",
-					"Name":	"INT"
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_2.h",
+		"path":	"temp_2.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_2.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"INT",
+						"USR":	"c:temp_2.h@T@INT"
+					},
+					"Type":	{
+						"_Type":	"BuiltinType",
+						"Kind":	6,
+						"Flags":	0
+					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_2.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"STANDARD_INT",
+						"USR":	"c:temp_2.h@T@STANDARD_INT"
+					},
+					"Type":	{
+						"_Type":	"Ident",
+						"Name":	"INT",
+						"USR":	"c:temp_2.h@T@INT"
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestTypeDefDecl Case 3:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"INT"
-				},
-				"Type":	{
-					"_Type":	"BuiltinType",
-					"Kind":	6,
-					"Flags":	0
-				}
-			}, {
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"IntPtr"
-				},
-				"Type":	{
-					"_Type":	"PointerType",
-					"X":	{
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_3.h",
+		"path":	"temp_3.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_3.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"INT",
+						"USR":	"c:temp_3.h@T@INT"
+					},
+					"Type":	{
 						"_Type":	"BuiltinType",
 						"Kind":	6,
 						"Flags":	0
 					}
-				}
-			}, {
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"IntArr"
-				},
-				"Type":	{
-					"_Type":	"ArrayType",
-					"Elt":	{
-						"_Type":	"BuiltinType",
-						"Kind":	6,
-						"Flags":	0
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_3.h"
 					},
-					"Len":	null
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"IntPtr",
+						"USR":	"c:temp_3.h@T@IntPtr"
+					},
+					"Type":	{
+						"_Type":	"PointerType",
+						"X":	{
+							"_Type":	"BuiltinType",
+							"Kind":	6,
+							"Flags":	0
+						}
+					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_3.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"IntArr",
+						"USR":	"c:temp_3.h@T@IntArr"
+					},
+					"Type":	{
+						"_Type":	"ArrayType",
+						"Elt":	{
+							"_Type":	"BuiltinType",
+							"Kind":	6,
+							"Flags":	0
+						},
+						"Len":	null
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestTypeDefDecl Case 4:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"Foo"
-				},
-				"Type":	{
-					"_Type":	"PointerType",
-					"X":	{
-						"_Type":	"FuncType",
-						"Params":	{
-							"_Type":	"FieldList",
-							"List":	[{
-									"_Type":	"Field",
-									"Type":	{
-										"_Type":	"BuiltinType",
-										"Kind":	6,
-										"Flags":	0
-									},
-									"Doc":	null,
-									"Comment":	null,
-									"IsStatic":	false,
-									"Access":	0,
-									"Names":	null
-								}, {
-									"_Type":	"Field",
-									"Type":	{
-										"_Type":	"BuiltinType",
-										"Kind":	6,
-										"Flags":	0
-									},
-									"Doc":	null,
-									"Comment":	null,
-									"IsStatic":	false,
-									"Access":	0,
-									"Names":	null
-								}, {
-									"_Type":	"Field",
-									"Type":	{
-										"_Type":	"Variadic"
-									},
-									"Doc":	null,
-									"Comment":	null,
-									"IsStatic":	false,
-									"Access":	0,
-									"Names":	null
-								}]
-						},
-						"Ret":	{
-							"_Type":	"BuiltinType",
-							"Kind":	6,
-							"Flags":	0
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_4.h",
+		"path":	"temp_4.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_4.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"Foo",
+						"USR":	"c:temp_4.h@T@Foo"
+					},
+					"Type":	{
+						"_Type":	"PointerType",
+						"X":	{
+							"_Type":	"FuncType",
+							"Params":	{
+								"_Type":	"FieldList",
+								"List":	[{
+										"_Type":	"Field",
+										"Type":	{
+											"_Type":	"BuiltinType",
+											"Kind":	6,
+											"Flags":	0
+										},
+										"Doc":	null,
+										"Comment":	null,
+										"IsStatic":	false,
+										"Access":	0,
+										"Names":	null
+									}, {
+										"_Type":	"Field",
+										"Type":	{
+											"_Type":	"BuiltinType",
+											"Kind":	6,
+											"Flags":	0
+										},
+										"Doc":	null,
+										"Comment":	null,
+										"IsStatic":	false,
+										"Access":	0,
+										"Names":	null
+									}, {
+										"_Type":	"Field",
+										"Type":	{
+											"_Type":	"Variadic"
+										},
+										"Doc":	null,
+										"Comment":	null,
+										"IsStatic":	false,
+										"Access":	0,
+										"Names":	null
+									}]
+							},
+							"Ret":	{
+								"_Type":	"BuiltinType",
+								"Kind":	6,
+								"Flags":	0
+							}
 						}
 					}
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestTypeDefDecl Case 5:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"Foo"
-				},
-				"Type":	{
-					"_Type":	"PointerType",
-					"X":	{
-						"_Type":	"FuncType",
-						"Params":	{
-							"_Type":	"FieldList",
-							"List":	[{
-									"_Type":	"Field",
-									"Type":	{
-										"_Type":	"BuiltinType",
-										"Kind":	6,
-										"Flags":	0
-									},
-									"Doc":	null,
-									"Comment":	null,
-									"IsStatic":	false,
-									"Access":	0,
-									"Names":	null
-								}, {
-									"_Type":	"Field",
-									"Type":	{
-										"_Type":	"BuiltinType",
-										"Kind":	6,
-										"Flags":	0
-									},
-									"Doc":	null,
-									"Comment":	null,
-									"IsStatic":	false,
-									"Access":	0,
-									"Names":	null
-								}]
-						},
-						"Ret":	{
-							"_Type":	"BuiltinType",
-							"Kind":	6,
-							"Flags":	0
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_5.h",
+		"path":	"temp_5.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_5.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"Foo",
+						"USR":	"c:temp_5.h@T@Foo"
+					},
+					"Type":	{
+						"_Type":	"PointerType",
+						"X":	{
+							"_Type":	"FuncType",
+							"Params":	{
+								"_Type":	"FieldList",
+								"List":	[{
+										"_Type":	"Field",
+										"Type":	{
+											"_Type":	"BuiltinType",
+											"Kind":	6,
+											"Flags":	0
+										},
+										"Doc":	null,
+										"Comment":	null,
+										"IsStatic":	false,
+										"Access":	0,
+										"Names":	null
+									}, {
+										"_Type":	"Field",
+										"Type":	{
+											"_Type":	"BuiltinType",
+											"Kind":	6,
+											"Flags":	0
+										},
+										"Doc":	null,
+										"Comment":	null,
+										"IsStatic":	false,
+										"Access":	0,
+										"Names":	null
+									}]
+							},
+							"Ret":	{
+								"_Type":	"BuiltinType",
+								"Kind":	6,
+								"Flags":	0
+							}
 						}
 					}
-				}
-			}, {
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"Bar"
-				},
-				"Type":	{
-					"_Type":	"PointerType",
-					"X":	{
-						"_Type":	"FuncType",
-						"Params":	{
-							"_Type":	"FieldList",
-							"List":	[{
-									"_Type":	"Field",
-									"Type":	{
-										"_Type":	"PointerType",
-										"X":	{
-											"_Type":	"BuiltinType",
-											"Kind":	0,
-											"Flags":	0
-										}
-									},
-									"Doc":	null,
-									"Comment":	null,
-									"IsStatic":	false,
-									"Access":	0,
-									"Names":	null
-								}, {
-									"_Type":	"Field",
-									"Type":	{
-										"_Type":	"PointerType",
-										"X":	{
-											"_Type":	"BuiltinType",
-											"Kind":	0,
-											"Flags":	0
-										}
-									},
-									"Doc":	null,
-									"Comment":	null,
-									"IsStatic":	false,
-									"Access":	0,
-									"Names":	null
-								}]
-						},
-						"Ret":	{
-							"_Type":	"BuiltinType",
-							"Kind":	6,
-							"Flags":	0
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_5.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"Bar",
+						"USR":	"c:temp_5.h@T@Bar"
+					},
+					"Type":	{
+						"_Type":	"PointerType",
+						"X":	{
+							"_Type":	"FuncType",
+							"Params":	{
+								"_Type":	"FieldList",
+								"List":	[{
+										"_Type":	"Field",
+										"Type":	{
+											"_Type":	"PointerType",
+											"X":	{
+												"_Type":	"BuiltinType",
+												"Kind":	0,
+												"Flags":	0
+											}
+										},
+										"Doc":	null,
+										"Comment":	null,
+										"IsStatic":	false,
+										"Access":	0,
+										"Names":	null
+									}, {
+										"_Type":	"Field",
+										"Type":	{
+											"_Type":	"PointerType",
+											"X":	{
+												"_Type":	"BuiltinType",
+												"Kind":	0,
+												"Flags":	0
+											}
+										},
+										"Doc":	null,
+										"Comment":	null,
+										"IsStatic":	false,
+										"Access":	0,
+										"Names":	null
+									}]
+							},
+							"Ret":	{
+								"_Type":	"BuiltinType",
+								"Kind":	6,
+								"Flags":	0
+							}
 						}
 					}
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestTypeDefDecl Case 6:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	{
-					"_Type":	"Ident",
-					"Name":	"A"
-				},
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"Foo"
-				},
-				"Type":	{
-					"_Type":	"RecordType",
-					"Tag":	3,
-					"Fields":	{
-						"_Type":	"FieldList",
-						"List":	[{
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	3,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"x"
-									}]
-							}]
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_6.h",
+		"path":	"temp_6.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_6.h"
 					},
-					"Methods":	[]
-				}
-			}, {
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	{
-					"_Type":	"Ident",
-					"Name":	"A"
-				},
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"MyClass"
-				},
-				"Type":	{
-					"_Type":	"TagExpr",
+					"Doc":	null,
+					"Parent":	{
+						"_Type":	"Ident",
+						"Name":	"A",
+						"USR":	"c:@N@A"
+					},
 					"Name":	{
-						"_Type":	"ScopingExpr",
-						"X":	{
-							"_Type":	"Ident",
-							"Name":	"Foo"
-						},
-						"Parent":	{
-							"_Type":	"Ident",
-							"Name":	"A"
-						}
+						"_Type":	"Ident",
+						"Name":	"Foo",
+						"USR":	"c:@N@A@S@Foo"
 					},
-					"Tag":	3
-				}
-			}, {
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	{
-					"_Type":	"Ident",
-					"Name":	"A"
-				},
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"MyClassPtr"
-				},
-				"Type":	{
-					"_Type":	"PointerType",
-					"X":	{
+					"Type":	{
+						"_Type":	"RecordType",
+						"Tag":	3,
+						"Fields":	{
+							"_Type":	"FieldList",
+							"List":	[{
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	3,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"x",
+											"USR":	"c:@N@A@S@Foo@FI@x"
+										}]
+								}]
+						},
+						"Methods":	[]
+					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_6.h"
+					},
+					"Doc":	null,
+					"Parent":	{
+						"_Type":	"Ident",
+						"Name":	"A",
+						"USR":	"c:@N@A"
+					},
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"MyClass",
+						"USR":	"c:temp_6.h@N@A@T@MyClass"
+					},
+					"Type":	{
 						"_Type":	"TagExpr",
 						"Name":	{
 							"_Type":	"ScopingExpr",
 							"X":	{
 								"_Type":	"Ident",
-								"Name":	"Foo"
+								"Name":	"Foo",
+								"USR":	"c:@N@A@S@Foo"
 							},
 							"Parent":	{
 								"_Type":	"Ident",
-								"Name":	"A"
+								"Name":	"A",
+								"USR":	"c:@N@A"
 							}
 						},
 						"Tag":	3
 					}
-				}
-			}, {
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	{
-					"_Type":	"Ident",
-					"Name":	"A"
-				},
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"MyClassArray"
-				},
-				"Type":	{
-					"_Type":	"ArrayType",
-					"Elt":	{
-						"_Type":	"TagExpr",
-						"Name":	{
-							"_Type":	"ScopingExpr",
-							"X":	{
-								"_Type":	"Ident",
-								"Name":	"Foo"
-							},
-							"Parent":	{
-								"_Type":	"Ident",
-								"Name":	"A"
-							}
-						},
-						"Tag":	3
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_6.h"
 					},
-					"Len":	null
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	null,
+					"Parent":	{
+						"_Type":	"Ident",
+						"Name":	"A",
+						"USR":	"c:@N@A"
+					},
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"MyClassPtr",
+						"USR":	"c:temp_6.h@N@A@T@MyClassPtr"
+					},
+					"Type":	{
+						"_Type":	"PointerType",
+						"X":	{
+							"_Type":	"TagExpr",
+							"Name":	{
+								"_Type":	"ScopingExpr",
+								"X":	{
+									"_Type":	"Ident",
+									"Name":	"Foo",
+									"USR":	"c:@N@A@S@Foo"
+								},
+								"Parent":	{
+									"_Type":	"Ident",
+									"Name":	"A",
+									"USR":	"c:@N@A"
+								}
+							},
+							"Tag":	3
+						}
+					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_6.h"
+					},
+					"Doc":	null,
+					"Parent":	{
+						"_Type":	"Ident",
+						"Name":	"A",
+						"USR":	"c:@N@A"
+					},
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"MyClassArray",
+						"USR":	"c:temp_6.h@N@A@T@MyClassArray"
+					},
+					"Type":	{
+						"_Type":	"ArrayType",
+						"Elt":	{
+							"_Type":	"TagExpr",
+							"Name":	{
+								"_Type":	"ScopingExpr",
+								"X":	{
+									"_Type":	"Ident",
+									"Name":	"Foo",
+									"USR":	"c:@N@A@S@Foo"
+								},
+								"Parent":	{
+									"_Type":	"Ident",
+									"Name":	"A",
+									"USR":	"c:@N@A"
+								}
+							},
+							"Tag":	3
+						},
+						"Len":	null
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestTypeDefDecl Case 7:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"MyStruct"
-				},
-				"Type":	{
-					"_Type":	"RecordType",
-					"Tag":	0,
-					"Fields":	{
-						"_Type":	"FieldList",
-						"List":	[{
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"x"
-									}]
-							}]
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_7.h",
+		"path":	"temp_7.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_7.h"
 					},
-					"Methods":	[]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"MyStruct",
+						"USR":	"c:@SA@MyStruct"
+					},
+					"Type":	{
+						"_Type":	"RecordType",
+						"Tag":	0,
+						"Fields":	{
+							"_Type":	"FieldList",
+							"List":	[{
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"x",
+											"USR":	"c:@SA@MyStruct@FI@x"
+										}]
+								}]
+						},
+						"Methods":	[]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestTypeDefDecl Case 8:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"MyUnion"
-				},
-				"Type":	{
-					"_Type":	"RecordType",
-					"Tag":	1,
-					"Fields":	{
-						"_Type":	"FieldList",
-						"List":	[{
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"x"
-									}]
-							}]
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_8.h",
+		"path":	"temp_8.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_8.h"
 					},
-					"Methods":	[]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"MyUnion",
+						"USR":	"c:@UA@MyUnion"
+					},
+					"Type":	{
+						"_Type":	"RecordType",
+						"Tag":	1,
+						"Fields":	{
+							"_Type":	"FieldList",
+							"List":	[{
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"x",
+											"USR":	"c:@UA@MyUnion@FI@x"
+										}]
+								}]
+						},
+						"Methods":	[]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestTypeDefDecl Case 9:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"EnumTypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"MyEnum"
-				},
-				"Type":	{
-					"_Type":	"EnumType",
-					"Items":	[{
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"RED"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"0"
-							}
-						}, {
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"GREEN"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"1"
-							}
-						}, {
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"BLUE"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"2"
-							}
-						}]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_9.h",
+		"path":	"temp_9.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"EnumTypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_9.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"MyEnum",
+						"USR":	"c:@EA@MyEnum"
+					},
+					"Type":	{
+						"_Type":	"EnumType",
+						"Items":	[{
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"RED",
+									"USR":	"c:@EA@MyEnum@RED"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"0"
+								}
+							}, {
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"GREEN",
+									"USR":	"c:@EA@MyEnum@GREEN"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"1"
+								}
+							}, {
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"BLUE",
+									"USR":	"c:@EA@MyEnum@BLUE"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"2"
+								}
+							}]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestTypeDefDecl Case 10:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"MyStruct"
-				},
-				"Type":	{
-					"_Type":	"RecordType",
-					"Tag":	0,
-					"Fields":	{
-						"_Type":	"FieldList",
-						"List":	[{
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"x"
-									}]
-							}]
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_10.h",
+		"path":	"temp_10.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_10.h"
 					},
-					"Methods":	[]
-				}
-			}, {
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"MyStruct2"
-				},
-				"Type":	{
-					"_Type":	"TagExpr",
+					"Doc":	null,
+					"Parent":	null,
 					"Name":	{
 						"_Type":	"Ident",
-						"Name":	"MyStruct"
+						"Name":	"MyStruct",
+						"USR":	"c:@SA@MyStruct"
 					},
-					"Tag":	0
-				}
-			}, {
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"StructPtr"
-				},
-				"Type":	{
-					"_Type":	"PointerType",
-					"X":	{
+					"Type":	{
+						"_Type":	"RecordType",
+						"Tag":	0,
+						"Fields":	{
+							"_Type":	"FieldList",
+							"List":	[{
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"x",
+											"USR":	"c:@SA@MyStruct@FI@x"
+										}]
+								}]
+						},
+						"Methods":	[]
+					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_10.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"MyStruct2",
+						"USR":	"c:temp_10.h@T@MyStruct2"
+					},
+					"Type":	{
 						"_Type":	"TagExpr",
 						"Name":	{
 							"_Type":	"Ident",
-							"Name":	"MyStruct"
+							"Name":	"MyStruct",
+							"USR":	"c:@SA@MyStruct"
 						},
 						"Tag":	0
 					}
-				}
-			}, {
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"StructArr"
-				},
-				"Type":	{
-					"_Type":	"ArrayType",
-					"Elt":	{
-						"_Type":	"TagExpr",
-						"Name":	{
-							"_Type":	"Ident",
-							"Name":	"MyStruct"
-						},
-						"Tag":	0
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_10.h"
 					},
-					"Len":	null
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"StructPtr",
+						"USR":	"c:temp_10.h@T@StructPtr"
+					},
+					"Type":	{
+						"_Type":	"PointerType",
+						"X":	{
+							"_Type":	"TagExpr",
+							"Name":	{
+								"_Type":	"Ident",
+								"Name":	"MyStruct",
+								"USR":	"c:@SA@MyStruct"
+							},
+							"Tag":	0
+						}
+					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_10.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"StructArr",
+						"USR":	"c:temp_10.h@T@StructArr"
+					},
+					"Type":	{
+						"_Type":	"ArrayType",
+						"Elt":	{
+							"_Type":	"TagExpr",
+							"Name":	{
+								"_Type":	"Ident",
+								"Name":	"MyStruct",
+								"USR":	"c:@SA@MyStruct"
+							},
+							"Tag":	0
+						},
+						"Len":	null
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestTypeDefDecl Case 11:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"EnumTypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"MyEnum"
-				},
-				"Type":	{
-					"_Type":	"EnumType",
-					"Items":	[{
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"RED"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"0"
-							}
-						}, {
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"GREEN"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"1"
-							}
-						}, {
-							"_Type":	"EnumItem",
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"BLUE"
-							},
-							"Value":	{
-								"_Type":	"BasicLit",
-								"Kind":	0,
-								"Value":	"2"
-							}
-						}]
-				}
-			}, {
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"MyEnum2"
-				},
-				"Type":	{
-					"_Type":	"TagExpr",
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_11.h",
+		"path":	"temp_11.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"EnumTypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_11.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
 					"Name":	{
 						"_Type":	"Ident",
-						"Name":	"MyEnum"
+						"Name":	"MyEnum",
+						"USR":	"c:@EA@MyEnum"
 					},
-					"Tag":	2
-				}
-			}, {
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"EnumPtr"
-				},
-				"Type":	{
-					"_Type":	"PointerType",
-					"X":	{
+					"Type":	{
+						"_Type":	"EnumType",
+						"Items":	[{
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"RED",
+									"USR":	"c:@EA@MyEnum@RED"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"0"
+								}
+							}, {
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"GREEN",
+									"USR":	"c:@EA@MyEnum@GREEN"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"1"
+								}
+							}, {
+								"_Type":	"EnumItem",
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"BLUE",
+									"USR":	"c:@EA@MyEnum@BLUE"
+								},
+								"Value":	{
+									"_Type":	"BasicLit",
+									"Kind":	0,
+									"Value":	"2"
+								}
+							}]
+					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_11.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"MyEnum2",
+						"USR":	"c:temp_11.h@T@MyEnum2"
+					},
+					"Type":	{
 						"_Type":	"TagExpr",
 						"Name":	{
 							"_Type":	"Ident",
-							"Name":	"MyEnum"
+							"Name":	"MyEnum",
+							"USR":	"c:@EA@MyEnum"
 						},
 						"Tag":	2
 					}
-				}
-			}, {
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"EnumArr"
-				},
-				"Type":	{
-					"_Type":	"ArrayType",
-					"Elt":	{
-						"_Type":	"TagExpr",
-						"Name":	{
-							"_Type":	"Ident",
-							"Name":	"MyEnum"
-						},
-						"Tag":	2
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_11.h"
 					},
-					"Len":	null
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"EnumPtr",
+						"USR":	"c:temp_11.h@T@EnumPtr"
+					},
+					"Type":	{
+						"_Type":	"PointerType",
+						"X":	{
+							"_Type":	"TagExpr",
+							"Name":	{
+								"_Type":	"Ident",
+								"Name":	"MyEnum",
+								"USR":	"c:@EA@MyEnum"
+							},
+							"Tag":	2
+						}
+					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_11.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"EnumArr",
+						"USR":	"c:temp_11.h@T@EnumArr"
+					},
+					"Type":	{
+						"_Type":	"ArrayType",
+						"Elt":	{
+							"_Type":	"TagExpr",
+							"Name":	{
+								"_Type":	"Ident",
+								"Name":	"MyEnum",
+								"USR":	"c:@EA@MyEnum"
+							},
+							"Tag":	2
+						},
+						"Len":	null
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestTypeDefDecl Case 12:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	{
-					"_Type":	"ScopingExpr",
-					"X":	{
-						"_Type":	"Ident",
-						"Name":	"B"
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_12.h",
+		"path":	"temp_12.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_12.h"
 					},
+					"Doc":	null,
 					"Parent":	{
-						"_Type":	"Ident",
-						"Name":	"A"
-					}
-				},
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"MyStruct"
-				},
-				"Type":	{
-					"_Type":	"RecordType",
-					"Tag":	0,
-					"Fields":	{
-						"_Type":	"FieldList",
-						"List":	[{
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"x"
-									}]
-							}]
-					},
-					"Methods":	[]
-				}
-			}, {
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	{
-					"_Type":	"ScopingExpr",
-					"X":	{
-						"_Type":	"Ident",
-						"Name":	"B"
-					},
-					"Parent":	{
-						"_Type":	"Ident",
-						"Name":	"A"
-					}
-				},
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"MyStruct2"
-				},
-				"Type":	{
-					"_Type":	"TagExpr",
-					"Name":	{
 						"_Type":	"ScopingExpr",
 						"X":	{
 							"_Type":	"Ident",
-							"Name":	"MyStruct"
+							"Name":	"B",
+							"USR":	"c:@N@A@N@B"
 						},
 						"Parent":	{
-							"_Type":	"ScopingExpr",
-							"X":	{
-								"_Type":	"Ident",
-								"Name":	"B"
-							},
-							"Parent":	{
-								"_Type":	"Ident",
-								"Name":	"A"
-							}
+							"_Type":	"Ident",
+							"Name":	"A",
+							"USR":	"c:@N@A"
 						}
 					},
-					"Tag":	0
-				}
-			}, {
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	{
-					"_Type":	"ScopingExpr",
-					"X":	{
+					"Name":	{
 						"_Type":	"Ident",
-						"Name":	"B"
+						"Name":	"MyStruct",
+						"USR":	"c:@N@A@N@B@SA@MyStruct"
 					},
-					"Parent":	{
-						"_Type":	"Ident",
-						"Name":	"A"
+					"Type":	{
+						"_Type":	"RecordType",
+						"Tag":	0,
+						"Fields":	{
+							"_Type":	"FieldList",
+							"List":	[{
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"x",
+											"USR":	"c:@N@A@N@B@SA@MyStruct@FI@x"
+										}]
+								}]
+						},
+						"Methods":	[]
 					}
-				},
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"StructPtr"
-				},
-				"Type":	{
-					"_Type":	"PointerType",
-					"X":	{
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_12.h"
+					},
+					"Doc":	null,
+					"Parent":	{
+						"_Type":	"ScopingExpr",
+						"X":	{
+							"_Type":	"Ident",
+							"Name":	"B",
+							"USR":	"c:@N@A@N@B"
+						},
+						"Parent":	{
+							"_Type":	"Ident",
+							"Name":	"A",
+							"USR":	"c:@N@A"
+						}
+					},
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"MyStruct2",
+						"USR":	"c:temp_12.h@N@A@N@B@T@MyStruct2"
+					},
+					"Type":	{
 						"_Type":	"TagExpr",
 						"Name":	{
 							"_Type":	"ScopingExpr",
 							"X":	{
 								"_Type":	"Ident",
-								"Name":	"MyStruct"
+								"Name":	"MyStruct",
+								"USR":	"c:@N@A@N@B@SA@MyStruct"
 							},
 							"Parent":	{
 								"_Type":	"ScopingExpr",
 								"X":	{
 									"_Type":	"Ident",
-									"Name":	"B"
+									"Name":	"B",
+									"USR":	"c:@N@A@N@B"
 								},
 								"Parent":	{
 									"_Type":	"Ident",
-									"Name":	"A"
+									"Name":	"A",
+									"USR":	"c:@N@A"
 								}
 							}
 						},
 						"Tag":	0
 					}
-				}
-			}, {
-				"_Type":	"TypedefDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	{
-					"_Type":	"ScopingExpr",
-					"X":	{
-						"_Type":	"Ident",
-						"Name":	"B"
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_12.h"
 					},
+					"Doc":	null,
 					"Parent":	{
+						"_Type":	"ScopingExpr",
+						"X":	{
+							"_Type":	"Ident",
+							"Name":	"B",
+							"USR":	"c:@N@A@N@B"
+						},
+						"Parent":	{
+							"_Type":	"Ident",
+							"Name":	"A",
+							"USR":	"c:@N@A"
+						}
+					},
+					"Name":	{
 						"_Type":	"Ident",
-						"Name":	"A"
-					}
-				},
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"StructArr"
-				},
-				"Type":	{
-					"_Type":	"ArrayType",
-					"Elt":	{
-						"_Type":	"TagExpr",
-						"Name":	{
-							"_Type":	"ScopingExpr",
-							"X":	{
-								"_Type":	"Ident",
-								"Name":	"MyStruct"
-							},
-							"Parent":	{
+						"Name":	"StructPtr",
+						"USR":	"c:temp_12.h@N@A@N@B@T@StructPtr"
+					},
+					"Type":	{
+						"_Type":	"PointerType",
+						"X":	{
+							"_Type":	"TagExpr",
+							"Name":	{
 								"_Type":	"ScopingExpr",
 								"X":	{
 									"_Type":	"Ident",
-									"Name":	"B"
+									"Name":	"MyStruct",
+									"USR":	"c:@N@A@N@B@SA@MyStruct"
 								},
 								"Parent":	{
-									"_Type":	"Ident",
-									"Name":	"A"
+									"_Type":	"ScopingExpr",
+									"X":	{
+										"_Type":	"Ident",
+										"Name":	"B",
+										"USR":	"c:@N@A@N@B"
+									},
+									"Parent":	{
+										"_Type":	"Ident",
+										"Name":	"A",
+										"USR":	"c:@N@A"
+									}
 								}
-							}
-						},
-						"Tag":	0
+							},
+							"Tag":	0
+						}
+					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_12.h"
 					},
-					"Len":	null
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	null,
+					"Parent":	{
+						"_Type":	"ScopingExpr",
+						"X":	{
+							"_Type":	"Ident",
+							"Name":	"B",
+							"USR":	"c:@N@A@N@B"
+						},
+						"Parent":	{
+							"_Type":	"Ident",
+							"Name":	"A",
+							"USR":	"c:@N@A"
+						}
+					},
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"StructArr",
+						"USR":	"c:temp_12.h@N@A@N@B@T@StructArr"
+					},
+					"Type":	{
+						"_Type":	"ArrayType",
+						"Elt":	{
+							"_Type":	"TagExpr",
+							"Name":	{
+								"_Type":	"ScopingExpr",
+								"X":	{
+									"_Type":	"Ident",
+									"Name":	"MyStruct",
+									"USR":	"c:@N@A@N@B@SA@MyStruct"
+								},
+								"Parent":	{
+									"_Type":	"ScopingExpr",
+									"X":	{
+										"_Type":	"Ident",
+										"Name":	"B",
+										"USR":	"c:@N@A@N@B"
+									},
+									"Parent":	{
+										"_Type":	"Ident",
+										"Name":	"A",
+										"USR":	"c:@N@A"
+									}
+								}
+							},
+							"Tag":	0
+						},
+						"Len":	null
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 
 #stderr

@@ -16,7 +16,9 @@
 
 package ast
 
-import "github.com/goplus/llcppg/token"
+import (
+	"github.com/goplus/llcppg/token"
+)
 
 // =============================================================================
 
@@ -73,6 +75,7 @@ type BasicLit struct {
 func (*BasicLit) exprNode() {}
 
 // ------------------------------------------------
+type USR = string
 
 type TypeKind uint
 
@@ -115,6 +118,7 @@ func (*BuiltinType) exprNode() {}
 // Name
 type Ident struct {
 	Name string
+	USR  USR
 }
 
 func (*Ident) exprNode() {}

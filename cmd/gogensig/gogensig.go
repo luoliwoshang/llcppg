@@ -82,10 +82,10 @@ func main() {
 	})
 	check(err)
 
-	inputdata, err := unmarshal.FileSet(data)
+	fileSet, err := unmarshal.FileSet(data)
 	check(err)
 
-	err = p.ProcessFileSet(inputdata)
+	err = p.ProcessFileSet(fileSet)
 	check(err)
 }
 

@@ -118,14 +118,16 @@ Type: int &&:
 Type: Foo:
 {
 	"_Type":	"Ident",
-	"Name":	"Foo"
+	"Name":	"Foo",
+	"USR":	"c:@S@Foo"
 }
 Type: struct Foo:
 {
 	"_Type":	"TagExpr",
 	"Name":	{
 		"_Type":	"Ident",
-		"Name":	"Foo"
+		"Name":	"Foo",
+		"USR":	"c:@S@Foo"
 	},
 	"Tag":	0
 }
@@ -148,7 +150,8 @@ Type: struct (unnamed struct at temp.h:1:1):
 				"Access":	1,
 				"Names":	[{
 						"_Type":	"Ident",
-						"Name":	"x"
+						"Name":	"x",
+						"USR":	"c:temp.h@S@temp.h@0@FI@x"
 					}]
 			}]
 	},
@@ -157,14 +160,16 @@ Type: struct (unnamed struct at temp.h:1:1):
 Type: Foo:
 {
 	"_Type":	"Ident",
-	"Name":	"Foo"
+	"Name":	"Foo",
+	"USR":	"c:@U@Foo"
 }
 Type: union Foo:
 {
 	"_Type":	"TagExpr",
 	"Name":	{
 		"_Type":	"Ident",
-		"Name":	"Foo"
+		"Name":	"Foo",
+		"USR":	"c:@U@Foo"
 	},
 	"Tag":	1
 }
@@ -187,7 +192,8 @@ Type: union (unnamed union at temp.h:1:1):
 				"Access":	1,
 				"Names":	[{
 						"_Type":	"Ident",
-						"Name":	"x"
+						"Name":	"x",
+						"USR":	"c:temp.h@U@temp.h@0@FI@x"
 					}]
 			}]
 	},
@@ -196,14 +202,16 @@ Type: union (unnamed union at temp.h:1:1):
 Type: Foo:
 {
 	"_Type":	"Ident",
-	"Name":	"Foo"
+	"Name":	"Foo",
+	"USR":	"c:@E@Foo"
 }
 Type: enum Foo:
 {
 	"_Type":	"TagExpr",
 	"Name":	{
 		"_Type":	"Ident",
-		"Name":	"Foo"
+		"Name":	"Foo",
+		"USR":	"c:@E@Foo"
 	},
 	"Tag":	2
 }
@@ -214,7 +222,8 @@ Type: enum (unnamed enum at temp.h:1:1):
 			"_Type":	"EnumItem",
 			"Name":	{
 				"_Type":	"Ident",
-				"Name":	"x"
+				"Name":	"x",
+				"USR":	"c:@E@temp.h@0@x"
 			},
 			"Value":	{
 				"_Type":	"BasicLit",
@@ -226,14 +235,16 @@ Type: enum (unnamed enum at temp.h:1:1):
 Type: Foo:
 {
 	"_Type":	"Ident",
-	"Name":	"Foo"
+	"Name":	"Foo",
+	"USR":	"c:@S@Foo"
 }
 Type: class Foo:
 {
 	"_Type":	"TagExpr",
 	"Name":	{
 		"_Type":	"Ident",
-		"Name":	"Foo"
+		"Name":	"Foo",
+		"USR":	"c:@S@Foo"
 	},
 	"Tag":	3
 }
@@ -256,7 +267,8 @@ Type: class (unnamed class at temp.h:1:1):
 				"Access":	3,
 				"Names":	[{
 						"_Type":	"Ident",
-						"Name":	"x"
+						"Name":	"x",
+						"USR":	"c:temp.h@S@temp.h@0@FI@x"
 					}]
 			}]
 	},
@@ -267,17 +279,20 @@ Type: a::b::c:
 	"_Type":	"ScopingExpr",
 	"X":	{
 		"_Type":	"Ident",
-		"Name":	"c"
+		"Name":	"c",
+		"USR":	"c:@N@a@N@b@S@c"
 	},
 	"Parent":	{
 		"_Type":	"ScopingExpr",
 		"X":	{
 			"_Type":	"Ident",
-			"Name":	"b"
+			"Name":	"b",
+			"USR":	"c:@N@a@N@b"
 		},
 		"Parent":	{
 			"_Type":	"Ident",
-			"Name":	"a"
+			"Name":	"a",
+			"USR":	"c:@N@a"
 		}
 	}
 }
@@ -288,17 +303,20 @@ Type: class a::b::c:
 		"_Type":	"ScopingExpr",
 		"X":	{
 			"_Type":	"Ident",
-			"Name":	"c"
+			"Name":	"c",
+			"USR":	"c:@N@a@N@b@S@c"
 		},
 		"Parent":	{
 			"_Type":	"ScopingExpr",
 			"X":	{
 				"_Type":	"Ident",
-				"Name":	"b"
+				"Name":	"b",
+				"USR":	"c:@N@a@N@b"
 			},
 			"Parent":	{
 				"_Type":	"Ident",
-				"Name":	"a"
+				"Name":	"a",
+				"USR":	"c:@N@a"
 			}
 		}
 	},

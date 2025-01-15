@@ -1,740 +1,805 @@
 #stdout
 TestDoc Case 1:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"FuncDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"foo"
-				},
-				"MangledName":	"_Z3foov",
-				"Type":	{
-					"_Type":	"FuncType",
-					"Params":	{
-						"_Type":	"FieldList",
-						"List":	null
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_1.h",
+		"path":	"temp_1.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"FuncDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_1.h"
 					},
-					"Ret":	{
-						"_Type":	"BuiltinType",
-						"Kind":	0,
-						"Flags":	0
-					}
-				},
-				"IsInline":	false,
-				"IsStatic":	false,
-				"IsConst":	false,
-				"IsExplicit":	false,
-				"IsConstructor":	false,
-				"IsDestructor":	false,
-				"IsVirtual":	false,
-				"IsOverride":	false
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"foo",
+						"USR":	"c:@F@foo#"
+					},
+					"MangledName":	"_Z3foov",
+					"Type":	{
+						"_Type":	"FuncType",
+						"Params":	{
+							"_Type":	"FieldList",
+							"List":	null
+						},
+						"Ret":	{
+							"_Type":	"BuiltinType",
+							"Kind":	0,
+							"Flags":	0
+						}
+					},
+					"IsInline":	false,
+					"IsStatic":	false,
+					"IsConst":	false,
+					"IsExplicit":	false,
+					"IsConstructor":	false,
+					"IsDestructor":	false,
+					"IsVirtual":	false,
+					"IsOverride":	false
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestDoc Case 2:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"FuncDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"foo"
-				},
-				"MangledName":	"_Z3foov",
-				"Type":	{
-					"_Type":	"FuncType",
-					"Params":	{
-						"_Type":	"FieldList",
-						"List":	null
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_2.h",
+		"path":	"temp_2.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"FuncDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_2.h"
 					},
-					"Ret":	{
-						"_Type":	"BuiltinType",
-						"Kind":	0,
-						"Flags":	0
-					}
-				},
-				"IsInline":	false,
-				"IsStatic":	false,
-				"IsConst":	false,
-				"IsExplicit":	false,
-				"IsConstructor":	false,
-				"IsDestructor":	false,
-				"IsVirtual":	false,
-				"IsOverride":	false
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"foo",
+						"USR":	"c:@F@foo#"
+					},
+					"MangledName":	"_Z3foov",
+					"Type":	{
+						"_Type":	"FuncType",
+						"Params":	{
+							"_Type":	"FieldList",
+							"List":	null
+						},
+						"Ret":	{
+							"_Type":	"BuiltinType",
+							"Kind":	0,
+							"Flags":	0
+						}
+					},
+					"IsInline":	false,
+					"IsStatic":	false,
+					"IsConst":	false,
+					"IsExplicit":	false,
+					"IsConstructor":	false,
+					"IsDestructor":	false,
+					"IsVirtual":	false,
+					"IsOverride":	false
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestDoc Case 3:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"FuncDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	{
-					"_Type":	"CommentGroup",
-					"List":	[{
-							"_Type":	"Comment",
-							"Text":	"/// doc\n"
-						}]
-				},
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"foo"
-				},
-				"MangledName":	"_Z3foov",
-				"Type":	{
-					"_Type":	"FuncType",
-					"Params":	{
-						"_Type":	"FieldList",
-						"List":	null
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_3.h",
+		"path":	"temp_3.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"FuncDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_3.h"
 					},
-					"Ret":	{
-						"_Type":	"BuiltinType",
-						"Kind":	0,
-						"Flags":	0
-					}
-				},
-				"IsInline":	false,
-				"IsStatic":	false,
-				"IsConst":	false,
-				"IsExplicit":	false,
-				"IsConstructor":	false,
-				"IsDestructor":	false,
-				"IsVirtual":	false,
-				"IsOverride":	false
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	{
+						"_Type":	"CommentGroup",
+						"List":	[{
+								"_Type":	"Comment",
+								"Text":	"/// doc\n"
+							}]
+					},
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"foo",
+						"USR":	"c:@F@foo#"
+					},
+					"MangledName":	"_Z3foov",
+					"Type":	{
+						"_Type":	"FuncType",
+						"Params":	{
+							"_Type":	"FieldList",
+							"List":	null
+						},
+						"Ret":	{
+							"_Type":	"BuiltinType",
+							"Kind":	0,
+							"Flags":	0
+						}
+					},
+					"IsInline":	false,
+					"IsStatic":	false,
+					"IsConst":	false,
+					"IsExplicit":	false,
+					"IsConstructor":	false,
+					"IsDestructor":	false,
+					"IsVirtual":	false,
+					"IsOverride":	false
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestDoc Case 4:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"FuncDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	{
-					"_Type":	"CommentGroup",
-					"List":	[{
-							"_Type":	"Comment",
-							"Text":	"/** doc */\n"
-						}]
-				},
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"foo"
-				},
-				"MangledName":	"_Z3foov",
-				"Type":	{
-					"_Type":	"FuncType",
-					"Params":	{
-						"_Type":	"FieldList",
-						"List":	null
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_4.h",
+		"path":	"temp_4.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"FuncDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_4.h"
 					},
-					"Ret":	{
-						"_Type":	"BuiltinType",
-						"Kind":	0,
-						"Flags":	0
-					}
-				},
-				"IsInline":	false,
-				"IsStatic":	false,
-				"IsConst":	false,
-				"IsExplicit":	false,
-				"IsConstructor":	false,
-				"IsDestructor":	false,
-				"IsVirtual":	false,
-				"IsOverride":	false
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	{
+						"_Type":	"CommentGroup",
+						"List":	[{
+								"_Type":	"Comment",
+								"Text":	"/** doc */\n"
+							}]
+					},
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"foo",
+						"USR":	"c:@F@foo#"
+					},
+					"MangledName":	"_Z3foov",
+					"Type":	{
+						"_Type":	"FuncType",
+						"Params":	{
+							"_Type":	"FieldList",
+							"List":	null
+						},
+						"Ret":	{
+							"_Type":	"BuiltinType",
+							"Kind":	0,
+							"Flags":	0
+						}
+					},
+					"IsInline":	false,
+					"IsStatic":	false,
+					"IsConst":	false,
+					"IsExplicit":	false,
+					"IsConstructor":	false,
+					"IsDestructor":	false,
+					"IsVirtual":	false,
+					"IsOverride":	false
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestDoc Case 5:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"FuncDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	{
-					"_Type":	"CommentGroup",
-					"List":	[{
-							"_Type":	"Comment",
-							"Text":	"/*! doc */\n"
-						}]
-				},
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"foo"
-				},
-				"MangledName":	"_Z3foov",
-				"Type":	{
-					"_Type":	"FuncType",
-					"Params":	{
-						"_Type":	"FieldList",
-						"List":	null
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_5.h",
+		"path":	"temp_5.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"FuncDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_5.h"
 					},
-					"Ret":	{
-						"_Type":	"BuiltinType",
-						"Kind":	0,
-						"Flags":	0
-					}
-				},
-				"IsInline":	false,
-				"IsStatic":	false,
-				"IsConst":	false,
-				"IsExplicit":	false,
-				"IsConstructor":	false,
-				"IsDestructor":	false,
-				"IsVirtual":	false,
-				"IsOverride":	false
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	{
+						"_Type":	"CommentGroup",
+						"List":	[{
+								"_Type":	"Comment",
+								"Text":	"/*! doc */\n"
+							}]
+					},
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"foo",
+						"USR":	"c:@F@foo#"
+					},
+					"MangledName":	"_Z3foov",
+					"Type":	{
+						"_Type":	"FuncType",
+						"Params":	{
+							"_Type":	"FieldList",
+							"List":	null
+						},
+						"Ret":	{
+							"_Type":	"BuiltinType",
+							"Kind":	0,
+							"Flags":	0
+						}
+					},
+					"IsInline":	false,
+					"IsStatic":	false,
+					"IsConst":	false,
+					"IsExplicit":	false,
+					"IsConstructor":	false,
+					"IsDestructor":	false,
+					"IsVirtual":	false,
+					"IsOverride":	false
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestDoc Case 6:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"FuncDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	{
-					"_Type":	"CommentGroup",
-					"List":	[{
-							"_Type":	"Comment",
-							"Text":	"/// doc 1\n"
-						}, {
-							"_Type":	"Comment",
-							"Text":	"/// doc 2\n"
-						}]
-				},
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"foo"
-				},
-				"MangledName":	"_Z3foov",
-				"Type":	{
-					"_Type":	"FuncType",
-					"Params":	{
-						"_Type":	"FieldList",
-						"List":	null
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_6.h",
+		"path":	"temp_6.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"FuncDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_6.h"
 					},
-					"Ret":	{
-						"_Type":	"BuiltinType",
-						"Kind":	0,
-						"Flags":	0
-					}
-				},
-				"IsInline":	false,
-				"IsStatic":	false,
-				"IsConst":	false,
-				"IsExplicit":	false,
-				"IsConstructor":	false,
-				"IsDestructor":	false,
-				"IsVirtual":	false,
-				"IsOverride":	false
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	{
+						"_Type":	"CommentGroup",
+						"List":	[{
+								"_Type":	"Comment",
+								"Text":	"/// doc 1\n"
+							}, {
+								"_Type":	"Comment",
+								"Text":	"/// doc 2\n"
+							}]
+					},
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"foo",
+						"USR":	"c:@F@foo#"
+					},
+					"MangledName":	"_Z3foov",
+					"Type":	{
+						"_Type":	"FuncType",
+						"Params":	{
+							"_Type":	"FieldList",
+							"List":	null
+						},
+						"Ret":	{
+							"_Type":	"BuiltinType",
+							"Kind":	0,
+							"Flags":	0
+						}
+					},
+					"IsInline":	false,
+					"IsStatic":	false,
+					"IsConst":	false,
+					"IsExplicit":	false,
+					"IsConstructor":	false,
+					"IsDestructor":	false,
+					"IsVirtual":	false,
+					"IsOverride":	false
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestDoc Case 7:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"FuncDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	{
-					"_Type":	"CommentGroup",
-					"List":	[{
-							"_Type":	"Comment",
-							"Text":	"/*! doc 1 */\n"
-						}, {
-							"_Type":	"Comment",
-							"Text":	"/*! doc 2 */\n"
-						}]
-				},
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"foo"
-				},
-				"MangledName":	"_Z3foov",
-				"Type":	{
-					"_Type":	"FuncType",
-					"Params":	{
-						"_Type":	"FieldList",
-						"List":	null
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_7.h",
+		"path":	"temp_7.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"FuncDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_7.h"
 					},
-					"Ret":	{
-						"_Type":	"BuiltinType",
-						"Kind":	0,
-						"Flags":	0
-					}
-				},
-				"IsInline":	false,
-				"IsStatic":	false,
-				"IsConst":	false,
-				"IsExplicit":	false,
-				"IsConstructor":	false,
-				"IsDestructor":	false,
-				"IsVirtual":	false,
-				"IsOverride":	false
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	{
+						"_Type":	"CommentGroup",
+						"List":	[{
+								"_Type":	"Comment",
+								"Text":	"/*! doc 1 */\n"
+							}, {
+								"_Type":	"Comment",
+								"Text":	"/*! doc 2 */\n"
+							}]
+					},
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"foo",
+						"USR":	"c:@F@foo#"
+					},
+					"MangledName":	"_Z3foov",
+					"Type":	{
+						"_Type":	"FuncType",
+						"Params":	{
+							"_Type":	"FieldList",
+							"List":	null
+						},
+						"Ret":	{
+							"_Type":	"BuiltinType",
+							"Kind":	0,
+							"Flags":	0
+						}
+					},
+					"IsInline":	false,
+					"IsStatic":	false,
+					"IsConst":	false,
+					"IsExplicit":	false,
+					"IsConstructor":	false,
+					"IsDestructor":	false,
+					"IsVirtual":	false,
+					"IsOverride":	false
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestDoc Case 8:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"FuncDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	{
-					"_Type":	"CommentGroup",
-					"List":	[{
-							"_Type":	"Comment",
-							"Text":	"/** doc 1 */\n"
-						}, {
-							"_Type":	"Comment",
-							"Text":	"/** doc 1 */\n"
-						}]
-				},
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"foo"
-				},
-				"MangledName":	"_Z3foov",
-				"Type":	{
-					"_Type":	"FuncType",
-					"Params":	{
-						"_Type":	"FieldList",
-						"List":	null
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_8.h",
+		"path":	"temp_8.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"FuncDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_8.h"
 					},
-					"Ret":	{
-						"_Type":	"BuiltinType",
-						"Kind":	0,
-						"Flags":	0
-					}
-				},
-				"IsInline":	false,
-				"IsStatic":	false,
-				"IsConst":	false,
-				"IsExplicit":	false,
-				"IsConstructor":	false,
-				"IsDestructor":	false,
-				"IsVirtual":	false,
-				"IsOverride":	false
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	{
+						"_Type":	"CommentGroup",
+						"List":	[{
+								"_Type":	"Comment",
+								"Text":	"/** doc 1 */\n"
+							}, {
+								"_Type":	"Comment",
+								"Text":	"/** doc 1 */\n"
+							}]
+					},
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"foo",
+						"USR":	"c:@F@foo#"
+					},
+					"MangledName":	"_Z3foov",
+					"Type":	{
+						"_Type":	"FuncType",
+						"Params":	{
+							"_Type":	"FieldList",
+							"List":	null
+						},
+						"Ret":	{
+							"_Type":	"BuiltinType",
+							"Kind":	0,
+							"Flags":	0
+						}
+					},
+					"IsInline":	false,
+					"IsStatic":	false,
+					"IsConst":	false,
+					"IsExplicit":	false,
+					"IsConstructor":	false,
+					"IsDestructor":	false,
+					"IsVirtual":	false,
+					"IsOverride":	false
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestDoc Case 9:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"FuncDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	{
-					"_Type":	"CommentGroup",
-					"List":	[{
-							"_Type":	"Comment",
-							"Text":	"/**\n"
-						}, {
-							"_Type":	"Comment",
-							"Text":	" * doc 1\n"
-						}, {
-							"_Type":	"Comment",
-							"Text":	" * doc 2\n"
-						}, {
-							"_Type":	"Comment",
-							"Text":	" */\n"
-						}]
-				},
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"foo"
-				},
-				"MangledName":	"_Z3foov",
-				"Type":	{
-					"_Type":	"FuncType",
-					"Params":	{
-						"_Type":	"FieldList",
-						"List":	null
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_9.h",
+		"path":	"temp_9.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"FuncDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_9.h"
 					},
-					"Ret":	{
-						"_Type":	"BuiltinType",
-						"Kind":	0,
-						"Flags":	0
-					}
-				},
-				"IsInline":	false,
-				"IsStatic":	false,
-				"IsConst":	false,
-				"IsExplicit":	false,
-				"IsConstructor":	false,
-				"IsDestructor":	false,
-				"IsVirtual":	false,
-				"IsOverride":	false
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	{
+						"_Type":	"CommentGroup",
+						"List":	[{
+								"_Type":	"Comment",
+								"Text":	"/**\n"
+							}, {
+								"_Type":	"Comment",
+								"Text":	" * doc 1\n"
+							}, {
+								"_Type":	"Comment",
+								"Text":	" * doc 2\n"
+							}, {
+								"_Type":	"Comment",
+								"Text":	" */\n"
+							}]
+					},
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"foo",
+						"USR":	"c:@F@foo#"
+					},
+					"MangledName":	"_Z3foov",
+					"Type":	{
+						"_Type":	"FuncType",
+						"Params":	{
+							"_Type":	"FieldList",
+							"List":	null
+						},
+						"Ret":	{
+							"_Type":	"BuiltinType",
+							"Kind":	0,
+							"Flags":	0
+						}
+					},
+					"IsInline":	false,
+					"IsStatic":	false,
+					"IsConst":	false,
+					"IsExplicit":	false,
+					"IsConstructor":	false,
+					"IsDestructor":	false,
+					"IsVirtual":	false,
+					"IsOverride":	false
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestDoc Case 10:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"Foo"
-				},
-				"Type":	{
-					"_Type":	"RecordType",
-					"Tag":	0,
-					"Fields":	{
-						"_Type":	"FieldList",
-						"List":	[{
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	{
-									"_Type":	"CommentGroup",
-									"List":	[{
-											"_Type":	"Comment",
-											"Text":	"/// doc\n"
-										}]
-								},
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"x"
-									}]
-							}, {
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	{
-									"_Type":	"CommentGroup",
-									"List":	[{
-											"_Type":	"Comment",
-											"Text":	"///< comment\n"
-										}]
-								},
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"y"
-									}]
-							}, {
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	{
-									"_Type":	"CommentGroup",
-									"List":	[{
-											"_Type":	"Comment",
-											"Text":	"/*!< comment */\n"
-										}]
-								},
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"z"
-									}]
-							}]
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_10.h",
+		"path":	"temp_10.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_10.h"
 					},
-					"Methods":	[]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"Foo",
+						"USR":	"c:@S@Foo"
+					},
+					"Type":	{
+						"_Type":	"RecordType",
+						"Tag":	0,
+						"Fields":	{
+							"_Type":	"FieldList",
+							"List":	[{
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	{
+										"_Type":	"CommentGroup",
+										"List":	[{
+												"_Type":	"Comment",
+												"Text":	"/// doc\n"
+											}]
+									},
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"x",
+											"USR":	"c:@S@Foo@FI@x"
+										}]
+								}, {
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	{
+										"_Type":	"CommentGroup",
+										"List":	[{
+												"_Type":	"Comment",
+												"Text":	"///< comment\n"
+											}]
+									},
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"y",
+											"USR":	"c:@S@Foo@FI@y"
+										}]
+								}, {
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	{
+										"_Type":	"CommentGroup",
+										"List":	[{
+												"_Type":	"Comment",
+												"Text":	"/*!< comment */\n"
+											}]
+									},
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"z",
+											"USR":	"c:@S@Foo@FI@z"
+										}]
+								}]
+						},
+						"Methods":	[]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestDoc Case 11:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"Doc"
-				},
-				"Type":	{
-					"_Type":	"RecordType",
-					"Tag":	3,
-					"Fields":	{
-						"_Type":	"FieldList",
-						"List":	[{
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	{
-									"_Type":	"CommentGroup",
-									"List":	[{
-											"_Type":	"Comment",
-											"Text":	"/** \n"
-										}, {
-											"_Type":	"Comment",
-											"Text":	"     * static field doc\n"
-										}, {
-											"_Type":	"Comment",
-											"Text":	"     */\n"
-										}]
-								},
-								"Comment":	null,
-								"IsStatic":	true,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"x"
-									}]
-							}, {
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	{
-									"_Type":	"CommentGroup",
-									"List":	[{
-											"_Type":	"Comment",
-											"Text":	"/*!< static field comment */\n"
-										}]
-								},
-								"IsStatic":	true,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"y"
-									}]
-							}, {
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	{
-									"_Type":	"CommentGroup",
-									"List":	[{
-											"_Type":	"Comment",
-											"Text":	"/** \n"
-										}, {
-											"_Type":	"Comment",
-											"Text":	"     * field doc\n"
-										}, {
-											"_Type":	"Comment",
-											"Text":	"     */\n"
-										}]
-								},
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"a"
-									}]
-							}, {
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	{
-									"_Type":	"CommentGroup",
-									"List":	[{
-											"_Type":	"Comment",
-											"Text":	"///< field comment\n"
-										}]
-								},
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"b"
-									}]
-							}, {
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	{
-									"_Type":	"CommentGroup",
-									"List":	[{
-											"_Type":	"Comment",
-											"Text":	"/*!< protected field comment */\n"
-										}]
-								},
-								"IsStatic":	false,
-								"Access":	2,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"value"
-									}]
-							}]
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_11.h",
+		"path":	"temp_11.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_11.h"
 					},
-					"Methods":	[{
-							"_Type":	"FuncDecl",
-							"Loc":	{
-								"_Type":	"Location",
-								"File":	"temp.h"
-							},
-							"Doc":	{
-								"_Type":	"CommentGroup",
-								"List":	[{
-										"_Type":	"Comment",
-										"Text":	"/** \n"
-									}, {
-										"_Type":	"Comment",
-										"Text":	"     * method doc\n"
-									}, {
-										"_Type":	"Comment",
-										"Text":	"     */\n"
-									}]
-							},
-							"Parent":	{
-								"_Type":	"Ident",
-								"Name":	"Doc"
-							},
-							"Name":	{
-								"_Type":	"Ident",
-								"Name":	"Foo"
-							},
-							"MangledName":	"_ZN3Doc3FooEv",
-							"Type":	{
-								"_Type":	"FuncType",
-								"Params":	{
-									"_Type":	"FieldList",
-									"List":	null
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"Doc",
+						"USR":	"c:@S@Doc"
+					},
+					"Type":	{
+						"_Type":	"RecordType",
+						"Tag":	3,
+						"Fields":	{
+							"_Type":	"FieldList",
+							"List":	[{
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	{
+										"_Type":	"CommentGroup",
+										"List":	[{
+												"_Type":	"Comment",
+												"Text":	"/** \n"
+											}, {
+												"_Type":	"Comment",
+												"Text":	"     * static field doc\n"
+											}, {
+												"_Type":	"Comment",
+												"Text":	"     */\n"
+											}]
+									},
+									"Comment":	null,
+									"IsStatic":	true,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"x",
+											"USR":	"c:@S@Doc@x"
+										}]
+								}, {
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	{
+										"_Type":	"CommentGroup",
+										"List":	[{
+												"_Type":	"Comment",
+												"Text":	"/*!< static field comment */\n"
+											}]
+									},
+									"IsStatic":	true,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"y",
+											"USR":	"c:@S@Doc@y"
+										}]
+								}, {
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	{
+										"_Type":	"CommentGroup",
+										"List":	[{
+												"_Type":	"Comment",
+												"Text":	"/** \n"
+											}, {
+												"_Type":	"Comment",
+												"Text":	"     * field doc\n"
+											}, {
+												"_Type":	"Comment",
+												"Text":	"     */\n"
+											}]
+									},
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"a",
+											"USR":	"c:@S@Doc@FI@a"
+										}]
+								}, {
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	{
+										"_Type":	"CommentGroup",
+										"List":	[{
+												"_Type":	"Comment",
+												"Text":	"///< field comment\n"
+											}]
+									},
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"b",
+											"USR":	"c:@S@Doc@FI@b"
+										}]
+								}, {
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	{
+										"_Type":	"CommentGroup",
+										"List":	[{
+												"_Type":	"Comment",
+												"Text":	"/*!< protected field comment */\n"
+											}]
+									},
+									"IsStatic":	false,
+									"Access":	2,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"value",
+											"USR":	"c:@S@Doc@FI@value"
+										}]
+								}]
+						},
+						"Methods":	[{
+								"_Type":	"FuncDecl",
+								"Loc":	{
+									"_Type":	"Location",
+									"File":	"temp_11.h"
 								},
-								"Ret":	{
-									"_Type":	"BuiltinType",
-									"Kind":	0,
-									"Flags":	0
-								}
-							},
-							"IsInline":	false,
-							"IsStatic":	false,
-							"IsConst":	false,
-							"IsExplicit":	false,
-							"IsConstructor":	false,
-							"IsDestructor":	false,
-							"IsVirtual":	false,
-							"IsOverride":	false
-						}]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+								"Doc":	{
+									"_Type":	"CommentGroup",
+									"List":	[{
+											"_Type":	"Comment",
+											"Text":	"/** \n"
+										}, {
+											"_Type":	"Comment",
+											"Text":	"     * method doc\n"
+										}, {
+											"_Type":	"Comment",
+											"Text":	"     */\n"
+										}]
+								},
+								"Parent":	{
+									"_Type":	"Ident",
+									"Name":	"Doc",
+									"USR":	"c:@S@Doc"
+								},
+								"Name":	{
+									"_Type":	"Ident",
+									"Name":	"Foo",
+									"USR":	"c:@S@Doc@F@Foo#"
+								},
+								"MangledName":	"_ZN3Doc3FooEv",
+								"Type":	{
+									"_Type":	"FuncType",
+									"Params":	{
+										"_Type":	"FieldList",
+										"List":	null
+									},
+									"Ret":	{
+										"_Type":	"BuiltinType",
+										"Kind":	0,
+										"Flags":	0
+									}
+								},
+								"IsInline":	false,
+								"IsStatic":	false,
+								"IsConst":	false,
+								"IsExplicit":	false,
+								"IsConstructor":	false,
+								"IsDestructor":	false,
+								"IsVirtual":	false,
+								"IsOverride":	false
+							}]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 
 #stderr

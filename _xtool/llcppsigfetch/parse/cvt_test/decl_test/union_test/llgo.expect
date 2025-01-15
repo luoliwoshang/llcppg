@@ -1,232 +1,255 @@
 #stdout
 TestUnionDecl Case 1:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	null,
-				"Type":	{
-					"_Type":	"RecordType",
-					"Tag":	1,
-					"Fields":	{
-						"_Type":	"FieldList",
-						"List":	[{
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"a"
-									}]
-							}, {
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"b"
-									}]
-							}]
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_1.h",
+		"path":	"temp_1.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_1.h"
 					},
-					"Methods":	[]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	null,
+					"Type":	{
+						"_Type":	"RecordType",
+						"Tag":	1,
+						"Fields":	{
+							"_Type":	"FieldList",
+							"List":	[{
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"a",
+											"USR":	"c:temp_1.h@Ua@FI@a"
+										}]
+								}, {
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"b",
+											"USR":	"c:temp_1.h@Ua@FI@b"
+										}]
+								}]
+						},
+						"Methods":	[]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestUnionDecl Case 2:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"A"
-				},
-				"Type":	{
-					"_Type":	"RecordType",
-					"Tag":	1,
-					"Fields":	{
-						"_Type":	"FieldList",
-						"List":	[{
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"a"
-									}]
-							}, {
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"b"
-									}]
-							}]
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_2.h",
+		"path":	"temp_2.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_2.h"
 					},
-					"Methods":	[]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"A",
+						"USR":	"c:@U@A"
+					},
+					"Type":	{
+						"_Type":	"RecordType",
+						"Tag":	1,
+						"Fields":	{
+							"_Type":	"FieldList",
+							"List":	[{
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"a",
+											"USR":	"c:@U@A@FI@a"
+										}]
+								}, {
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"b",
+											"USR":	"c:@U@A@FI@b"
+										}]
+								}]
+						},
+						"Methods":	[]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 TestUnionDecl Case 3:
-{
-	"temp.h":	{
-		"_Type":	"File",
-		"decls":	[{
-				"_Type":	"TypeDecl",
-				"Loc":	{
-					"_Type":	"Location",
-					"File":	"temp.h"
-				},
-				"Doc":	null,
-				"Parent":	null,
-				"Name":	{
-					"_Type":	"Ident",
-					"Name":	"OuterUnion"
-				},
-				"Type":	{
-					"_Type":	"RecordType",
-					"Tag":	1,
-					"Fields":	{
-						"_Type":	"FieldList",
-						"List":	[{
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	6,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"i"
-									}]
-							}, {
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"BuiltinType",
-									"Kind":	8,
-									"Flags":	0
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"f"
-									}]
-							}, {
-								"_Type":	"Field",
-								"Type":	{
-									"_Type":	"RecordType",
-									"Tag":	1,
-									"Fields":	{
-										"_Type":	"FieldList",
-										"List":	[{
-												"_Type":	"Field",
-												"Type":	{
-													"_Type":	"BuiltinType",
-													"Kind":	6,
-													"Flags":	0
-												},
-												"Doc":	null,
-												"Comment":	null,
-												"IsStatic":	false,
-												"Access":	1,
-												"Names":	[{
-														"_Type":	"Ident",
-														"Name":	"c"
-													}]
-											}, {
-												"_Type":	"Field",
-												"Type":	{
-													"_Type":	"BuiltinType",
-													"Kind":	6,
-													"Flags":	32
-												},
-												"Doc":	null,
-												"Comment":	null,
-												"IsStatic":	false,
-												"Access":	1,
-												"Names":	[{
-														"_Type":	"Ident",
-														"Name":	"s"
-													}]
-											}]
-									},
-									"Methods":	[]
-								},
-								"Doc":	null,
-								"Comment":	null,
-								"IsStatic":	false,
-								"Access":	1,
-								"Names":	[{
-										"_Type":	"Ident",
-										"Name":	"inner"
-									}]
-							}]
+[{
+		"_Type":	"FileEntry",
+		"incPath":	"temp_3.h",
+		"path":	"temp_3.h",
+		"doc":	{
+			"_Type":	"File",
+			"decls":	[{
+					"_Type":	"TypeDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_3.h"
 					},
-					"Methods":	[]
-				}
-			}],
-		"includes":	[],
-		"macros":	[]
-	}
-}
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"OuterUnion",
+						"USR":	"c:@U@OuterUnion"
+					},
+					"Type":	{
+						"_Type":	"RecordType",
+						"Tag":	1,
+						"Fields":	{
+							"_Type":	"FieldList",
+							"List":	[{
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	6,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"i",
+											"USR":	"c:@U@OuterUnion@FI@i"
+										}]
+								}, {
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"BuiltinType",
+										"Kind":	8,
+										"Flags":	0
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"f",
+											"USR":	"c:@U@OuterUnion@FI@f"
+										}]
+								}, {
+									"_Type":	"Field",
+									"Type":	{
+										"_Type":	"RecordType",
+										"Tag":	1,
+										"Fields":	{
+											"_Type":	"FieldList",
+											"List":	[{
+													"_Type":	"Field",
+													"Type":	{
+														"_Type":	"BuiltinType",
+														"Kind":	6,
+														"Flags":	0
+													},
+													"Doc":	null,
+													"Comment":	null,
+													"IsStatic":	false,
+													"Access":	1,
+													"Names":	[{
+															"_Type":	"Ident",
+															"Name":	"c",
+															"USR":	"c:@U@OuterUnion@U@temp_3.h@53@FI@c"
+														}]
+												}, {
+													"_Type":	"Field",
+													"Type":	{
+														"_Type":	"BuiltinType",
+														"Kind":	6,
+														"Flags":	32
+													},
+													"Doc":	null,
+													"Comment":	null,
+													"IsStatic":	false,
+													"Access":	1,
+													"Names":	[{
+															"_Type":	"Ident",
+															"Name":	"s",
+															"USR":	"c:@U@OuterUnion@U@temp_3.h@53@FI@s"
+														}]
+												}]
+										},
+										"Methods":	[]
+									},
+									"Doc":	null,
+									"Comment":	null,
+									"IsStatic":	false,
+									"Access":	1,
+									"Names":	[{
+											"_Type":	"Ident",
+											"Name":	"inner",
+											"USR":	"c:@U@OuterUnion@FI@inner"
+										}]
+								}]
+						},
+						"Methods":	[]
+					}
+				}],
+			"includes":	[],
+			"macros":	[]
+		},
+		"isSys":	false
+	}]
 
 
 #stderr

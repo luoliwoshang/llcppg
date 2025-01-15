@@ -1,8 +1,9 @@
 package main
 
 import (
+	"github.com/goplus/llcppg/_xtool/llcppsigfetch/parse"
 	test "github.com/goplus/llcppg/_xtool/llcppsigfetch/parse/cvt_test"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/clangutils"
+	"github.com/goplus/llcppg/types"
 )
 
 func main() {
@@ -11,17 +12,17 @@ func main() {
 }
 
 func TestForwardDecl() {
-	test.RunTestWithConfig(&clangutils.Config{
-		File:  "./hfile/forwarddecl.h",
-		Temp:  false,
-		IsCpp: false,
+	test.RunTestWithConfig(&parse.ContextConfig{
+		Conf: &types.Config{Cplusplus: false, Include: []string{"hfile/forwarddecl.h"}},
+	}, []string{
+		"./hfile/forwarddecl.h",
 	})
 }
 
 func TestForwardDeclCrossFile() {
-	test.RunTestWithConfig(&clangutils.Config{
-		File:  "./hfile/def.h",
-		Temp:  false,
-		IsCpp: false,
+	test.RunTestWithConfig(&parse.ContextConfig{
+		Conf: &types.Config{Cplusplus: false, Include: []string{"hfile/def.h"}},
+	}, []string{
+		"./hfile/def.h",
 	})
 }

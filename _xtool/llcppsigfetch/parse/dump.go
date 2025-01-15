@@ -22,14 +22,6 @@ func MarshalFileSet(files []*ast.FileEntry) *cjson.JSON {
 	return root
 }
 
-func MarshalASTFiles(files []*ast.FileEntry) *cjson.JSON {
-	root := cjson.Object()
-	for _, entry := range files {
-		root.SetItem(c.AllocaCStr(entry.Path), MarshalASTFile(entry.Doc))
-	}
-	return root
-}
-
 func MarshalDeclList(list []ast.Decl) *cjson.JSON {
 	root := cjson.Array()
 	for _, item := range list {
@@ -210,6 +202,7 @@ func MarshalASTExpr(t ast.Expr) *cjson.JSON {
 			return cjson.Null()
 		}
 		root.SetItem(c.Str("Name"), stringField(d.Name))
+		root.SetItem(c.Str("USR"), stringField(d.USR))
 	case *ast.TagExpr:
 		root.SetItem(c.Str("_Type"), stringField("TagExpr"))
 		root.SetItem(c.Str("Name"), MarshalASTExpr(d.Name))
