@@ -566,6 +566,28 @@ TestTypeDefDecl Case 7:
 						},
 						"Methods":	[]
 					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_7.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"MyStruct",
+						"USR":	"c:@T@MyStruct"
+					},
+					"Type":	{
+						"_Type":	"TagExpr",
+						"Name":	{
+							"_Type":	"Ident",
+							"Name":	"MyStruct",
+							"USR":	"c:@SA@MyStruct"
+						},
+						"Tag":	0
+					}
 				}],
 			"includes":	[],
 			"macros":	[]
@@ -617,6 +639,28 @@ TestTypeDefDecl Case 8:
 								}]
 						},
 						"Methods":	[]
+					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_8.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"MyUnion",
+						"USR":	"c:@T@MyUnion"
+					},
+					"Type":	{
+						"_Type":	"TagExpr",
+						"Name":	{
+							"_Type":	"Ident",
+							"Name":	"MyUnion",
+							"USR":	"c:@UA@MyUnion"
+						},
+						"Tag":	1
 					}
 				}],
 			"includes":	[],
@@ -685,6 +729,28 @@ TestTypeDefDecl Case 9:
 								}
 							}]
 					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_9.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"MyEnum",
+						"USR":	"c:@T@MyEnum"
+					},
+					"Type":	{
+						"_Type":	"TagExpr",
+						"Name":	{
+							"_Type":	"Ident",
+							"Name":	"MyEnum",
+							"USR":	"c:@EA@MyEnum"
+						},
+						"Tag":	2
+					}
 				}],
 			"includes":	[],
 			"macros":	[]
@@ -736,6 +802,28 @@ TestTypeDefDecl Case 10:
 								}]
 						},
 						"Methods":	[]
+					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_10.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"MyStruct",
+						"USR":	"c:@T@MyStruct"
+					},
+					"Type":	{
+						"_Type":	"TagExpr",
+						"Name":	{
+							"_Type":	"Ident",
+							"Name":	"MyStruct",
+							"USR":	"c:@SA@MyStruct"
+						},
+						"Tag":	0
 					}
 				}, {
 					"_Type":	"TypedefDecl",
@@ -887,6 +975,28 @@ TestTypeDefDecl Case 11:
 					"Parent":	null,
 					"Name":	{
 						"_Type":	"Ident",
+						"Name":	"MyEnum",
+						"USR":	"c:@T@MyEnum"
+					},
+					"Type":	{
+						"_Type":	"TagExpr",
+						"Name":	{
+							"_Type":	"Ident",
+							"Name":	"MyEnum",
+							"USR":	"c:@EA@MyEnum"
+						},
+						"Tag":	2
+					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_11.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
 						"Name":	"MyEnum2",
 						"USR":	"c:temp_11.h@T@MyEnum2"
 					},
@@ -1013,6 +1123,56 @@ TestTypeDefDecl Case 12:
 								}]
 						},
 						"Methods":	[]
+					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_12.h"
+					},
+					"Doc":	null,
+					"Parent":	{
+						"_Type":	"ScopingExpr",
+						"X":	{
+							"_Type":	"Ident",
+							"Name":	"B",
+							"USR":	"c:@N@A@N@B"
+						},
+						"Parent":	{
+							"_Type":	"Ident",
+							"Name":	"A",
+							"USR":	"c:@N@A"
+						}
+					},
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"MyStruct",
+						"USR":	"c:@N@A@N@B@T@MyStruct"
+					},
+					"Type":	{
+						"_Type":	"TagExpr",
+						"Name":	{
+							"_Type":	"ScopingExpr",
+							"X":	{
+								"_Type":	"Ident",
+								"Name":	"MyStruct",
+								"USR":	"c:@N@A@N@B@SA@MyStruct"
+							},
+							"Parent":	{
+								"_Type":	"ScopingExpr",
+								"X":	{
+									"_Type":	"Ident",
+									"Name":	"B",
+									"USR":	"c:@N@A@N@B"
+								},
+								"Parent":	{
+									"_Type":	"Ident",
+									"Name":	"A",
+									"USR":	"c:@N@A"
+								}
+							}
+						},
+						"Tag":	0
 					}
 				}, {
 					"_Type":	"TypedefDecl",

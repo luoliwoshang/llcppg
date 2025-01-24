@@ -440,19 +440,6 @@ func (ct *Converter) ProcessUnderlyingType(cursor clang.Cursor) ast.Expr {
 	underName := toStr(referTypeCursor.String())
 	ct.logln("ProcessUnderlyingType: defName:", defName, "underName:", underName)
 
-	// For a typedef like "typedef struct xxx xxx;", the underlying type declaration
-	// can appear in two locations:
-	// 1. Inside the typedef itself when the struct is defined inline
-	// 2. At the implementation location when there's a separate struct xxx definition
-	// in the source file
-	// Therefore, we shouldn't use declaration location to determine whether to remove
-	// extra typedef nodes
-
-	if defName == underName {
-		ct.logln("ProcessUnderlyingType: is self reference")
-		return nil
-	}
-
 	return ct.ProcessElaboratedType(underlyingTyp)
 }
 

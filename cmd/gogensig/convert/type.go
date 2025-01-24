@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"go/token"
 	"go/types"
-	"log"
 	"unsafe"
 
 	"github.com/goplus/gogen"
@@ -149,13 +148,13 @@ func (p *TypeConv) handlePointerType(t *ast.PointerType) (types.Type, error) {
 }
 
 func (p *TypeConv) handleIdentRefer(t ast.Expr) (types.Type, error) {
-	lookup := func(name string) (types.Type, error) {
+	lookup := func(ident *ast.Ident) (types.Type, error) {
 		// For types defined in other packages, they should already be in current scope
 		// We don't check for types.Named here because the type returned from ConvertType
 		// for aliases like int8_t might be a built-in type (e.g., int8),
 
 		// check if the type is a system type
-		obj, err := p.referSysType(name)
+		obj, err := p.referSysType(ident.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -165,10 +164,10 @@ func (p *TypeConv) handleIdentRefer(t ast.Expr) (types.Type, error) {
 		if obj != nil {
 			typ = obj.Type()
 		} else {
-			obj = gogen.Lookup(p.Types.Scope(), name)
+			obj = gogen.Lookup(p.Types.Scope(), ident.Name)
 			if obj == nil {
 				// implicit forward decl
-				decl := p.conf.Package.handleImplicitForwardDecl(name)
+				decl := p.conf.Package.handleImplicitForwardDecl(ident)
 				typ = decl.Type()
 			} else {
 				typ = obj.Type()
@@ -186,7 +185,7 @@ func (p *TypeConv) handleIdentRefer(t ast.Expr) (types.Type, error) {
 	}
 	switch t := t.(type) {
 	case *ast.Ident:
-		typ, err := lookup(t.Name)
+		typ, err := lookup(t)
 		if err != nil {
 			return nil, fmt.Errorf("%s not found %w", t.Name, err)
 		}
@@ -196,7 +195,7 @@ func (p *TypeConv) handleIdentRefer(t ast.Expr) (types.Type, error) {
 	case *ast.TagExpr:
 		// todo(zzy):scoping
 		if ident, ok := t.Name.(*ast.Ident); ok {
-			typ, err := lookup(ident.Name)
+			typ, err := lookup(ident)
 			if err != nil {
 				return nil, fmt.Errorf("%s not found", ident.Name)
 			}
@@ -437,13 +436,15 @@ func avoidKeyword(name string) string {
 	return name
 }
 
-func substObj(pkg *types.Package, scope *types.Scope, origName string, real types.Object) {
-	old := scope.Insert(gogen.NewSubst(token.NoPos, pkg, origName, real))
-	if old != nil {
-		if t, ok := old.Type().(*gogen.TySubst); ok {
-			t.Real = real
-		} else {
-			log.Panicln(origName, "redefined")
-		}
+func substObj(pkg *types.Package, scope *types.Scope, origName string, real types.Object) (types.Object, error) {
+	subst := gogen.NewSubst(token.NoPos, pkg, origName, real)
+	old := scope.Insert(subst)
+	if old == nil {
+		return subst, nil
 	}
+	if t, ok := old.Type().(*gogen.TySubst); ok {
+		t.Real = real
+		return old, nil
+	}
+	return subst, fmt.Errorf("%s redefined", origName)
 }
