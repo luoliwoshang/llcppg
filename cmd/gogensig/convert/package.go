@@ -29,6 +29,9 @@ type Package struct {
 	curFile *HeaderFile    // current processing c header file.
 	files   []*HeaderFile  // header files.
 
+	defines map[string]ast.Node
+	from    map[types.Object]ast.Node
+
 	// incomplete stores type declarations that are not fully defined yet, including:
 	// - Forward declarations in C/C++
 	// - Typedef declarations that reference incomplete types
@@ -66,6 +69,8 @@ func NewPackage(config *PackageConfig) *Package {
 		conf:            config,
 		incompleteTypes: NewIncompleteTypes(),
 		nameMapper:      names.NewNameMapper(),
+		defines:         make(map[string]ast.Node),
+		from:            make(map[types.Object]ast.Node),
 	}
 
 	mod, err := gopmod.Load(config.OutputDir)
@@ -309,7 +314,7 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 
 	cname := typeDecl.Name.Name
 	isForward := p.cvt.inComplete(typeDecl.Type)
-	name, changed, err := p.DeclName(cname)
+	name, _, err := p.DeclName(cname)
 	if err != nil {
 		if isForward {
 			return nil
@@ -320,9 +325,7 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 
 	incom := p.handleTypeDecl(name, cname, typeDecl)
 
-	if changed {
-		substObj(p.p.Types, p.p.Types.Scope(), cname, incom.decl.Type().Obj())
-	}
+	p.registerDefine(typeDecl.Name.USR, incom.decl.Type().Obj(), cname, name, typeDecl)
 
 	if !isForward {
 		if err := p.handleCompleteType(incom, typeDecl.Type, cname); err != nil {
@@ -330,6 +333,20 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 		}
 	}
 	return nil
+}
+
+func (p *Package) registerDefine(usr string, obj types.Object, cname string, pubname string, node ast.Node) {
+	typeObj := obj
+	var err error
+	if cname != pubname {
+		// if have the same name,substitute the object
+		typeObj, err = substObj(p.p.Types, p.p.Types.Scope(), cname, obj)
+		if err != nil {
+			log.Panic(err)
+		}
+	}
+	p.defines[usr] = node
+	p.from[typeObj] = node
 }
 
 // handleTypeDecl creates a new type declaration or retrieves existing one
@@ -347,13 +364,10 @@ func (p *Package) handleTypeDecl(pubname string, cname string, typeDecl *ast.Typ
 		},
 	}
 	p.incompleteTypes.Add(inc)
-	// p.incompletes = append(p.incompletes, inc)
-	// p.incomplete[inc.cname] = inc
 	return inc
 }
 
 func (p *Package) handleCompleteType(incom *Incomplete, typ *ast.RecordType, name string) error {
-	// defer delete(p.incomplete, name)
 	defer p.incompleteTypes.Complete(name)
 	defer p.SetCurFile(p.curFile)
 	p.SetCurFile(incom.file)
@@ -370,28 +384,25 @@ func (p *Package) handleCompleteType(incom *Incomplete, typ *ast.RecordType, nam
 // handleImplicitForwardDecl handles type references that cannot be found in the current scope.
 // For such declarations, create a empty type decl and store it in the
 // incomplete map, but not in the public symbol table.
-func (p *Package) handleImplicitForwardDecl(name string) *gogen.TypeDecl {
-	// if decl, ok := p.incomplete[name]; ok {
-	// 	return decl.decl
-	// }
-	if decl, ok := p.incompleteTypes.Lookup(name); ok {
+func (p *Package) handleImplicitForwardDecl(ident *ast.Ident) *gogen.TypeDecl {
+	if decl, ok := p.incompleteTypes.Lookup(ident.Name); ok {
 		return decl.decl
 	}
 
-	pubName := p.nameMapper.GetGoName(name, p.trimPrefixes())
+	pubName := p.nameMapper.GetGoName(ident.Name, p.trimPrefixes())
 	decl := p.emptyTypeDecl(pubName, nil)
 	inc := &Incomplete{
-		cname: name,
+		cname: ident.Name,
 		file:  p.curFile,
 		decl:  decl,
 		getType: func() (types.Type, error) {
 			return types.NewStruct(p.cvt.defaultRecordField(), nil), nil
 		},
 	}
+
 	p.incompleteTypes.Add(inc)
-	// p.incompletes = append(p.incompletes, inc)
-	// p.incomplete[inc.cname] = inc
-	p.nameMapper.SetMapping(name, pubName)
+	p.nameMapper.SetMapping(ident.Name, pubName)
+	p.registerDefine(ident.USR, decl.Type().Obj(), ident.Name, pubName, nil)
 	return decl
 }
 
@@ -412,18 +423,30 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 	if dbg.GetDebugLog() {
 		log.Printf("NewTypedefDecl: %v\n", typedefDecl.Name)
 	}
-	name, changed, err := p.DeclName(typedefDecl.Name.Name)
+
+	sameName, err := p.allowTypedef(typedefDecl.Name.Name)
+	if err != nil {
+		// same typedef , throw error
+		return err
+	}
+	if sameName {
+		// same name,not same definition,permit
+		// like struct A {};
+		// typedef struct A {};
+		return nil
+	}
+
+	name, _, err := p.DeclName(typedefDecl.Name.Name)
 	if err != nil {
 		return err
 	}
+
 	p.CollectNameMapping(typedefDecl.Name.Name, name)
 
 	genDecl := p.p.NewTypeDefs()
 	typeSpecdecl := genDecl.NewType(name)
 
-	if changed {
-		substObj(p.p.Types, p.p.Types.Scope(), typedefDecl.Name.Name, typeSpecdecl.Type().Obj())
-	}
+	p.registerDefine(typedefDecl.Name.USR, typeSpecdecl.Type().Obj(), typedefDecl.Name.Name, name, typedefDecl)
 
 	deferInit := p.handleTyperefIncomplete(typedefDecl.Type, typeSpecdecl, typedefDecl.Name.Name)
 	if deferInit {
@@ -445,6 +468,23 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 	}
 
 	return nil
+}
+
+func (p *Package) allowTypedef(name string) (bool, error) {
+	// permit typedef struct A {} A;
+	// but not permit typedef struct A {} A; typedef struct A {} A;
+	obj := gogen.Lookup(p.p.Types.Scope(), name)
+	if obj == nil {
+		return false, nil
+	}
+	declNode, ok := p.from[obj]
+	if ok {
+		// if the obj is a typedef and have same name,its same definition
+		if _, ok := declNode.(*ast.TypedefDecl); ok {
+			return true, errs.NewTypeDefinedError(name, name)
+		}
+	}
+	return true, nil
 }
 
 func (p *Package) handleTyperefIncomplete(typeRef ast.Expr, typeSpecdecl *gogen.TypeDecl, namedName string) bool {
@@ -508,7 +548,7 @@ func (p *Package) NewEnumTypeDecl(enumTypeDecl *ast.EnumTypeDecl) error {
 	if dbg.GetDebugLog() {
 		log.Printf("NewEnumTypeDecl: %v\n", enumTypeDecl.Name)
 	}
-	enumType, enumTypeName, err := p.createEnumType(enumTypeDecl.Name)
+	enumType, enumTypeName, err := p.createEnumType(enumTypeDecl)
 	if err != nil {
 		return err
 	}
@@ -521,25 +561,27 @@ func (p *Package) NewEnumTypeDecl(enumTypeDecl *ast.EnumTypeDecl) error {
 	return nil
 }
 
-func (p *Package) createEnumType(enumName *ast.Ident) (types.Type, string, error) {
+func (p *Package) createEnumType(enumTypeDecl *ast.EnumTypeDecl) (types.Type, string, error) {
+	var orgName string
 	var name string
-	var changed bool
+	var usr string
+	// var changed bool
 	var err error
 	var t *gogen.TypeDecl
-	if enumName != nil {
-		name, changed, err = p.DeclName(enumName.Name)
+	if enumTypeDecl.Name != nil {
+		orgName = enumTypeDecl.Name.Name
+		usr = enumTypeDecl.Name.USR
+		name, _, err = p.DeclName(orgName)
 		if err != nil {
-			return nil, "", errs.NewTypeDefinedError(name, enumName.Name)
+			return nil, "", errs.NewTypeDefinedError(name, orgName)
 		}
-		p.CollectNameMapping(enumName.Name, name)
+		p.CollectNameMapping(orgName, name)
 	}
 	enumType := p.cvt.ToDefaultEnumType()
 	if name != "" {
 		t = p.NewTypedefs(name, enumType)
 		enumType = p.p.Types.Scope().Lookup(name).Type()
-	}
-	if changed {
-		substObj(p.p.Types, p.p.Types.Scope(), enumName.Name, t.Type().Obj())
+		p.registerDefine(usr, t.Type().Obj(), orgName, name, enumTypeDecl)
 	}
 	return enumType, name, nil
 }
@@ -552,7 +594,7 @@ func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type, en
 		if enumTypeName != "" {
 			constName = enumTypeName + "_" + constName
 		}
-		name, changed, err := p.DeclName(constName)
+		name, _, err := p.DeclName(constName)
 		if err != nil {
 			return errs.NewTypeDefinedError(name, item.Name.Name)
 		}
@@ -561,10 +603,8 @@ func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type, en
 			return err
 		}
 		defs.New(val, enumType, name)
-		if changed {
-			if obj := p.p.Types.Scope().Lookup(name); obj != nil {
-				substObj(p.p.Types, p.p.Types.Scope(), item.Name.Name, obj)
-			}
+		if obj := p.p.Types.Scope().Lookup(name); obj != nil {
+			p.registerDefine(item.Name.USR, obj, item.Name.Name, name, item)
 		}
 	}
 	return nil
@@ -732,9 +772,10 @@ func (p *Package) WritePubFile() error {
 func (p *Package) DeclName(name string) (pubName string, changed bool, err error) {
 	pubName, changed = p.nameMapper.GetUniqueGoName(name, p.trimPrefixes())
 	// if the type is incomplete,it's ok to have the same name
+	// check the origen name is defined in current package
 	obj := p.p.Types.Scope().Lookup(name)
-	_, ok := p.incompleteTypes.Lookup(name)
-	if obj != nil && !ok {
+	_, incom := p.incompleteTypes.Lookup(name)
+	if obj != nil && !incom {
 		return "", false, errs.NewTypeDefinedError(pubName, name)
 	}
 	return pubName, changed, nil

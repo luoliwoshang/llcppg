@@ -189,6 +189,28 @@ TestMacroExpansionOtherFile:
 						},
 						"Methods":	[]
 					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"./testdata/macroexpan/ref.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"NewType",
+						"USR":	"c:@T@NewType"
+					},
+					"Type":	{
+						"_Type":	"TagExpr",
+						"Name":	{
+							"_Type":	"Ident",
+							"Name":	"NewType",
+							"USR":	"c:@SA@NewType"
+						},
+						"Tag":	0
+					}
 				}],
 			"includes":	[{
 					"_Type":	"Include",

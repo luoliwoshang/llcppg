@@ -566,6 +566,28 @@ TestFuncDecl Case 8:
 						"Methods":	[]
 					}
 				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_8.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"OSSL_CORE_HANDLE",
+						"USR":	"c:temp_8.h@T@OSSL_CORE_HANDLE"
+					},
+					"Type":	{
+						"_Type":	"TagExpr",
+						"Name":	{
+							"_Type":	"Ident",
+							"Name":	"OSSL_CORE_HANDLE",
+							"USR":	"c:@S@OSSL_CORE_HANDLE"
+						},
+						"Tag":	0
+					}
+				}, {
 					"_Type":	"TypeDecl",
 					"Loc":	{
 						"_Type":	"Location",
@@ -586,6 +608,28 @@ TestFuncDecl Case 8:
 							"List":	null
 						},
 						"Methods":	[]
+					}
+				}, {
+					"_Type":	"TypedefDecl",
+					"Loc":	{
+						"_Type":	"Location",
+						"File":	"temp_8.h"
+					},
+					"Doc":	null,
+					"Parent":	null,
+					"Name":	{
+						"_Type":	"Ident",
+						"Name":	"OSSL_DISPATCH",
+						"USR":	"c:temp_8.h@T@OSSL_DISPATCH"
+					},
+					"Type":	{
+						"_Type":	"TagExpr",
+						"Name":	{
+							"_Type":	"Ident",
+							"Name":	"OSSL_DISPATCH",
+							"USR":	"c:@S@OSSL_DISPATCH"
+						},
+						"Tag":	0
 					}
 				}, {
 					"_Type":	"TypedefDecl",

@@ -1,0 +1,49 @@
+===== temp.go =====
+package typedef
+
+import (
+	"github.com/goplus/llgo/c"
+	_ "unsafe"
+)
+
+type A struct {
+	A c.Long
+}
+
+type B struct {
+	A c.Long
+}
+
+type C struct {
+	A c.Long
+}
+
+type D struct {
+	A c.Long
+}
+type E c.Int
+
+const (
+	EITEMA E = 0
+	EITEMB E = 1
+)
+
+type F c.Int
+
+const (
+	FITEMC F = 0
+	FITEMD F = 1
+)
+
+===== typedef_autogen_link.go =====
+package typedef
+
+const LLGoPackage string = "link: $(pkg-config --libs xxx);"
+
+===== llcppg.pub =====
+a A
+b B
+c C
+d D
+e E
+f F
