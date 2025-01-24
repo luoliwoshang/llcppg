@@ -2,9 +2,11 @@ package convert_test
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -36,7 +38,7 @@ func TestSysToPkg(t *testing.T) {
 	if err != nil {
 		t.Fatal("Getwd failed:", err)
 	}
-	testFrom(t, name, path.Join(dir, "_testdata", name), false, func(t *testing.T, pkg *convert.Package) {
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, func(t *testing.T, pkg *convert.Package, fileSet []*ast.FileEntry) {
 		typConv := pkg.GetTypeConv()
 		if typConv.SysTypeLoc == nil {
 			t.Fatal("sysTypeLoc is nil")
@@ -127,7 +129,7 @@ func testFromDir(t *testing.T, relDir string, gen bool) {
 	}
 }
 
-func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *testing.T, pkg *convert.Package)) {
+func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *testing.T, pkg *convert.Package, fileSet []*ast.FileEntry)) {
 	confPath := filepath.Join(dir, "conf")
 	cfgPath := filepath.Join(confPath, "llcppg.cfg")
 	symbPath := filepath.Join(confPath, "llcppg.symb.json")
@@ -265,7 +267,7 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 	}
 
 	if validateFunc != nil {
-		validateFunc(t, pkg)
+		validateFunc(t, pkg, fileSet)
 	}
 }
 
@@ -497,4 +499,99 @@ func ModInit(name string) (string, error) {
 		return "", err
 	}
 	return outputDir, nil
+}
+
+func TestMiddleInclude(t *testing.T) {
+	data, err := config.SigfetchExtract(
+		&config.SigfetchExtractConfig{
+			File:   "./_typetest/middleinclude/main.h",
+			IsTemp: false,
+			IsCpp:  false,
+			Dir:    ".",
+		})
+	if err != nil {
+		t.Fatal(err)
+	}
+	fs, err := unmarshal.FileSet(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	processer := convert.NewTypeCollector()
+	types := processer.Collect(fs)
+
+	// the compat.h's typdef
+	typedefDecl := fs[1].Doc.Decls[0].(*ast.TypedefDecl)
+	if typedefDecl.DeclBase.Loc.File != "./_typetest/middleinclude/compat.h" {
+		t.Fatal("Expect ./_typetest/middleinclude/compat.h")
+	}
+	ident, ok := typedefDecl.Type.(*ast.Ident)
+	if !ok {
+		t.Fatal("Expect *ast.Ident")
+	}
+	log.Println(ident.Name, ident.USR)
+	compatNode, ok := types.Lookup(ident.USR)
+	if !ok {
+		t.Fatal("Expect Got Node")
+	}
+	compatDecl, ok := compatNode.(*ast.TypedefDecl)
+	if !ok {
+		t.Fatal("Expect *ast.TypedefDecl")
+	}
+	if compatDecl.Loc.File != "./_typetest/middleinclude/main.h" {
+		t.Fatal("Expect ./_typetest/middleinclude/main.h")
+	}
+}
+
+func TestTypeCollect(t *testing.T) {
+	name := "_typedef"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, filepath.Join(dir, "_testdata", name), false, func(t *testing.T, pkg *convert.Package, fileSet []*ast.FileEntry) {
+		collector := convert.NewTypeCollector()
+		types := collector.Collect(fileSet)
+		decls := fileSet[0].Doc.Decls
+		// only check these typedef,check the underlying is expected
+		typedefNames := []string{"a", "b", "c", "d", "e", "f"}
+		for _, decl := range decls {
+			if typedef, ok := decl.(*ast.TypedefDecl); ok {
+				if !slices.Contains(typedefNames, typedef.Name.Name) {
+					t.Fatalf("Expect %s", typedef.Name.Name)
+				}
+				tagExpr, ok := typedef.Type.(*ast.TagExpr)
+				if !ok {
+					t.Fatalf("Expect *ast.TagExpr")
+				}
+				typedefIdent, ok := tagExpr.Name.(*ast.Ident)
+				if !ok {
+					t.Fatalf("Expect *ast.Ident")
+				}
+				underlying, ok := types.Lookup(typedefIdent.USR)
+				if !ok {
+					t.Fatalf("Expect %s, but not found", typedefIdent.Name)
+				}
+				_, isTypedef := underlying.(*ast.TypedefDecl)
+				if isTypedef {
+					t.Fatalf("Expect %s, but found TypedefDecl", typedefIdent.Name)
+				}
+				var underlyingName *ast.Ident
+				switch typ := underlying.(type) {
+				case *ast.TypeDecl:
+					underlyingName = underlying.(*ast.TypeDecl).Name
+				case *ast.EnumTypeDecl:
+					underlyingName = underlying.(*ast.EnumTypeDecl).Name
+				default:
+					t.Fatalf("Found Unexpected Underlying Type %T", typ)
+				}
+				if underlyingName.Name != typedefIdent.Name {
+					t.Fatalf("Underlying Name Expect %s, but found %s", typedefIdent.Name, underlyingName.Name)
+				}
+				if underlyingName.USR != typedefIdent.USR {
+					t.Fatalf("Underlying Name USR Expect %s, but found %s", typedefIdent.USR, underlyingName.USR)
+				}
+
+			}
+		}
+	})
 }

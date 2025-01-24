@@ -184,3 +184,31 @@ func (p *AstConvert) WritePkgFiles() {
 		log.Panicf("WritePkgFiles: %v", err)
 	}
 }
+
+type TypeCollector struct {
+	Types *Types
+}
+
+func NewTypeCollector() *TypeCollector {
+	return &TypeCollector{
+		Types: NewTypes(),
+	}
+}
+
+func (p *TypeCollector) Collect(files []*ast.FileEntry) *Types {
+	for _, file := range files {
+		for _, decl := range file.Doc.Decls {
+			switch d := decl.(type) {
+			case *ast.TypeDecl:
+				p.Types.Register(d.Name.USR, d)
+			case *ast.TypedefDecl:
+				p.Types.Register(d.Name.USR, d)
+			case *ast.EnumTypeDecl:
+				p.Types.Register(d.Name.USR, d)
+			case *ast.FuncDecl:
+				p.Types.Register(d.Name.USR, d)
+			}
+		}
+	}
+	return p.Types
+}
