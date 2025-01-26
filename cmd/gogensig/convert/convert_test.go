@@ -2,11 +2,9 @@ package convert_test
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
-	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -38,8 +36,8 @@ func TestSysToPkg(t *testing.T) {
 	if err != nil {
 		t.Fatal("Getwd failed:", err)
 	}
-	testFrom(t, name, path.Join(dir, "_testdata", name), false, func(t *testing.T, pkg *convert.Package, fileSet []*ast.FileEntry) {
-		typConv := pkg.GetTypeConv()
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, func(t *testing.T, testInfo *testInfo) {
+		typConv := testInfo.pkg.GetTypeConv()
 		if typConv.SysTypeLoc == nil {
 			t.Fatal("sysTypeLoc is nil")
 		}
@@ -129,22 +127,33 @@ func testFromDir(t *testing.T, relDir string, gen bool) {
 	}
 }
 
-func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *testing.T, pkg *convert.Package, fileSet []*ast.FileEntry)) {
+type testInfo struct {
+	pkg       *convert.Package
+	fileSet   []*ast.FileEntry
+	cfgPath   string
+	symbPath  string
+	pubPath   string
+	expect    string
+	outputDir string
+}
+
+func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *testing.T, testInfo *testInfo)) {
 	confPath := filepath.Join(dir, "conf")
-	cfgPath := filepath.Join(confPath, "llcppg.cfg")
-	symbPath := filepath.Join(confPath, "llcppg.symb.json")
-	pubPath := filepath.Join(confPath, "llcppg.pub")
-	expect := filepath.Join(dir, "gogensig.expect")
+	testInfo := &testInfo{
+		symbPath: filepath.Join(confPath, args.LLCPPG_SYMB),
+		pubPath:  filepath.Join(confPath, args.LLCPPG_PUB),
+		expect:   filepath.Join(dir, "gogensig.expect"),
+	}
 	var expectContent []byte
 	if !gen {
 		var err error
-		expectContent, err = os.ReadFile(expect)
+		expectContent, err = os.ReadFile(testInfo.expect)
 		if err != nil {
 			t.Fatal(expectContent)
 		}
 	}
 
-	cfg, err := config.GetCppgCfgFromPath(cfgPath)
+	cfg, err := config.GetCppgCfgFromPath(filepath.Join(confPath, args.LLCPPG_CFG))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,6 +165,7 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 
 	cfg.CFlags += " -I" + filepath.Join(dir, "hfile")
 	flagedCfgPath, err := config.CreateTmpJSONFile(args.LLCPPG_CFG, cfg)
+	testInfo.cfgPath = flagedCfgPath
 	defer os.Remove(flagedCfgPath)
 
 	if err != nil {
@@ -171,8 +181,8 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 			t.Fatal(err)
 		}
 	}()
-	outputDir, err := ModInit(name)
-	defer os.RemoveAll(outputDir)
+	testInfo.outputDir, err = ModInit(name)
+	defer os.RemoveAll(testInfo.outputDir)
 
 	// patch the test file's cflags
 	preprocess := func(p *convert.Package) {
@@ -202,10 +212,10 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 		PkgPreprocessor: preprocess,
 		AstConvertConfig: convert.AstConvertConfig{
 			PkgName:   name,
-			SymbFile:  symbPath,
+			SymbFile:  testInfo.symbPath,
 			CfgFile:   flagedCfgPath,
-			OutputDir: outputDir,
-			PubFile:   pubPath,
+			OutputDir: testInfo.outputDir,
+			PubFile:   testInfo.pubPath,
 		},
 	})
 	if err != nil {
@@ -223,14 +233,16 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 	}
 
 	err = p.ProcessFileSet(fileSet)
-
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	testInfo.pkg = pkg
+	testInfo.fileSet = fileSet
+
 	var res strings.Builder
 
-	outDir, err := os.ReadDir(outputDir)
+	outDir, err := os.ReadDir(testInfo.outputDir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -238,7 +250,7 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 		if strings.HasSuffix(fi.Name(), "go.mod") || strings.HasSuffix(fi.Name(), "go.sum") || strings.HasSuffix(fi.Name(), "llcppg.pub") {
 			continue
 		} else {
-			content, err := os.ReadFile(filepath.Join(outputDir, fi.Name()))
+			content, err := os.ReadFile(filepath.Join(testInfo.outputDir, fi.Name()))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -248,14 +260,14 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 		}
 	}
 
-	pub, err := os.ReadFile(filepath.Join(outputDir, "llcppg.pub"))
+	pub, err := os.ReadFile(filepath.Join(testInfo.outputDir, "llcppg.pub"))
 	if err == nil {
 		res.WriteString("===== llcppg.pub =====\n")
 		res.Write(pub)
 	}
 
 	if gen {
-		if err := os.WriteFile(expect, []byte(res.String()), 0644); err != nil {
+		if err := os.WriteFile(testInfo.expect, []byte(res.String()), 0644); err != nil {
 			t.Fatal(err)
 		}
 	} else {
@@ -267,7 +279,7 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 	}
 
 	if validateFunc != nil {
-		validateFunc(t, pkg, fileSet)
+		validateFunc(t, testInfo)
 	}
 }
 
@@ -501,64 +513,159 @@ func ModInit(name string) (string, error) {
 	return outputDir, nil
 }
 
-func TestMiddleInclude(t *testing.T) {
-	data, err := config.SigfetchExtract(
-		&config.SigfetchExtractConfig{
-			File:   "./_typetest/middleinclude/main.h",
-			IsTemp: false,
-			IsCpp:  false,
-			Dir:    ".",
-		})
-	if err != nil {
-		t.Fatal(err)
-	}
-	fs, err := unmarshal.FileSet(data)
-	if err != nil {
-		t.Fatal(err)
-	}
-	processer := convert.NewTypeCollector()
-	types := processer.Collect(fs)
+type convertTestInfo struct {
+	testInfo *testInfo
+	cvt      *convert.Converter
+}
 
-	// the compat.h's typdef
-	typedefDecl := fs[1].Doc.Decls[0].(*ast.TypedefDecl)
-	if typedefDecl.DeclBase.Loc.File != "./_typetest/middleinclude/compat.h" {
-		t.Fatal("Expect ./_typetest/middleinclude/compat.h")
+func testFromConvert(t *testing.T, name, dir string, gen bool, validateFunc func(t *testing.T, testInfo *convertTestInfo)) {
+	confPath := filepath.Join(dir, "conf")
+	testInfo := &testInfo{
+		symbPath: filepath.Join(confPath, args.LLCPPG_SYMB),
+		pubPath:  filepath.Join(confPath, args.LLCPPG_PUB),
+		expect:   filepath.Join(dir, "gogensig.expect"),
 	}
-	ident, ok := typedefDecl.Type.(*ast.Ident)
-	if !ok {
-		t.Fatal("Expect *ast.Ident")
+	var expectContent []byte
+	if !gen {
+		var err error
+		expectContent, err = os.ReadFile(testInfo.expect)
+		if err != nil {
+			t.Fatal(expectContent)
+		}
 	}
-	log.Println(ident.Name, ident.USR)
-	compatNode, ok := types.Lookup(ident.USR)
-	if !ok {
-		t.Fatal("Expect Got Node")
+
+	cfg, err := config.GetCppgCfgFromPath(filepath.Join(confPath, args.LLCPPG_CFG))
+	if err != nil {
+		t.Fatal(err)
 	}
-	compatDecl, ok := compatNode.(*ast.TypedefDecl)
-	if !ok {
-		t.Fatal("Expect *ast.TypedefDecl")
+
+	// origin cflags + test deps folder cflags,because the test deps 's cflags is depend on machine
+	if cfg.CFlags != "" {
+		cfg.CFlags = env.ExpandEnv(cfg.CFlags)
 	}
-	if compatDecl.Loc.File != "./_typetest/middleinclude/main.h" {
-		t.Fatal("Expect ./_typetest/middleinclude/main.h")
+
+	cfg.CFlags += " -I" + filepath.Join(dir, "hfile")
+	flagedCfgPath, err := config.CreateTmpJSONFile(args.LLCPPG_CFG, cfg)
+	testInfo.cfgPath = flagedCfgPath
+	defer os.Remove(flagedCfgPath)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	originalWd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := os.Chdir(originalWd); err != nil {
+			t.Fatal(err)
+		}
+	}()
+	testInfo.outputDir, err = ModInit(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(testInfo.outputDir)
+
+	cvt, err := convert.NewConverter(&convert.ConverterConfig{
+		PkgName:   name,
+		SymbFile:  testInfo.symbPath,
+		CfgFile:   flagedCfgPath,
+		OutputDir: testInfo.outputDir,
+		PubFile:   testInfo.pubPath,
+	})
+	testInfo.pkg = cvt.Pkg
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bytes, err := config.SigfetchFromConfig(flagedCfgPath, confPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fileSet, err := unmarshal.FileSet(bytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	testInfo.fileSet = fileSet
+
+	cvt.Collect(fileSet)
+	cvt.Start()
+
+	var res strings.Builder
+
+	outDir, err := os.ReadDir(testInfo.outputDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, fi := range outDir {
+		if strings.HasSuffix(fi.Name(), "go.mod") || strings.HasSuffix(fi.Name(), "go.sum") || strings.HasSuffix(fi.Name(), "llcppg.pub") {
+			continue
+		} else {
+			content, err := os.ReadFile(filepath.Join(testInfo.outputDir, fi.Name()))
+			if err != nil {
+				t.Fatal(err)
+			}
+			res.WriteString(fmt.Sprintf("===== %s =====\n", fi.Name()))
+			res.Write(content)
+			res.WriteString("\n")
+		}
+	}
+
+	pub, err := os.ReadFile(filepath.Join(testInfo.outputDir, "llcppg.pub"))
+	if err == nil {
+		res.WriteString("===== llcppg.pub =====\n")
+		res.Write(pub)
+	}
+
+	if gen {
+		if err := os.WriteFile(testInfo.expect, []byte(res.String()), 0644); err != nil {
+			t.Fatal(err)
+		}
+	} else {
+		expect := string(expectContent)
+		got := res.String()
+		if strings.TrimSpace(expect) != strings.TrimSpace(got) {
+			t.Errorf("does not match expected.\nExpected:\n%s\nGot:\n%s", expect, got)
+		}
+	}
+
+	if validateFunc != nil {
+		validateFunc(t, &convertTestInfo{
+			testInfo: testInfo,
+			cvt:      cvt,
+		})
 	}
 }
 
-func TestTypeCollect(t *testing.T) {
-	name := "_typedef"
+func TestTypedefNew(t *testing.T) {
+	name := "typedef"
 	dir, err := os.Getwd()
 	if err != nil {
 		t.Fatal("Getwd failed:", err)
 	}
-	testFrom(t, name, filepath.Join(dir, "_testdata", name), false, func(t *testing.T, pkg *convert.Package, fileSet []*ast.FileEntry) {
-		collector := convert.NewTypeCollector()
-		types := collector.Collect(fileSet)
+	testFromConvert(t, name, filepath.Join(dir, "_testdata", name), true, func(t *testing.T, testInfo *convertTestInfo) {
+		cvt := testInfo.cvt
+		fileSet := cvt.FileSet
+		usrOrder, err := testInfo.cvt.BuildOrder()
+		if err != nil {
+			t.Fatal(err)
+		}
 		decls := fileSet[0].Doc.Decls
-		// only check these typedef,check the underlying is expected
-		typedefNames := []string{"a", "b", "c", "d", "e", "f"}
-		for _, decl := range decls {
+		// typedef a,b,c,d,e,f
+		typedefs := []ast.Decl{
+			decls[1],  // typedef a
+			decls[3],  // typedef b
+			decls[5],  // typedef c
+			decls[7],  // typedef d
+			decls[9],  // typedef e
+			decls[11], // typedef f
+		}
+		for _, decl := range typedefs {
 			if typedef, ok := decl.(*ast.TypedefDecl); ok {
-				if !slices.Contains(typedefNames, typedef.Name.Name) {
-					t.Fatalf("Expect %s", typedef.Name.Name)
-				}
 				tagExpr, ok := typedef.Type.(*ast.TagExpr)
 				if !ok {
 					t.Fatalf("Expect *ast.TagExpr")
@@ -567,7 +674,7 @@ func TestTypeCollect(t *testing.T) {
 				if !ok {
 					t.Fatalf("Expect *ast.Ident")
 				}
-				underlying, ok := types.Lookup(typedefIdent.USR)
+				underlying, ok := cvt.Types.Lookup(typedefIdent.USR)
 				if !ok {
 					t.Fatalf("Expect %s, but not found", typedefIdent.Name)
 				}
@@ -592,6 +699,32 @@ func TestTypeCollect(t *testing.T) {
 				}
 
 			}
+		}
+
+		for _, typedef := range typedefs {
+			typedefDecl := typedef.(*ast.TypedefDecl)
+			deps := cvt.Types.LookupDeps(typedefDecl.Name.USR)
+			if len(deps) != 1 {
+				t.Fatalf("Expect 1 dep, but found %d", len(deps))
+			}
+			depAnonyType, ok := cvt.Types.Lookup(deps[0])
+			if !ok {
+				t.Fatalf("Expect %s, but not found", deps[0])
+			}
+			switch anonType := depAnonyType.(type) {
+			case *ast.TypeDecl:
+				if anonType.Name.Name != typedefDecl.Name.Name {
+					t.Fatalf("Expect %s, but found %s", typedefDecl.Name.Name, anonType.Name.Name)
+				}
+			case *ast.EnumTypeDecl:
+				if anonType.Name.Name != typedefDecl.Name.Name {
+					t.Fatalf("Expect %s, but found %s", typedefDecl.Name.Name, anonType.Name.Name)
+				}
+			}
+		}
+
+		if len(usrOrder) != len(cvt.Types.Defs) {
+			t.Fatalf("Expect USR Order %d, but found %d", len(cvt.Types.Defs), len(usrOrder))
 		}
 	})
 }

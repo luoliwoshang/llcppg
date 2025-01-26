@@ -1,10 +1,5 @@
-===== _typedef_autogen_link.go =====
-package _typedef
-
-const LLGoPackage string = "link: $(pkg-config --libs xxx);"
-
 ===== temp.go =====
-package _typedef
+package typedef
 
 import (
 	"github.com/goplus/llgo/c"
@@ -39,6 +34,11 @@ const (
 	FITEMC F = 0
 	FITEMD F = 1
 )
+
+===== typedef_autogen_link.go =====
+package typedef
+
+const LLGoPackage string = "link: $(pkg-config --libs xxx);"
 
 ===== llcppg.pub =====
 a A

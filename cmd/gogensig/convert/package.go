@@ -51,6 +51,9 @@ type Package struct {
 	incompleteTypes *IncompleteTypes
 
 	nameMapper *names.NameMapper // handles name mapping and uniqueness
+
+	decls     map[string]*gogen.TypeDefs // usr -> gogen.declgroup
+	enumDecls map[string]*ConstGroup     // usr -> ConstGroup
 }
 
 type PackageConfig struct {
@@ -71,6 +74,8 @@ func NewPackage(config *PackageConfig) *Package {
 		nameMapper:      names.NewNameMapper(),
 		defines:         make(map[string]ast.Node),
 		from:            make(map[types.Object]ast.Node),
+		decls:           make(map[string]*gogen.TypeDefs),
+		enumDecls:       make(map[string]*ConstGroup),
 	}
 
 	mod, err := gopmod.Load(config.OutputDir)
@@ -100,6 +105,10 @@ func NewPackage(config *PackageConfig) *Package {
 	})
 	p.SetCurFile(&HeaderFile{File: p.conf.Name})
 	return p
+}
+
+func (p *Package) Config() *PackageConfig {
+	return p.conf
 }
 
 func (p *Package) SetCurFile(hfile *HeaderFile) {
@@ -237,6 +246,20 @@ func pubMethodName(recv types.Type, fnSpec *GoFuncSpec) string {
 	return named.Obj().Name() + "." + fnSpec.FnName
 }
 
+// keep node in expect position in ast
+func (p *Package) RegisterDecl(usr string) {
+	typeBlock := p.p.NewTypeDefs()
+	p.decls[usr] = typeBlock
+}
+
+// keep node in expect position in ast
+func (p *Package) RegisterEnumDecl(usr string) {
+	typeBlock := p.p.NewTypeDefs()
+	group := p.NewConstGroup()
+	p.enumDecls[usr] = group
+	p.decls[usr] = typeBlock
+}
+
 func (p *Package) NewFuncDecl(funcDecl *ast.FuncDecl) error {
 	skip, anony, err := p.cvt.handleSysType(funcDecl.Name, funcDecl.Loc, p.curFile.IncPath)
 	if skip {
@@ -335,6 +358,56 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 	return nil
 }
 
+func (p *Package) ConvertTypeDecl(typeDecl *ast.TypeDecl) error {
+	skip, anony, err := p.cvt.handleSysType(typeDecl.Name, typeDecl.Loc, p.curFile.IncPath)
+	if skip {
+		if dbg.GetDebugLog() {
+			log.Printf("NewTypeDecl: %s type of system header\n", typeDecl.Name)
+		}
+		return err
+	}
+	if dbg.GetDebugLog() {
+		log.Printf("NewTypeDecl: %v\n", typeDecl.Name)
+	}
+	if anony {
+		if dbg.GetDebugLog() {
+			log.Println("NewTypeDecl:Skip a anonymous type")
+		}
+		return nil
+	}
+
+	cname := typeDecl.Name.Name
+	isForward := p.cvt.inComplete(typeDecl.Type)
+	name, _, err := p.DeclName(cname)
+	if err != nil {
+		if isForward {
+			return nil
+		}
+		return err
+	}
+	p.CollectNameMapping(cname, name)
+
+	incom := p.handleTypeDecl2(name, cname, typeDecl)
+
+	p.registerDefine(typeDecl.Name.USR, incom.decl.Type().Obj(), cname, name, typeDecl)
+
+	if !isForward {
+		if err := p.handleCompleteType(incom, typeDecl.Type, cname); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (p *Package) decl(usr string, name string, doc *ast.CommentGroup) *gogen.TypeDecl {
+	decl, ok := p.decls[usr]
+	if !ok {
+		panic("emptyTypeDecl2: decl not found")
+	}
+	decl.SetComments(CommentGroup(doc).CommentGroup)
+	return decl.NewType(name)
+}
+
 func (p *Package) registerDefine(usr string, obj types.Object, cname string, pubname string, node ast.Node) {
 	typeObj := obj
 	var err error
@@ -355,6 +428,23 @@ func (p *Package) handleTypeDecl(pubname string, cname string, typeDecl *ast.Typ
 		return existDecl
 	}
 	decl := p.emptyTypeDecl(pubname, typeDecl.Doc)
+	inc := &Incomplete{
+		cname: cname,
+		file:  p.curFile,
+		decl:  decl,
+		getType: func() (types.Type, error) {
+			return types.NewStruct(p.cvt.defaultRecordField(), nil), nil
+		},
+	}
+	p.incompleteTypes.Add(inc)
+	return inc
+}
+
+func (p *Package) handleTypeDecl2(pubname string, cname string, typeDecl *ast.TypeDecl) *Incomplete {
+	if existDecl, exists := p.incompleteTypes.Lookup(cname); exists {
+		return existDecl
+	}
+	decl := p.decl(typeDecl.Name.USR, pubname, typeDecl.Doc)
 	inc := &Incomplete{
 		cname: cname,
 		file:  p.curFile,
@@ -470,6 +560,65 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 	return nil
 }
 
+func (p *Package) ConvertTypedefDecl(typedefDecl *ast.TypedefDecl) error {
+	skip, _, err := p.cvt.handleSysType(typedefDecl.Name, typedefDecl.Loc, p.curFile.IncPath)
+	if skip {
+		if dbg.GetDebugLog() {
+			log.Printf("NewTypedefDecl: %v is a typedef of system header file\n", typedefDecl.Name)
+		}
+		return err
+	}
+	if dbg.GetDebugLog() {
+		log.Printf("NewTypedefDecl: %v\n", typedefDecl.Name)
+	}
+
+	sameName, err := p.allowTypedef(typedefDecl.Name.Name)
+	if err != nil {
+		// same typedef , throw error
+		return err
+	}
+	if sameName {
+		// same name,not same definition,permit
+		// like struct A {};
+		// typedef struct A {};
+		return nil
+	}
+
+	name, _, err := p.DeclName(typedefDecl.Name.Name)
+	if err != nil {
+		return err
+	}
+
+	p.CollectNameMapping(typedefDecl.Name.Name, name)
+
+	// genDecl := p.p.NewTypeDefs()
+	// typeSpecdecl := genDecl.NewType(name)
+	typeSpecdecl := p.decl(typedefDecl.Name.USR, name, typedefDecl.Doc)
+
+	p.registerDefine(typedefDecl.Name.USR, typeSpecdecl.Type().Obj(), typedefDecl.Name.Name, name, typedefDecl)
+
+	deferInit := p.handleTyperefIncomplete(typedefDecl.Type, typeSpecdecl, typedefDecl.Name.Name)
+	if deferInit {
+		if dbg.GetDebugLog() {
+			log.Printf("NewTypedefDecl: %s defer init\n", name)
+		}
+		return nil
+	}
+
+	typ, err := p.ToType(typedefDecl.Type)
+	if err != nil {
+		typeSpecdecl.InitType(p.p, types.NewStruct(p.cvt.defaultRecordField(), nil))
+		return err
+	}
+
+	typeSpecdecl.InitType(p.p, typ)
+	if _, ok := typ.(*types.Signature); ok {
+		typeSpecdecl.SetComments(p.p, NewTypecDocComments())
+	}
+
+	return nil
+}
+
 func (p *Package) allowTypedef(name string) (bool, error) {
 	// permit typedef struct A {} A;
 	// but not permit typedef struct A {} A; typedef struct A {} A;
@@ -561,6 +710,30 @@ func (p *Package) NewEnumTypeDecl(enumTypeDecl *ast.EnumTypeDecl) error {
 	return nil
 }
 
+func (p *Package) ConvertEnumTypeDecl(enumTypeDecl *ast.EnumTypeDecl) error {
+	skip, _, err := p.cvt.handleSysType(enumTypeDecl.Name, enumTypeDecl.Loc, p.curFile.IncPath)
+	if skip {
+		if dbg.GetDebugLog() {
+			log.Printf("NewEnumTypeDecl: %v is a enum type of system header file\n", enumTypeDecl.Name)
+		}
+		return err
+	}
+	if dbg.GetDebugLog() {
+		log.Printf("NewEnumTypeDecl: %v\n", enumTypeDecl.Name)
+	}
+	enumType, enumTypeName, err := p.handleEnumType(enumTypeDecl)
+	if err != nil {
+		return err
+	}
+	if len(enumTypeDecl.Type.Items) > 0 {
+		err = p.handleEnumItems(enumTypeDecl.Name.USR, enumTypeDecl.Type.Items, enumType, enumTypeName)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (p *Package) createEnumType(enumTypeDecl *ast.EnumTypeDecl) (types.Type, string, error) {
 	var orgName string
 	var name string
@@ -584,6 +757,38 @@ func (p *Package) createEnumType(enumTypeDecl *ast.EnumTypeDecl) (types.Type, st
 		p.registerDefine(usr, t.Type().Obj(), orgName, name, enumTypeDecl)
 	}
 	return enumType, name, nil
+}
+
+func (p *Package) handleEnumType(enumTypeDecl *ast.EnumTypeDecl) (types.Type, string, error) {
+	var orgName string
+	var name string
+	var usr string
+	var err error
+	var t *gogen.TypeDecl
+	if enumTypeDecl.Name != nil {
+		orgName = enumTypeDecl.Name.Name
+		usr = enumTypeDecl.Name.USR
+		name, _, err = p.DeclName(orgName)
+		if err != nil {
+			return nil, "", errs.NewTypeDefinedError(name, orgName)
+		}
+		p.CollectNameMapping(orgName, name)
+	}
+	enumType := p.cvt.ToDefaultEnumType()
+	if name != "" {
+		t = p.initEnumType(enumTypeDecl.Name.USR, name, enumType)
+		enumType = p.p.Types.Scope().Lookup(name).Type()
+		p.registerDefine(usr, t.Type().Obj(), orgName, name, enumTypeDecl)
+	}
+	return enumType, name, nil
+}
+
+func (p *Package) initEnumType(usr string, name string, typ types.Type) *gogen.TypeDecl {
+	def := p.decls[usr]
+	t := def.NewType(name)
+	t.InitType(def.Pkg(), typ)
+	def.Complete()
+	return t
 }
 
 func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type, enumTypeName string) error {
@@ -610,6 +815,32 @@ func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type, en
 	return nil
 }
 
+func (p *Package) handleEnumItems(usr string, items []*ast.EnumItem, enumType types.Type, enumTypeName string) error {
+	defs, ok := p.enumDecls[usr]
+	if !ok {
+		panic(fmt.Sprintf("enumDecls not found: %s", enumTypeName))
+	}
+	for _, item := range items {
+		// maybe get a new name,because the after executed name,have some situation will found same name
+		constName := p.nameMapper.GetGoName(item.Name.Name, p.trimPrefixes())
+		if enumTypeName != "" {
+			constName = enumTypeName + "_" + constName
+		}
+		name, _, err := p.DeclName(constName)
+		if err != nil {
+			return errs.NewTypeDefinedError(name, item.Name.Name)
+		}
+		val, err := Expr(item.Value).ToInt()
+		if err != nil {
+			return err
+		}
+		defs.New(val, enumType, name)
+		if obj := p.p.Types.Scope().Lookup(name); obj != nil {
+			p.registerDefine(item.Name.USR, obj, item.Name.Name, name, item)
+		}
+	}
+	return nil
+}
 func (p *Package) NewMacro(macro *ast.Macro) error {
 	if p.curFile.IsSys {
 		return nil
