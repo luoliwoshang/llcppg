@@ -399,13 +399,13 @@ func (p *Package) ConvertTypeDecl(typeDecl *ast.TypeDecl) error {
 	return nil
 }
 
-func (p *Package) decl(usr string, name string, doc *ast.CommentGroup) *gogen.TypeDecl {
+func (p *Package) decl(usr string, name string, doc *ast.CommentGroup) (*gogen.TypeDecl, *gogen.TypeDefs) {
 	decl, ok := p.decls[usr]
 	if !ok {
 		panic("emptyTypeDecl2: decl not found")
 	}
 	decl.SetComments(CommentGroup(doc).CommentGroup)
-	return decl.NewType(name)
+	return decl.NewType(name), decl
 }
 
 func (p *Package) registerDefine(usr string, obj types.Object, cname string, pubname string, node ast.Node) {
@@ -444,7 +444,7 @@ func (p *Package) handleTypeDecl2(pubname string, cname string, typeDecl *ast.Ty
 	if existDecl, exists := p.incompleteTypes.Lookup(cname); exists {
 		return existDecl
 	}
-	decl := p.decl(typeDecl.Name.USR, pubname, typeDecl.Doc)
+	decl, _ := p.decl(typeDecl.Name.USR, pubname, typeDecl.Doc)
 	inc := &Incomplete{
 		cname: cname,
 		file:  p.curFile,
@@ -593,7 +593,7 @@ func (p *Package) ConvertTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 
 	// genDecl := p.p.NewTypeDefs()
 	// typeSpecdecl := genDecl.NewType(name)
-	typeSpecdecl := p.decl(typedefDecl.Name.USR, name, typedefDecl.Doc)
+	typeSpecdecl, genDecl := p.decl(typedefDecl.Name.USR, name, typedefDecl.Doc)
 
 	p.registerDefine(typedefDecl.Name.USR, typeSpecdecl.Type().Obj(), typedefDecl.Name.Name, name, typedefDecl)
 
@@ -613,7 +613,7 @@ func (p *Package) ConvertTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 
 	typeSpecdecl.InitType(p.p, typ)
 	if _, ok := typ.(*types.Signature); ok {
-		typeSpecdecl.SetComments(p.p, NewTypecDocComments())
+		genDecl.SetComments(NewTypecDocComments())
 	}
 
 	return nil

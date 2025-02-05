@@ -641,13 +641,13 @@ func testFromConvert(t *testing.T, name, dir string, gen bool, validateFunc func
 	}
 }
 
-func TestTypedefNew(t *testing.T) {
+func TestConvertTypedef(t *testing.T) {
 	name := "typedef"
 	dir, err := os.Getwd()
 	if err != nil {
 		t.Fatal("Getwd failed:", err)
 	}
-	testFromConvert(t, name, filepath.Join(dir, "_testdata", name), true, func(t *testing.T, testInfo *convertTestInfo) {
+	testFromConvert(t, name, filepath.Join(dir, "_testdata", name), false, func(t *testing.T, testInfo *convertTestInfo) {
 		cvt := testInfo.cvt
 		fileSet := cvt.FileSet
 		usrOrder, err := testInfo.cvt.BuildOrder()

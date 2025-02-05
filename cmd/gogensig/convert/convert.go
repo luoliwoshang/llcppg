@@ -283,6 +283,8 @@ func (p *Converter) Process(orderedUSR []string) error {
 				p.Pkg.RegisterEnumDecl(decl.Name.USR)
 			case *ast.TypeDecl:
 				p.Pkg.RegisterDecl(decl.Name.USR)
+				// TODO: register func decl
+				// But gogen now could not only register func decl node in ast.
 			}
 		}
 	}
@@ -302,6 +304,9 @@ func (p *Converter) Process(orderedUSR []string) error {
 		case *ast.TypedefDecl:
 			p.Pkg.SetCurFile(Hfile(p.Pkg, p.files[decl.DeclBase.Loc.File]))
 			p.Pkg.ConvertTypedefDecl(decl)
+			// case *ast.FuncDecl:
+			// 	p.Pkg.SetCurFile(Hfile(p.Pkg, p.files[decl.DeclBase.Loc.File]))
+			// 	p.Pkg.ConvertFuncDecl(decl)
 		}
 	}
 	return nil
