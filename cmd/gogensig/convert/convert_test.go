@@ -737,3 +737,21 @@ func TestAvoidKeyword(t *testing.T) {
 	}
 	testFromConvert(t, name, filepath.Join(dir, "_testdata", name), false, nil)
 }
+
+func TestKeepComment(t *testing.T) {
+	name := "keepcomment"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFromConvert(t, name, filepath.Join(dir, "_testdata", name), false, nil)
+}
+
+func TestNested(t *testing.T) {
+	name := "nested"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFromConvert(t, name, filepath.Join(dir, "_testdata", name), false, nil)
+}

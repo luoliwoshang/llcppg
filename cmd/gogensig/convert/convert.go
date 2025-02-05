@@ -2,7 +2,6 @@ package convert
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"strings"
 
@@ -278,10 +277,19 @@ func (p *Converter) Process(orderedUSR []string) error {
 		for _, decl := range file.Doc.Decls {
 			switch decl := decl.(type) {
 			case *ast.TypedefDecl:
+				if dbg.GetDebugLog() {
+					log.Printf("Registering typedef decl: %s", decl.Name.USR)
+				}
 				p.Pkg.RegisterDecl(decl.Name.USR)
 			case *ast.EnumTypeDecl:
+				if dbg.GetDebugLog() {
+					log.Printf("Registering enum decl: %s", decl.Name.USR)
+				}
 				p.Pkg.RegisterEnumDecl(decl.Name.USR)
 			case *ast.TypeDecl:
+				if dbg.GetDebugLog() {
+					log.Printf("Registering type decl: %s", decl.Name.USR)
+				}
 				p.Pkg.RegisterDecl(decl.Name.USR)
 				// TODO: register func decl
 				// But gogen now could not only register func decl node in ast.
@@ -289,24 +297,42 @@ func (p *Converter) Process(orderedUSR []string) error {
 		}
 	}
 
-	for _, usr := range orderedUSR {
+	if dbg.GetDebugLog() {
+		log.Printf("Processing decls: %v", orderedUSR)
+	}
+	for i, usr := range orderedUSR {
+		if dbg.GetDebugLog() {
+			log.Printf("Processing USR[%d/%d]: %s", i+1, len(orderedUSR), usr)
+		}
 		typ, ok := p.Types.Lookup(usr)
 		if !ok {
-			return fmt.Errorf("expect %s, but not found", usr)
+			if dbg.GetDebugLog() {
+				log.Printf("Type not found for USR: %s in Types.Defs", usr)
+			}
+			continue
 		}
+
 		switch decl := typ.(type) {
 		case *ast.TypeDecl:
 			p.Pkg.SetCurFile(Hfile(p.Pkg, p.files[decl.DeclBase.Loc.File]))
-			p.Pkg.ConvertTypeDecl(decl)
+			if err := p.Pkg.ConvertTypeDecl(decl); err != nil {
+				log.Printf("ConvertTypeDecl %s Fail: %s", decl.Name.Name, err.Error())
+			}
 		case *ast.EnumTypeDecl:
 			p.Pkg.SetCurFile(Hfile(p.Pkg, p.files[decl.DeclBase.Loc.File]))
-			p.Pkg.ConvertEnumTypeDecl(decl)
+			if err := p.Pkg.ConvertEnumTypeDecl(decl); err != nil {
+				log.Printf("ConvertEnumTyleDecl %s Fail: %s", decl.Name.Name, err.Error())
+			}
 		case *ast.TypedefDecl:
 			p.Pkg.SetCurFile(Hfile(p.Pkg, p.files[decl.DeclBase.Loc.File]))
-			p.Pkg.ConvertTypedefDecl(decl)
+			if err := p.Pkg.ConvertTypedefDecl(decl); err != nil {
+				log.Printf("ConvertTypedefDecl %s Fail: %s", decl.Name.Name, err.Error())
+			}
 		case *ast.FuncDecl:
 			p.Pkg.SetCurFile(Hfile(p.Pkg, p.files[decl.DeclBase.Loc.File]))
-			p.Pkg.NewFuncDecl(decl)
+			if err := p.Pkg.NewFuncDecl(decl); err != nil {
+				log.Printf("ConvertFuncDecl %s Fail: %s", decl.Name.Name, err.Error())
+			}
 		}
 	}
 	return nil
@@ -373,8 +399,9 @@ func (p *Converter) BuildOrder() ([]string, error) {
 
 	var visit func(string) error
 	visit = func(usr string) error {
+		// nested dependency avoid recursive
 		if temp[usr] {
-			return fmt.Errorf("cyclic dependency detected at USR: %s", usr)
+			return nil
 		}
 		if visited[usr] {
 			return nil
