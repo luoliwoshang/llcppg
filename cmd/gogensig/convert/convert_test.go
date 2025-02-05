@@ -728,3 +728,12 @@ func TestConvertTypedef(t *testing.T) {
 		}
 	})
 }
+
+func TestAvoidKeyword(t *testing.T) {
+	name := "avoidkeyword"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFromConvert(t, name, filepath.Join(dir, "_testdata", name), false, nil)
+}

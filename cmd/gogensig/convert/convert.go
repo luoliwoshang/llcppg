@@ -304,9 +304,9 @@ func (p *Converter) Process(orderedUSR []string) error {
 		case *ast.TypedefDecl:
 			p.Pkg.SetCurFile(Hfile(p.Pkg, p.files[decl.DeclBase.Loc.File]))
 			p.Pkg.ConvertTypedefDecl(decl)
-			// case *ast.FuncDecl:
-			// 	p.Pkg.SetCurFile(Hfile(p.Pkg, p.files[decl.DeclBase.Loc.File]))
-			// 	p.Pkg.ConvertFuncDecl(decl)
+		case *ast.FuncDecl:
+			p.Pkg.SetCurFile(Hfile(p.Pkg, p.files[decl.DeclBase.Loc.File]))
+			p.Pkg.NewFuncDecl(decl)
 		}
 	}
 	return nil
