@@ -1,3 +1,8 @@
+===== pubfile_autogen_link.go =====
+package pubfile
+
+const LLGoPackage string = "link: $(pkg-config --libs xxx);"
+
 ===== temp.go =====
 package pubfile
 

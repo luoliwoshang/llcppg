@@ -1,3 +1,8 @@
+===== _depcjson_autogen_link.go =====
+package _depcjson
+
+const LLGoPackage string = "link: $(pkg-config --libs libcjson);"
+
 ===== temp.go =====
 package _depcjson
 

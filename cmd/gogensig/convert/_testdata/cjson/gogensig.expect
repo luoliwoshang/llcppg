@@ -354,6 +354,11 @@ func (recv_ *JSON) SortObject() {
 func (recv_ *JSON) SortObjectCaseSensitive() {
 }
 
+===== cjson_autogen_link.go =====
+package cjson
+
+const LLGoPackage string = "link: $(pkg-config --libs libcjson);"
+
 ===== llcppg.pub =====
 cJSON JSON
 cJSON_Hooks Hooks

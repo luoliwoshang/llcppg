@@ -177,7 +177,8 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 		t.Fatal(err)
 	}
 	defer func() {
-		if err := os.Chdir(originalWd); err != nil {
+		err = os.Chdir(originalWd)
+		if err != nil {
 			t.Fatal(err)
 		}
 	}()
@@ -593,7 +594,10 @@ func testFromConvert(t *testing.T, name, dir string, gen bool, validateFunc func
 	testInfo.fileSet = fileSet
 
 	cvt.Collect(fileSet)
-	cvt.Start()
+	err = cvt.Start()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	var res strings.Builder
 
@@ -605,7 +609,8 @@ func testFromConvert(t *testing.T, name, dir string, gen bool, validateFunc func
 		if strings.HasSuffix(fi.Name(), "go.mod") || strings.HasSuffix(fi.Name(), "go.sum") || strings.HasSuffix(fi.Name(), "llcppg.pub") {
 			continue
 		} else {
-			content, err := os.ReadFile(filepath.Join(testInfo.outputDir, fi.Name()))
+			var content []byte
+			content, err = os.ReadFile(filepath.Join(testInfo.outputDir, fi.Name()))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -754,4 +759,33 @@ func TestNested(t *testing.T) {
 		t.Fatal("Getwd failed:", err)
 	}
 	testFromConvert(t, name, filepath.Join(dir, "_testdata", name), false, nil)
+}
+
+// [NIT] CustomData struct have a addtional line
+// func TestPubfile(t *testing.T) {
+// 	name := "pubfile"
+// 	dir, err := os.Getwd()
+// 	if err != nil {
+// 		t.Fatal("Getwd failed:", err)
+// 	}
+// 	testFromConvert(t, name, filepath.Join(dir, "_testdata", name), false, nil)
+// }
+
+// Expect diffrent
+// func TestReceiver(t *testing.T) {
+// 	name := "receiver"
+// 	dir, err := os.Getwd()
+// 	if err != nil {
+// 		t.Fatal("Getwd failed:", err)
+// 	}
+// 	testFromConvert(t, name, filepath.Join(dir, "_testdata", name), false, nil)
+// }
+
+func TestSelfRef(t *testing.T) {
+	name := "selfref"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFromConvert(t, name, filepath.Join(dir, "_testdata", name), true, nil)
 }

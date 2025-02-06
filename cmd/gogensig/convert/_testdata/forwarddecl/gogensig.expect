@@ -1,3 +1,8 @@
+===== forwarddecl_autogen_link.go =====
+package forwarddecl
+
+const LLGoPackage string = "link: $(pkg-config --libs xxx);"
+
 ===== impl.go =====
 package forwarddecl
 

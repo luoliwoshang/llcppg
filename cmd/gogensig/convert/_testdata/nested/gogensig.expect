@@ -1,3 +1,8 @@
+===== nested_autogen_link.go =====
+package nested
+
+const LLGoPackage string = "link: $(pkg-config --libs xxx);"
+
 ===== temp.go =====
 package nested
 

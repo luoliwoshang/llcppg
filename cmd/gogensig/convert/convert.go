@@ -243,9 +243,18 @@ func (p *Converter) Start() error {
 		return err
 	}
 	p.Process(order)
-	p.Pkg.WritePkgFiles()
-	p.Pkg.WriteLinkFile()
-	p.Pkg.WritePubFile()
+	err = p.Pkg.WritePkgFiles()
+	if err != nil {
+		return err
+	}
+	_, err = p.Pkg.WriteLinkFile()
+	if err != nil {
+		return err
+	}
+	err = p.Pkg.WritePubFile()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -270,7 +279,7 @@ func (p *Converter) Collect(files []*ast.FileEntry) {
 	p.CollectDeps(files)
 }
 
-func (p *Converter) Process(orderedUSR []string) error {
+func (p *Converter) Process(orderedUSR []string) {
 	// Register Decl without type to keep type order
 	for _, file := range p.FileSet {
 		p.Pkg.SetCurFile(Hfile(p.Pkg, file))
@@ -291,7 +300,7 @@ func (p *Converter) Process(orderedUSR []string) error {
 					log.Printf("Registering type decl: %s", decl.Name.USR)
 				}
 				p.Pkg.RegisterDecl(decl.Name.USR)
-				// TODO: register func decl
+				// todo(zzy): register func decl
 				// But gogen now could not only register func decl node in ast.
 			}
 		}
@@ -335,7 +344,6 @@ func (p *Converter) Process(orderedUSR []string) error {
 			}
 		}
 	}
-	return nil
 }
 
 func (p *Converter) CollectDeps(files []*ast.FileEntry) {

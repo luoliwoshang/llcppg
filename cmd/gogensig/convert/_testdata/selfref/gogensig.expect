@@ -1,3 +1,8 @@
+===== selfref_autogen_link.go =====
+package selfref
+
+const LLGoPackage string = "link: $(pkg-config --libs xxx);"
+
 ===== temp.go =====
 package selfref
 
