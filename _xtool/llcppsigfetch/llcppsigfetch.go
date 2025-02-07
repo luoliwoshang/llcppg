@@ -27,8 +27,6 @@ import (
 	"github.com/goplus/llcppg/_xtool/llcppsymg/args"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/clangutils"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/config"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/config/cfgparse"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/syspath"
 	"github.com/goplus/llgo/c"
 	"github.com/goplus/llgo/c/cjson"
 )
@@ -154,33 +152,19 @@ func runFromConfig(cfgFile string, useStdin bool, outputToFile bool, verbose boo
 		os.Exit(1)
 	}
 
-	cflag := cfgparse.ParseCFlags(conf.CFlags)
-	files, notFounds, err := cflag.GenHeaderFilePaths(conf.Include, syspath.GetIncludePaths())
-	check(err)
-
-	if verbose {
-		fmt.Fprintln(os.Stderr, "runFromConfig: header file paths", files)
-		if len(notFounds) > 0 {
-			fmt.Fprintln(os.Stderr, "runFromConfig: not found header files", notFounds)
-		}
-	}
-
-	// Generate include directory flags (-I flags)
-	incFlags := make([]string, 0, len(cflag.Paths))
-	for _, path := range cflag.Paths {
-		incFlags = append(incFlags, "-I"+path)
-	}
-
-	context := parse.NewContext(&parse.ContextConfig{
-		Conf:     conf.Config,
-		IncFlags: incFlags,
+	pkg, err := parse.Do(&parse.ParseConfig{
+		Conf: conf.Config,
 	})
-	err = context.ProcessFiles(files)
 	check(err)
 
-	outputInfo(context, outputToFile)
+	info := parse.MarshalPkg(pkg)
+	str := info.Print()
+	defer cjson.FreeCStr(str)
+	defer info.Delete()
+	outputResult(str, outputToFile)
 }
 
+// todo:use new converter
 func runExtract(file string, isTemp bool, isCpp bool, outToFile bool, otherArgs []string, verbose bool) {
 	cfg := &clangutils.Config{
 		File:  file,
@@ -218,12 +202,4 @@ func outputResult(result *c.Char, outputToFile bool) {
 	} else {
 		c.Printf(c.Str("%s"), result)
 	}
-}
-
-func outputInfo(context *parse.Context, outputToFile bool) {
-	info := context.Output()
-	str := info.Print()
-	defer cjson.FreeCStr(str)
-	defer info.Delete()
-	outputResult(str, outputToFile)
 }
