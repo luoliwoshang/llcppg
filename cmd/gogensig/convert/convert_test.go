@@ -37,14 +37,38 @@ func TestAvoid(t *testing.T) {
 	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
 }
 
-// func TestCjson(t *testing.T) {
-// 	name := "cjson"
-// 	dir, err := os.Getwd()
-// 	if err != nil {
-// 		t.Fatal("Getwd failed:", err)
-// 	}
-// 	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
-// }
+// cjson
+
+// enum
+
+// forwarddecl
+func TestForwarddecl(t *testing.T) {
+	name := "forwarddecl"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
+}
+
+// funcrefer
+
+// gpgerror
+
+// keepcomment
+
+// lua
+
+// macro
+
+func TestMacro(t *testing.T) {
+	name := "macro"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
+}
 
 // test sys type in stdinclude to package
 func TestSysToPkg(t *testing.T) {
