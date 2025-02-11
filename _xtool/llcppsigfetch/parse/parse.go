@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/goplus/llcppg/_xtool/llcppsigfetch/dbg"
@@ -148,28 +149,33 @@ func Do(cfg *ParseConfig) (*types.Pkg, error) {
 		return nil, err
 	}
 
-	flags := strings.Fields(cfg.Conf.CFlags)
-	flags = append(flags, "-nobuiltininc") // to avoid libclang & clang different search path
-	flags = append(flags, "-C")            // keep comment
-	flags = append(flags, "-dD")           // keep macro
+	clangFlags := strings.Fields(cfg.Conf.CFlags)
+	// flags = append(flags, "-nobuiltininc")
+	// to avoid libclang & clang different search path,but it will cause
+	// 	   /opt/homebrew/include/lua/lua.h:11:10: fatal error: 'stdarg.h' file not found
+	//     11 | #include <stdarg.h>
+	// so use llvm-config --cflags to libclang to ensure the same search path for libclang and clang
+	clangFlags = append(clangFlags, "-C")  // keep comment
+	clangFlags = append(clangFlags, "-dD") // keep macro
 
 	err = clangutils.Preprocess(&clangutils.PreprocessConfig{
 		File:    cfg.CombinedFile,
 		IsCpp:   cfg.Conf.Cplusplus,
-		Args:    flags,
+		Args:    clangFlags,
 		OutFile: cfg.PreprocessedFile,
 	})
 	if err != nil {
 		return nil, err
 	}
 
+	libclangFlags := append(strings.Fields(cfg.Conf.CFlags), llvmCflags()...)
 	converter, err := NewConverterX(
 		&Config{
 			CombinedFile: cfg.CombinedFile,
 			Cfg: &clangutils.Config{
 				File:  cfg.PreprocessedFile,
 				IsCpp: cfg.Conf.Cplusplus,
-				Args:  strings.Fields(cfg.Conf.CFlags),
+				Args:  libclangFlags,
 			},
 		})
 	if err != nil {
@@ -181,4 +187,12 @@ func Do(cfg *ParseConfig) (*types.Pkg, error) {
 	}
 
 	return pkg, nil
+}
+
+func llvmCflags() []string {
+	out, err := exec.Command("llvm-config", "--cflags").Output()
+	if err != nil {
+		panic(err)
+	}
+	return strings.Fields(string(out))
 }
