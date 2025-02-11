@@ -69,14 +69,7 @@ func SigfetchConfig(configFile string, dir string) ([]byte, error) {
 }
 
 func executeSigfetch(args []string, dir string) ([]byte, error) {
-	// temp to avoid call exec.Command in llcppsigfetch
-	res, err := exec.Command("clang", "-print-resource-dir").Output()
-	if err != nil {
-		return nil, err
-	}
-	clangResource := path.Join(strings.TrimSpace(string(res)), "include")
-
-	cmd := exec.Command("llcppsigfetch", append(args, "-resourceIncDir="+clangResource)...)
+	cmd := exec.Command("llcppsigfetch", append(args, "-resourceIncDir="+ClangResourceDir())...)
 	if dir != "" {
 		cmd.Dir = dir
 	}
@@ -86,7 +79,7 @@ func executeSigfetch(args []string, dir string) ([]byte, error) {
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 
-	err = cmd.Run()
+	err := cmd.Run()
 	if err != nil {
 		return nil, fmt.Errorf("error running llcppsigfetch: %v\nStderr: %s\nArgs: %s", err, stderr.String(), strings.Join(args, " "))
 	}
@@ -178,4 +171,13 @@ func CreateJSONFile(filepath string, data any) error {
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
 	return encoder.Encode(data)
+}
+
+// temp to avoid call exec.Command in llcppsigfetch
+func ClangResourceDir() string {
+	res, err := exec.Command("clang", "-print-resource-dir").Output()
+	if err != nil {
+		panic(err)
+	}
+	return path.Join(strings.TrimSpace(string(res)), "include")
 }
