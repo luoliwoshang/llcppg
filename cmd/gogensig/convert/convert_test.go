@@ -40,6 +40,14 @@ func TestAvoid(t *testing.T) {
 // cjson
 
 // enum
+func TestEnum(t *testing.T) {
+	name := "enum"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
+}
 
 // forwarddecl
 func TestForwarddecl(t *testing.T) {
@@ -51,18 +59,86 @@ func TestForwarddecl(t *testing.T) {
 	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
 }
 
-// funcrefer
+func TestKeepComment(t *testing.T) {
+	name := "keepcomment"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
+}
 
 // gpgerror
 
-// keepcomment
+func TestFuncrefer(t *testing.T) {
+	name := "funcrefer"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
+}
 
 // lua
 
-// macro
-
 func TestMacro(t *testing.T) {
 	name := "macro"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
+}
+
+func TestNested(t *testing.T) {
+	name := "nested"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
+}
+
+func TestPubfile(t *testing.T) {
+	name := "pubfile"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
+}
+
+func TestReceiver(t *testing.T) {
+	name := "receiver"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
+}
+
+func TestSelfref(t *testing.T) {
+	name := "selfref"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
+}
+
+// sqlite
+
+func TestStdtype(t *testing.T) {
+	name := "stdtype"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
+}
+
+func TestUnion(t *testing.T) {
+	name := "union"
 	dir, err := os.Getwd()
 	if err != nil {
 		t.Fatal("Getwd failed:", err)
