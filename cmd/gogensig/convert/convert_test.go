@@ -37,9 +37,15 @@ func TestAvoid(t *testing.T) {
 	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
 }
 
-// cjson
+func TestCjson(t *testing.T) {
+	name := "cjson"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
+}
 
-// enum
 func TestEnum(t *testing.T) {
 	name := "enum"
 	dir, err := os.Getwd()
@@ -49,7 +55,6 @@ func TestEnum(t *testing.T) {
 	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
 }
 
-// forwarddecl
 func TestForwarddecl(t *testing.T) {
 	name := "forwarddecl"
 	dir, err := os.Getwd()
@@ -68,7 +73,14 @@ func TestKeepComment(t *testing.T) {
 	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
 }
 
-// gpgerror
+func TestGpgerror(t *testing.T) {
+	name := "gpgerror"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
+}
 
 func TestFuncrefer(t *testing.T) {
 	name := "funcrefer"
@@ -79,8 +91,14 @@ func TestFuncrefer(t *testing.T) {
 	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
 }
 
-// lua
-
+func TestLua(t *testing.T) {
+	name := "lua"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), true, nil)
+}
 func TestMacro(t *testing.T) {
 	name := "macro"
 	dir, err := os.Getwd()
@@ -126,7 +144,14 @@ func TestSelfref(t *testing.T) {
 	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
 }
 
-// sqlite
+func TestSqlite(t *testing.T) {
+	name := "sqlite"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
+}
 
 func TestStdtype(t *testing.T) {
 	name := "stdtype"
