@@ -170,7 +170,10 @@ func Do(cfg *ParseConfig) (*types.Pkg, error) {
 	if err != nil {
 		return nil, err
 	}
-	libclangFlags := append(strings.Fields(cfg.Conf.CFlags), "-I"+ResourceIncDir)
+	libclangFlags := strings.Fields(cfg.Conf.CFlags)
+	if ResourceIncDir != "" {
+		libclangFlags = append(libclangFlags, "-I"+ResourceIncDir)
+	}
 	// llvm cflags is not clang's include search path
 	converter, err := NewConverterX(
 		&Config{
