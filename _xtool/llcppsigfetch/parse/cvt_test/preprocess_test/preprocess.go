@@ -60,7 +60,7 @@ func TestSystemHeader() {
 		Cfg: &clangutils.Config{
 			File: temp,
 		},
-		CombinedFile: temp,
+		IncPreprocessedFile: temp,
 	})
 	if err != nil {
 		panic(err)
