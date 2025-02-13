@@ -225,7 +225,7 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 	}
 	defer os.RemoveAll(outputDir)
 
-	bytes, err := config.SigfetchConfig(flagedCfgPath, confPath)
+	bytes, err := config.SigfetchConfig(flagedCfgPath, confPath, cfg.Cplusplus)
 	if err != nil {
 		t.Fatal(err)
 	}
