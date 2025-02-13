@@ -320,7 +320,10 @@ func (p *Converter) setCurFile(file string) bool {
 	if _, ok := p.incMap[file]; ok {
 		return false
 	}
-	info := p.Pkg.FileMap[file]
+	info, exist := p.Pkg.FileMap[file]
+	if !exist {
+		panic("file not found in FileMap")
+	}
 	p.GenPkg.SetCurFile(Hfile(p.GenPkg, file, info.IncPath, info.IsSys))
 	return true
 }
