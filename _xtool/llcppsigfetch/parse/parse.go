@@ -179,6 +179,9 @@ func Do(cfg *ParseConfig) (*types.Pkg, error) {
 	}
 	libclangFlags = append(libclangFlags, strings.Fields(cfg.Conf.CFlags)...)
 	// llvm cflags is not clang's include search path
+	if dbg.GetDebugParse() {
+		fmt.Fprintln(os.Stderr, "LibClangFlags", libclangFlags)
+	}
 	converter, err := NewConverterX(
 		&Config{
 			CombinedFile: cfg.CombinedFile,
