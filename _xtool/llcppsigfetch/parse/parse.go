@@ -14,8 +14,9 @@ import (
 	"github.com/goplus/llgo/c/cjson"
 )
 
-// temp to avoid call clang -print-resource-dir in llcppsigfetch,will cause hang
-var ResourceIncDir string
+// temp to avoid call clang in llcppsigfetch,will cause hang
+var ClangSearchPath []string
+var ClangResourceInclude string
 
 type Context struct {
 	FileSet []*ast.FileEntry
@@ -170,10 +171,13 @@ func Do(cfg *ParseConfig) (*types.Pkg, error) {
 	if err != nil {
 		return nil, err
 	}
-	libclangFlags := strings.Fields(cfg.Conf.CFlags)
-	if ResourceIncDir != "" {
-		libclangFlags = append(libclangFlags, "-I"+ResourceIncDir)
+	libclangFlags := []string{}
+	if len(ClangSearchPath) != 0 {
+		for _, path := range ClangSearchPath {
+			libclangFlags = append(libclangFlags, "-I"+path)
+		}
 	}
+	libclangFlags = append(libclangFlags, strings.Fields(cfg.Conf.CFlags)...)
 	// llvm cflags is not clang's include search path
 	converter, err := NewConverterX(
 		&Config{
