@@ -6,6 +6,13 @@ import (
 	"unsafe"
 )
 
+const VERSIONMAJOR = 1
+const VERSIONMINOR = 7
+const VERSIONPATCH = 18
+const IsReference = 256
+const StringIsConst = 512
+const NESTINGLIMIT = 1000
+
 type JSON struct {
 	Next        *JSON
 	Prev        *JSON
@@ -346,18 +353,6 @@ func (recv_ *JSON) SortObject() {
 // llgo:link (*JSON).SortObjectCaseSensitive C.cJSONUtils_SortObjectCaseSensitive
 func (recv_ *JSON) SortObjectCaseSensitive() {
 }
-
-===== cjson_autogen_macros.go =====
-package cjson
-
-import _ "unsafe"
-
-const CJSONVERSIONMAJOR = 1
-const CJSONVERSIONMINOR = 7
-const CJSONVERSIONPATCH = 18
-const CJSONIsReference = 256
-const CJSONStringIsConst = 512
-const CJSONNESTINGLIMIT = 1000
 
 ===== llcppg.pub =====
 cJSON JSON
