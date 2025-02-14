@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -70,7 +69,7 @@ func SigfetchConfig(configFile string, dir string, isCpp bool) ([]byte, error) {
 }
 
 func executeSigfetch(args []string, dir string, isCpp bool) ([]byte, error) {
-	cmd := exec.Command("llcppsigfetch", append(args, "-ClangResourceInclude="+ClangResourceDir(), "-ClangSearchPath="+strings.Join(clangutils.GetIncludePaths(isCpp), ","))...)
+	cmd := exec.Command("llcppsigfetch", append(args, "-ClangResourceDir="+ClangResourceDir(), "-ClangSearchPath="+strings.Join(clangutils.GetIncludePaths(isCpp), ","))...)
 	if dir != "" {
 		cmd.Dir = dir
 	}
@@ -180,5 +179,5 @@ func ClangResourceDir() string {
 	if err != nil {
 		panic(err)
 	}
-	return path.Join(strings.TrimSpace(string(res)), "include")
+	return strings.TrimSpace(string(res))
 }

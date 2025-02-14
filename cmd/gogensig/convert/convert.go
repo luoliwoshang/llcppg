@@ -322,7 +322,12 @@ func (p *Converter) setCurFile(file string) bool {
 	}
 	info, exist := p.Pkg.FileMap[file]
 	if !exist {
-		panic("file not found in FileMap")
+		var availableFiles []string
+		for f := range p.Pkg.FileMap {
+			availableFiles = append(availableFiles, f)
+		}
+		log.Fatalf("File %q not found in FileMap. Available files:\n%s",
+			file, strings.Join(availableFiles, "\n"))
 	}
 	p.GenPkg.SetCurFile(Hfile(p.GenPkg, file, info.IncPath, info.IsSys))
 	return true

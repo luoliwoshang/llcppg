@@ -3,6 +3,7 @@ package parse
 import (
 	"fmt"
 	"os"
+	"path"
 	"runtime"
 	"strings"
 	"unsafe"
@@ -37,7 +38,7 @@ var tagMap = map[string]ast.Tag{
 
 type Config struct {
 	Cfg                 *clangutils.Config
-	IncPreprocessedFile string
+	IncPreprocessedFile string // Which keep origin Include info's processed file
 }
 
 func NewConverterX(config *Config) (*Converter, error) {
@@ -73,25 +74,19 @@ func initFileMap(cfg *Config) (map[string]*types.FileInfo, error) {
 	fileMap := make(map[string]*types.FileInfo)
 	combineConf := cfg.Cfg
 	combineConf.File = cfg.IncPreprocessedFile
+	if dbg.GetDebugParse() {
+		fmt.Fprintln(os.Stderr, "initFileMap: config")
+		fmt.Fprintln(os.Stderr, "config.File", combineConf.File)
+		fmt.Fprintln(os.Stderr, "config.Args", combineConf.Args)
+		fmt.Fprintln(os.Stderr, "config.IsCpp", combineConf.IsCpp)
+		fmt.Fprintln(os.Stderr, "config.Temp", combineConf.Temp)
+	}
 	index, unit, err := clangutils.CreateTranslationUnit(combineConf)
 	if err != nil {
 		return nil, err
 	}
 	defer index.Dispose()
 	defer unit.Dispose()
-	// clangutils.GetInclusions(unit, func(inced clang.File, incins []clang.SourceLocation) {
-	// 	loc := unit.GetLocation(inced, 1, 1)
-	// 	incedFile := toStr(inced.FileName())
-	// 	var incPath string
-	// 	if len(incins) > 0 {
-	// 		cur := unit.GetCursor(&incins[0])
-	// 		incPath = toStr(cur.String())
-	// 		fileMap[incedFile] = &types.FileInfo{
-	// 			IsSys:   loc.IsInSystemHeader() != 0 || (ClangResourceInclude != "" && strings.HasPrefix(incedFile, ClangResourceInclude)),
-	// 			IncPath: incPath,
-	// 		}
-	// 	}
-	// })
 	clangutils.VisitChildren(unit.Cursor(), func(cursor, parent clang.Cursor) clang.ChildVisitResult {
 		if cursor.Kind == clang.CursorInclusionDirective {
 			name := toStr(cursor.String())
@@ -104,7 +99,7 @@ func initFileMap(cfg *Config) (map[string]*types.FileInfo, error) {
 			if _, ok := fileMap[includedPath]; !ok {
 				loc := unit.GetLocation(includedFile, 1, 1)
 				fileMap[includedPath] = &types.FileInfo{
-					IsSys:   loc.IsInSystemHeader() != 0 || (ClangResourceInclude != "" && strings.HasPrefix(includedPath, ClangResourceInclude)),
+					IsSys:   loc.IsInSystemHeader() != 0 || (ClangResourceDir != "" && strings.HasPrefix(includedPath, path.Join(ClangResourceDir, "include"))),
 					IncPath: name,
 				}
 			}
