@@ -144,11 +144,18 @@ func Do(cfg *ParseConfig) (*types.Pkg, error) {
 		cfg.PreprocessedFile = preprocessedFile.Name()
 	}
 
+	incedPreprocessedFile, err := os.CreateTemp("", cfg.Conf.Name+"*.i")
+	if err != nil {
+		return nil, err
+	}
+	defer incedPreprocessedFile.Close()
+
 	if dbg.GetDebugParse() {
 		fmt.Fprintln(os.Stderr, "Do: combinedFile", cfg.CombinedFile)
 		fmt.Fprintln(os.Stderr, "Do: preprocessedFile", cfg.PreprocessedFile)
+		fmt.Fprintln(os.Stderr, "Do: incedPreprocessedFile", incedPreprocessedFile.Name())
 	}
-	err := clangutils.ComposeIncludes(cfg.Conf.Include, cfg.CombinedFile)
+	err = clangutils.ComposeIncludes(cfg.Conf.Include, cfg.CombinedFile)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +178,20 @@ func Do(cfg *ParseConfig) (*types.Pkg, error) {
 	if err != nil {
 		return nil, err
 	}
-	libclangFlags := []string{}
+
+	incFlags := strings.Fields(cfg.Conf.CFlags)
+	incFlags = append(incFlags, "-dI")
+	err = clangutils.Preprocess(&clangutils.PreprocessConfig{
+		File:    cfg.CombinedFile,
+		IsCpp:   cfg.Conf.Cplusplus,
+		Args:    incFlags,
+		OutFile: incedPreprocessedFile.Name(),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	libclangFlags := []string{""}
 	if len(ClangSearchPath) != 0 {
 		for _, path := range ClangSearchPath {
 			libclangFlags = append(libclangFlags, "-I"+path)
@@ -184,7 +204,7 @@ func Do(cfg *ParseConfig) (*types.Pkg, error) {
 	}
 	converter, err := NewConverterX(
 		&Config{
-			CombinedFile: cfg.CombinedFile,
+			IncPreprocessedFile: incedPreprocessedFile.Name(),
 			Cfg: &clangutils.Config{
 				File:  cfg.PreprocessedFile,
 				IsCpp: cfg.Conf.Cplusplus,
