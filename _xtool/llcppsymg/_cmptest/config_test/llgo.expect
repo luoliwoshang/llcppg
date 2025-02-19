@@ -91,6 +91,10 @@ Test case: Empty file list
 Input files: []
 Error: failed to find any header files
 
+interfaces [./hfile/temp1.h ./hfile/temp2.h]
+implements [./hfile/tempimpl.h]
+third hfile found ./thirdhfile/third.h
+All third hfile found
 
 #stderr
 
