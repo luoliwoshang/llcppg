@@ -83,6 +83,17 @@ type PkgHfilesInfo struct {
 	Thirds map[string]struct{} // Not Current Pkg's Files
 }
 
+func (p *PkgHfilesInfo) CurPkgFiles() []string {
+	curPkgFiles := []string{}
+	for f := range p.Inters {
+		curPkgFiles = append(curPkgFiles, f)
+	}
+	for f := range p.Impls {
+		curPkgFiles = append(curPkgFiles, f)
+	}
+	return curPkgFiles
+}
+
 // PkgHfileInfo analyzes header files dependencies and categorizes them into three groups:
 // 1. Inters: Direct includes from types.Config.Include
 // 2. Impls: Header files from the same root directory as Inters
