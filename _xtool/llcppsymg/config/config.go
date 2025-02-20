@@ -108,32 +108,46 @@ func PkgHfileInfo(conf *llcppg.Config, args []string) *PkgHfilesInfo {
 	}
 
 	cflags := append(args, strings.Fields(conf.CFlags)...)
+	inters := make(map[string]struct{})
+	others := []string{} // impl & third
+	for _, f := range conf.Include {
+		content := "#include <" + f + ">"
+		index, unit, err := clangutils.CreateTranslationUnit(&clangutils.Config{
+			File: content,
+			Temp: true,
+			Args: cflags,
+		})
+		if err != nil {
+			panic(err)
+		}
+		clangutils.GetInclusions(unit, func(inced clang.File, incins []clang.SourceLocation) {
+			if len(incins) == 1 {
+				filename := clang.GoString(inced.FileName())
+				info.Inters = append(info.Inters, filename)
+				inters[filename] = struct{}{}
+			}
+		})
+		unit.Dispose()
+		index.Dispose()
+	}
+
 	clangutils.ComposeIncludes(conf.Include, outfile.Name())
 	index, unit, err := clangutils.CreateTranslationUnit(&clangutils.Config{
 		File: outfile.Name(),
 		Temp: false,
 		Args: cflags,
 	})
+	defer unit.Dispose()
+	defer index.Dispose()
 	if err != nil {
 		panic(err)
 	}
-	defer unit.Dispose()
-	defer index.Dispose()
-
-	inters := make(map[string]struct{})
-	others := []string{} // impl & third
 	clangutils.GetInclusions(unit, func(inced clang.File, incins []clang.SourceLocation) {
-		// first level include is the conf.include's abs path
+		// not in the first level include maybe impl or third hfile
 		filename := clang.GoString(inced.FileName())
-		if len(incins) == 1 {
-			info.Inters = append(info.Inters, filename)
-			inters[filename] = struct{}{}
-		} else {
-			// not in the first level include maybe impl or third hfile
-			_, inter := inters[filename]
-			if len(incins) > 1 && !inter {
-				others = append(others, filename)
-			}
+		_, inter := inters[filename]
+		if len(incins) > 1 && !inter {
+			others = append(others, filename)
 		}
 	})
 
