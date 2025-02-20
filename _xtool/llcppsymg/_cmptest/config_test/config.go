@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"sort"
 	"strings"
 
 	"github.com/goplus/llcppg/_xtool/llcppsymg/config"
@@ -346,10 +345,8 @@ func TestPkgHfileInfo() {
 	for i, conf := range confs {
 		fmt.Printf("=== Test PkgHfileInfo Case %d ===\n", i+1)
 		info := config.PkgHfileInfo(conf, []string{})
-		inters := sortMapOutput(info.Inters)
-		impls := sortMapOutput(info.Impls)
-		fmt.Println("interfaces", inters)
-		fmt.Println("implements", impls)
+		fmt.Println("interfaces", info.Inters)
+		fmt.Println("implements", info.Impls)
 
 		thirdhfile, err := filepath.Abs("./thirdhfile/third.h")
 		if err != nil {
@@ -357,7 +354,7 @@ func TestPkgHfileInfo() {
 		}
 		tfileFound := false
 		stdioFound := false
-		for tfile := range info.Thirds {
+		for _, tfile := range info.Thirds {
 			absTfile, err := filepath.Abs(tfile)
 			if err != nil {
 				panic(err)
@@ -375,13 +372,4 @@ func TestPkgHfileInfo() {
 		}
 		fmt.Println("All third hfile found")
 	}
-}
-
-func sortMapOutput(m map[string]struct{}) []string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
 }

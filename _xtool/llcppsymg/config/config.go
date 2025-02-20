@@ -78,20 +78,13 @@ func GetBoolItem(obj *cjson.JSON, key string) bool {
 }
 
 type PkgHfilesInfo struct {
-	Inters map[string]struct{} // From types.Config.Include
-	Impls  map[string]struct{} // From same root of types.Config.Include
-	Thirds map[string]struct{} // Not Current Pkg's Files
+	Inters []string // From types.Config.Include
+	Impls  []string // From same root of types.Config.Include
+	Thirds []string // Not Current Pkg's Files
 }
 
 func (p *PkgHfilesInfo) CurPkgFiles() []string {
-	curPkgFiles := []string{}
-	for f := range p.Inters {
-		curPkgFiles = append(curPkgFiles, f)
-	}
-	for f := range p.Impls {
-		curPkgFiles = append(curPkgFiles, f)
-	}
-	return curPkgFiles
+	return append(p.Inters, p.Impls...)
 }
 
 // PkgHfileInfo analyzes header files dependencies and categorizes them into three groups:
@@ -105,9 +98,9 @@ func (p *PkgHfilesInfo) CurPkgFiles() []string {
 // 3. Categorizing includes based on their inclusion level and path relationship
 func PkgHfileInfo(conf *llcppg.Config, args []string) *PkgHfilesInfo {
 	info := &PkgHfilesInfo{
-		Inters: make(map[string]struct{}),
-		Impls:  make(map[string]struct{}),
-		Thirds: make(map[string]struct{}),
+		Inters: []string{},
+		Impls:  []string{},
+		Thirds: []string{},
 	}
 	outfile, err := os.CreateTemp("", "compose_*.h")
 	if err != nil {
@@ -127,17 +120,17 @@ func PkgHfileInfo(conf *llcppg.Config, args []string) *PkgHfilesInfo {
 	defer unit.Dispose()
 	defer index.Dispose()
 
-	inters := []string{}
+	inters := make(map[string]struct{})
 	others := []string{} // impl & third
 	clangutils.GetInclusions(unit, func(inced clang.File, incins []clang.SourceLocation) {
 		// first level include is the conf.include's abs path
 		filename := clang.GoString(inced.FileName())
 		if len(incins) == 1 {
-			inters = append(inters, filename)
-			info.Inters[filename] = struct{}{}
+			info.Inters = append(info.Inters, filename)
+			inters[filename] = struct{}{}
 		} else {
 			// not in the first level include maybe impl or third hfile
-			_, inter := info.Inters[filename]
+			_, inter := inters[filename]
 			if len(incins) > 1 && !inter {
 				others = append(others, filename)
 			}
@@ -145,13 +138,11 @@ func PkgHfileInfo(conf *llcppg.Config, args []string) *PkgHfilesInfo {
 	})
 
 	if conf.Mix {
-		for _, f := range others {
-			info.Thirds[f] = struct{}{}
-		}
+		info.Thirds = others
 		return info
 	}
 
-	root, err := filepath.Abs(commonParentDir(inters))
+	root, err := filepath.Abs(commonParentDir(info.Inters))
 	if err != nil {
 		panic(err)
 	}
@@ -161,9 +152,9 @@ func PkgHfileInfo(conf *llcppg.Config, args []string) *PkgHfilesInfo {
 			panic(err)
 		}
 		if strings.HasPrefix(file, root) {
-			info.Impls[f] = struct{}{}
+			info.Impls = append(info.Impls, f)
 		} else {
-			info.Thirds[f] = struct{}{}
+			info.Thirds = append(info.Thirds, f)
 		}
 	}
 	return info
