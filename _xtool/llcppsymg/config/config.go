@@ -32,6 +32,7 @@ func GetConf(data []byte) (Conf, error) {
 		Include:      GetStringArrayItem(parsedConf, "include"),
 		TrimPrefixes: GetStringArrayItem(parsedConf, "trimPrefixes"),
 		Cplusplus:    GetBoolItem(parsedConf, "cplusplus"),
+		Mix:          GetBoolItem(parsedConf, "mix"),
 	}
 
 	return Conf{
