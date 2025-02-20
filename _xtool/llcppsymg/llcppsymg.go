@@ -78,6 +78,11 @@ func main() {
 	check(err)
 
 	pkgHfiles := config.PkgHfileInfo(conf.Config, []string{})
+	if dbg.GetDebugSymbol() {
+		fmt.Println("interfaces", pkgHfiles.Inters)
+		fmt.Println("implements", pkgHfiles.Impls)
+		fmt.Println("thirdhfile", pkgHfiles.Thirds)
+	}
 	headerInfos, err := parse.ParseHeaderFile(pkgHfiles.CurPkgFiles(), conf.TrimPrefixes, strings.Fields(conf.CFlags), conf.Cplusplus, false)
 	check(err)
 
