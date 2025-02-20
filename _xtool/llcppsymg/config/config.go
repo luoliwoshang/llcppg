@@ -2,7 +2,6 @@ package config
 
 import (
 	"errors"
-	"go/types"
 	"os"
 	"path/filepath"
 	"strings"
@@ -103,7 +102,7 @@ func (p *PkgHfilesInfo) CurPkgFiles() []string {
 // 1. Creating a temporary header file that includes all headers from conf.Include
 // 2. Using clang to parse the translation unit and analyze includes
 // 3. Categorizing includes based on their inclusion level and path relationship
-func PkgHfileInfo(conf *types.Config, args []string) *PkgHfilesInfo {
+func PkgHfileInfo(conf *llcppg.Config, args []string) *PkgHfilesInfo {
 	info := &PkgHfilesInfo{
 		Inters: make(map[string]struct{}),
 		Impls:  make(map[string]struct{}),
@@ -143,6 +142,14 @@ func PkgHfileInfo(conf *types.Config, args []string) *PkgHfilesInfo {
 			}
 		}
 	})
+
+	if conf.Mix {
+		for _, f := range others {
+			info.Thirds[f] = struct{}{}
+		}
+		return info
+	}
+
 	root, err := filepath.Abs(commonParentDir(inters))
 	if err != nil {
 		panic(err)

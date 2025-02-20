@@ -10,7 +10,7 @@ import (
 
 	"github.com/goplus/llcppg/_xtool/llcppsymg/config"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/config/cfgparse"
-	"github.com/goplus/llcppg/types"
+	"github.com/goplus/llcppg/llcppg"
 )
 
 func main() {
@@ -335,38 +335,46 @@ func TestGenHeaderFilePath() {
 }
 
 func TestPkgHfileInfo() {
-	info := config.PkgHfileInfo(&types.Config{
+	confs := []*llcppg.Config{{
 		CFlags:  "-I./hfile -I ./thirdhfile",
 		Include: []string{"temp1.h", "temp2.h"},
-	}, []string{})
-	inters := sortMapOutput(info.Inters)
-	impls := sortMapOutput(info.Impls)
-	fmt.Println("interfaces", inters)
-	fmt.Println("implements", impls)
+	}, {
+		CFlags:  "-I./hfile -I ./thirdhfile",
+		Include: []string{"temp1.h", "temp2.h"},
+		Mix:     true,
+	}}
+	for i, conf := range confs {
+		fmt.Printf("=== Test PkgHfileInfo Case %d ===\n", i+1)
+		info := config.PkgHfileInfo(conf, []string{})
+		inters := sortMapOutput(info.Inters)
+		impls := sortMapOutput(info.Impls)
+		fmt.Println("interfaces", inters)
+		fmt.Println("implements", impls)
 
-	thirdhfile, err := filepath.Abs("./thirdhfile/third.h")
-	if err != nil {
-		panic(err)
-	}
-	tfileFound := false
-	stdioFound := false
-	for tfile := range info.Thirds {
-		absTfile, err := filepath.Abs(tfile)
+		thirdhfile, err := filepath.Abs("./thirdhfile/third.h")
 		if err != nil {
 			panic(err)
 		}
-		if absTfile == thirdhfile {
-			tfileFound = true
-			fmt.Println("third hfile found", tfile)
+		tfileFound := false
+		stdioFound := false
+		for tfile := range info.Thirds {
+			absTfile, err := filepath.Abs(tfile)
+			if err != nil {
+				panic(err)
+			}
+			if absTfile == thirdhfile {
+				tfileFound = true
+				fmt.Println("third hfile found", tfile)
+			}
+			if strings.HasSuffix(absTfile, "stdio.h") {
+				stdioFound = true
+			}
 		}
-		if strings.HasSuffix(absTfile, "stdio.h") {
-			stdioFound = true
+		if !tfileFound || !stdioFound {
+			panic("third hfile or std hfile not found")
 		}
+		fmt.Println("All third hfile found")
 	}
-	if !tfileFound || !stdioFound {
-		panic("third hfile not found")
-	}
-	fmt.Println("All third hfile found")
 }
 
 func sortMapOutput(m map[string]struct{}) []string {
