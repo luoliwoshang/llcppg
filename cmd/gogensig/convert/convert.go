@@ -193,11 +193,11 @@ type ConverterConfig struct {
 	PubFile   string // llcppg.pub
 	OutputDir string
 
-	Pkg *cppgtypes.Pkg
+	Pkg *llcppg.Pkg
 }
 
 type Converter struct {
-	Pkg    *cppgtypes.Pkg
+	Pkg    *llcppg.Pkg
 	GenPkg *Package
 	Conf   *ConverterConfig
 	incMap map[string]bool // abs path is dependency
@@ -220,7 +220,7 @@ func NewConverter(config *ConverterConfig) (*Converter, error) {
 		if dbg.GetDebugError() {
 			log.Printf("Cant get llcppg.cfg from %s Use empty config\n", config.CfgFile)
 		}
-		conf = &cppgtypes.Config{}
+		conf = &llcppg.Config{}
 	}
 
 	pubs, err := cfg.GetPubFromPath(config.PubFile)
