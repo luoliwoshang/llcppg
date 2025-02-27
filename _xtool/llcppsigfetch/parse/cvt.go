@@ -89,13 +89,7 @@ func initFileEntries(unit *clang.TranslationUnit, pkgHfileInfo *config.PkgHfiles
 
 	files := make([]*llcppg.FileEntry, 0)
 	clangutils.GetInclusions(unit, func(inced clang.File, incins []clang.SourceLocation) {
-		loc := unit.GetLocation(inced, 1, 1)
 		incedFile := toStr(inced.FileName())
-		var incPath string
-		if len(incins) > 0 {
-			cur := unit.GetCursor(&incins[0])
-			incPath = toStr(cur.String())
-		}
 		var fileType llcppg.FileType
 		if _, ok := inters[incedFile]; ok {
 			fileType = llcppg.Inter
@@ -108,8 +102,6 @@ func initFileEntries(unit *clang.TranslationUnit, pkgHfileInfo *config.PkgHfiles
 		}
 		files = append(files, &llcppg.FileEntry{
 			Path:     incedFile,
-			IncPath:  incPath,
-			IsSys:    loc.IsInSystemHeader() != 0,
 			Doc:      &ast.File{},
 			FileType: fileType,
 		})
@@ -188,10 +180,7 @@ func (ct *Converter) GetCurFile(cursor clang.Cursor) *ast.File {
 		}
 	}
 	ct.logln("GetCurFile: Create New ast.File", filePath)
-	entry := &llcppg.FileEntry{Path: filePath, Doc: &ast.File{}, IsSys: false}
-	if loc.IsInSystemHeader() != 0 {
-		entry.IsSys = true
-	}
+	entry := &llcppg.FileEntry{Path: filePath, Doc: &ast.File{}}
 	ct.Files = append(ct.Files, entry)
 	return entry.Doc
 }

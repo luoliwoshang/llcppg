@@ -6,7 +6,7 @@ import (
 )
 
 type DocVisitor interface {
-	VisitStart(path string, incPath string, isSys bool, fileType llcppg.FileType)
+	VisitStart(path string, fileType llcppg.FileType)
 	Visit(node ast.Node)
 	VisitFuncDecl(funcDecl *ast.FuncDecl)
 	VisitDone(path string)
@@ -27,9 +27,9 @@ func NewDocVisitorList(visitorList []DocVisitor) *DocVisitorList {
 	return &DocVisitorList{VisitorList: visitorList}
 }
 
-func (p *DocVisitorList) Visit(node ast.Node, path string, incPath string, isSys bool, fileType llcppg.FileType) bool {
+func (p *DocVisitorList) Visit(node ast.Node, path string, fileType llcppg.FileType) bool {
 	for _, v := range p.VisitorList {
-		v.VisitStart(path, incPath, isSys, fileType)
+		v.VisitStart(path, fileType)
 		v.Visit(node)
 		v.VisitDone(path)
 	}

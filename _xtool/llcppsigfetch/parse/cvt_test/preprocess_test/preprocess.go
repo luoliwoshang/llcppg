@@ -48,7 +48,7 @@ func TestInclusionMap() {
 	}
 	found := false
 	for _, f := range context.FileSet {
-		if f.IncPath == "sys/types.h" {
+		if strings.HasSuffix(f.Path, "sys/types.h") {
 			found = true
 		}
 	}
@@ -72,8 +72,8 @@ func TestSystemHeader() {
 	if len(context.FileSet) < 2 {
 		panic("expect 2 files")
 	}
-	if context.FileSet[0].IsSys {
-		panic("entry file is not system header")
+	if context.FileSet[0].FileType != llcppg.Inter {
+		panic("entry file is not third header")
 	}
 
 	includePath := context.FileSet[0].Doc.Includes[0].Path
@@ -82,8 +82,8 @@ func TestSystemHeader() {
 	}
 
 	for i := 1; i < len(context.FileSet); i++ {
-		if !context.FileSet[i].IsSys {
-			panic(fmt.Errorf("include file is not system header: %s", context.FileSet[i].Path))
+		if context.FileSet[i].FileType != llcppg.Third {
+			panic(fmt.Errorf("include file is not third header: %s", context.FileSet[i].Path))
 		}
 		for _, decl := range context.FileSet[i].Doc.Decls {
 			switch decl := decl.(type) {

@@ -31,24 +31,14 @@ const (
 	Record             // In record field context
 )
 
-type HeaderInfo struct {
-	IncPath string // stdlib include path
-	Path    string // full path
-}
-
-type Header2Pkg struct {
-	Header  *HeaderInfo
-	PkgPath string
-}
-
 type TypeConv struct {
 	gogen.PkgRef
-	SysTypeLoc  map[string]*HeaderInfo
-	SysTypePkg  map[string]*Header2Pkg
-	symbolTable *config.SymbolTable // llcppg.symb.json
-	typeMap     *BuiltinTypeMap
-	ctx         TypeContext
-	conf        *TypeConfig
+
+	ThirdTypeLoc map[string]string   // type name from third package -> define location
+	symbolTable  *config.SymbolTable // llcppg.symb.json
+	typeMap      *BuiltinTypeMap
+	ctx          TypeContext
+	conf         *TypeConfig
 }
 
 type TypeConfig struct {
@@ -64,8 +54,6 @@ func NewConv(conf *TypeConfig) *TypeConv {
 		symbolTable: conf.SymbolTable,
 		typeMap:     conf.TypeMap,
 		conf:        conf,
-		SysTypeLoc:  make(map[string]*HeaderInfo),
-		SysTypePkg:  make(map[string]*Header2Pkg),
 	}
 	typeConv.Types = conf.Types
 	return typeConv
@@ -155,7 +143,7 @@ func (p *TypeConv) handleIdentRefer(t ast.Expr) (types.Type, error) {
 		// for aliases like int8_t might be a built-in type (e.g., int8),
 
 		// check if the type is a system type
-		obj, err := p.referSysType(name)
+		obj, err := p.referThirdType(name)
 		if err != nil {
 			return nil, err
 		}
@@ -378,38 +366,37 @@ func (p *TypeConv) inComplete(recordType *ast.RecordType) bool {
 
 // typedecl,enumdecl,funcdecl,funcdecl
 // true determine continue execute the type gen
-// if this type is in a system header,skip the type gen & collect the type info
-func (p *TypeConv) handleSysType(ident *ast.Ident, loc *ast.Location, incPath string) (skip bool, anony bool, err error) {
+// if this type is in a third header,skip the type gen & collect the type info
+func (p *TypeConv) handleThirdType(ident *ast.Ident, loc *ast.Location) (skip bool, anony bool) {
 	anony = ident == nil
-	if isSys := p.conf.Package.curFile.IsSys; !isSys || anony {
-		return isSys, anony, nil
+	if curPkg := p.conf.Package.curFile.InCurPkg(); curPkg || anony {
+		return curPkg, anony
 	}
-	if existingLoc, ok := p.SysTypeLoc[ident.Name]; ok {
-		return true, anony, fmt.Errorf("type %s already defined in %s,include path: %s", ident.Name, existingLoc.Path, existingLoc.IncPath)
+	if _, ok := p.ThirdTypeLoc[ident.Name]; ok {
+		// a third ident in multiple location is permit
+		return true, anony
 	}
-	p.SysTypeLoc[ident.Name] = &HeaderInfo{
-		IncPath: incPath,
-		Path:    loc.File,
-	}
-	return true, anony, nil
+	p.ThirdTypeLoc[ident.Name] = loc.File
+	return true, anony
 }
 
-func (p *TypeConv) referSysType(name string) (types.Object, error) {
-	if info, ok := p.SysTypeLoc[name]; ok {
+func (p *TypeConv) referThirdType(name string) (types.Object, error) {
+	if path, ok := p.ThirdTypeLoc[name]; ok {
 		var obj types.Object
-		pkg, _ := IncPathToPkg(info.IncPath)
+		// pkg, _ := IncPathToPkg(info.IncPath)
 		// in current converter process 's ref type
-		p.SysTypePkg[name] = &Header2Pkg{
-			Header:  info,
-			PkgPath: pkg,
-		}
-		depPkg := p.conf.Package.p.Import(pkg)
-		obj = depPkg.TryRef(names.PubName(name))
+		// p.SysTypePkg[name] = &Header2Pkg{
+		// 	Header:  info,
+		// 	PkgPath: pkg,
+		// }
+		// depPkg := p.conf.Package.p.Import(pkg)
+		// obj = depPkg.TryRef(names.PubName(name))
 		if obj == nil {
-			return nil, errs.NewSysTypeNotFoundError(name, info.IncPath, pkg, info.Path)
+			// return nil, errs.NewSysTypeNotFoundError(name, info.IncPath, pkg, info.Path)
+			// todo(zzy): hello
+			return nil, errors.New(name + path + "not found correspoding type")
 		}
 		return obj, nil
-
 	}
 	return nil, nil
 }

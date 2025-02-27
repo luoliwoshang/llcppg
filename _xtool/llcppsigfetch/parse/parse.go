@@ -88,23 +88,6 @@ func (p *Context) parseFile(path string) ([]*llcppg.FileEntry, error) {
 
 	files, err := converter.Convert()
 
-	// the entry file is the first file in the files list
-	entryFile := files[0]
-	if entryFile.IncPath != "" {
-		return nil, errors.New("entry file " + entryFile.Path + " has include path " + entryFile.IncPath)
-	}
-
-	for _, include := range p.Conf.Include {
-		if strings.Contains(entryFile.Path, include) {
-			entryFile.IncPath = include
-			break
-		}
-	}
-
-	if entryFile.IncPath == "" {
-		return nil, errors.New("entry file " + entryFile.Path + " is not in include list")
-	}
-
 	if err != nil {
 		return nil, err
 	}

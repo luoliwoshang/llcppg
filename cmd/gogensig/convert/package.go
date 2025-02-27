@@ -109,7 +109,7 @@ func (p *Package) SetCurFile(hfile *HeaderFile) {
 	}
 
 	if curFile == nil {
-		curFile = NewHeaderFile(hfile.File, hfile.IncPath, hfile.IsHeaderFile, hfile.FileType, hfile.IsSys)
+		curFile = NewHeaderFile(hfile.File, hfile.IsHeaderFile, hfile.FileType)
 		p.files = append(p.files, curFile)
 	}
 
@@ -235,12 +235,12 @@ func pubMethodName(recv types.Type, fnSpec *GoFuncSpec) string {
 }
 
 func (p *Package) NewFuncDecl(funcDecl *ast.FuncDecl) error {
-	skip, anony, err := p.cvt.handleSysType(funcDecl.Name, funcDecl.Loc, p.curFile.IncPath)
-	if skip {
+	isThird, anony := p.cvt.handleThirdType(funcDecl.Name, funcDecl.Loc)
+	if isThird {
 		if dbg.GetDebugLog() {
-			log.Printf("NewFuncDecl: %v is a function of system header file\n", funcDecl.Name)
+			log.Printf("NewFuncDecl: %v is a function of third header file\n", funcDecl.Name)
 		}
-		return err
+		return nil
 	}
 	if dbg.GetDebugLog() {
 		log.Printf("NewFuncDecl: %v\n", funcDecl.Name)
@@ -292,12 +292,12 @@ func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (rec
 // - Forward declarations: Pre-registers incomplete types for later definition
 // - Self-referential types: Handles types that reference themselves (like linked lists)
 func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
-	skip, anony, err := p.cvt.handleSysType(typeDecl.Name, typeDecl.Loc, p.curFile.IncPath)
+	skip, anony := p.cvt.handleThirdType(typeDecl.Name, typeDecl.Loc)
 	if skip {
 		if dbg.GetDebugLog() {
-			log.Printf("NewTypeDecl: %s type of system header\n", typeDecl.Name)
+			log.Printf("NewTypeDecl: %s type of third header\n", typeDecl.Name)
 		}
-		return err
+		return nil
 	}
 	if dbg.GetDebugLog() {
 		log.Printf("NewTypeDecl: %v\n", typeDecl.Name)
@@ -404,12 +404,12 @@ func (p *Package) emptyTypeDecl(name string, doc *ast.CommentGroup) *gogen.TypeD
 }
 
 func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
-	skip, _, err := p.cvt.handleSysType(typedefDecl.Name, typedefDecl.Loc, p.curFile.IncPath)
+	skip, _ := p.cvt.handleThirdType(typedefDecl.Name, typedefDecl.Loc)
 	if skip {
 		if dbg.GetDebugLog() {
 			log.Printf("NewTypedefDecl: %v is a typedef of system header file\n", typedefDecl.Name)
 		}
-		return err
+		return nil
 	}
 	if dbg.GetDebugLog() {
 		log.Printf("NewTypedefDecl: %v\n", typedefDecl.Name)
@@ -500,12 +500,12 @@ func (p *Package) NewTypedefs(name string, typ types.Type) *gogen.TypeDecl {
 }
 
 func (p *Package) NewEnumTypeDecl(enumTypeDecl *ast.EnumTypeDecl) error {
-	skip, _, err := p.cvt.handleSysType(enumTypeDecl.Name, enumTypeDecl.Loc, p.curFile.IncPath)
+	skip, _ := p.cvt.handleThirdType(enumTypeDecl.Name, enumTypeDecl.Loc)
 	if skip {
 		if dbg.GetDebugLog() {
 			log.Printf("NewEnumTypeDecl: %v is a enum type of system header file\n", enumTypeDecl.Name)
 		}
-		return err
+		return nil
 	}
 	if dbg.GetDebugLog() {
 		log.Printf("NewEnumTypeDecl: %v\n", enumTypeDecl.Name)
@@ -568,7 +568,7 @@ func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type) er
 }
 
 func (p *Package) NewMacro(macro *ast.Macro) error {
-	if p.curFile.IsSys {
+	if !p.curFile.InCurPkg() {
 		return nil
 	}
 
@@ -631,7 +631,7 @@ func (p *Package) WritePkgFiles() error {
 	}
 	for _, file := range p.files {
 		// todo(zzy):file.IsSys will remove in new dependency execute logic
-		if file.IsHeaderFile && !file.IsSys && file.FileType == llcppg.Inter {
+		if file.IsHeaderFile && file.InCurPkg() && file.FileType == llcppg.Inter {
 			err := p.Write(file.File)
 			if err != nil {
 				return err
@@ -765,48 +765,6 @@ func (p *Package) CollectNameMapping(originName, newName string) {
 	if p.curFile.InCurPkg() {
 		p.Pubs[originName] = value
 	}
-}
-
-// Return all include paths of dependent packages
-func (p *Package) DepIncPaths() []string {
-	visited := make(map[string]bool)
-	var paths []string
-	var collectPaths func(pkg *PkgInfo)
-	var notFounds map[string][]string // pkgpath -> include path
-	var allfailed []string            // which pkg's header file failed to find any include path
-
-	collectPaths = func(pkg *PkgInfo) {
-		for _, dep := range pkg.Deps {
-			incPaths, notFnds, err := dep.GetIncPaths()
-			if err != nil {
-				allfailed = append(allfailed, dep.PkgPath)
-			} else if len(notFnds) > 0 {
-				if notFounds == nil {
-					notFounds = make(map[string][]string)
-				}
-				notFounds[dep.PkgPath] = notFnds
-			}
-			for _, path := range incPaths {
-				if !visited[path] {
-					visited[path] = true
-					paths = append(paths, path)
-				}
-			}
-			collectPaths(dep)
-		}
-	}
-	collectPaths(p.PkgInfo)
-
-	if len(notFounds) > 0 {
-		for pkgPath, notFnds := range notFounds {
-			log.Printf("failed to find some include paths: from %s\n", pkgPath)
-			log.Println(notFnds)
-		}
-	}
-	if len(allfailed) > 0 {
-		log.Println("failed to get any include paths from these package: \n", allfailed)
-	}
-	return paths
 }
 
 type IncompleteTypes struct {

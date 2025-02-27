@@ -5,7 +5,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"sort"
 	"strings"
 	"testing"
 
@@ -27,74 +26,6 @@ func init() {
 
 func TestFromTestdata(t *testing.T) {
 	testFromDir(t, "./_testdata", false)
-}
-
-// test sys type in stdinclude to package
-func TestSysToPkg(t *testing.T) {
-	name := "_systopkg"
-	dir, err := os.Getwd()
-	if err != nil {
-		t.Fatal("Getwd failed:", err)
-	}
-	testFrom(t, name, path.Join(dir, "_testdata", name), false, func(t *testing.T, pkg *convert.Package) {
-		typConv := pkg.GetTypeConv()
-		if typConv.SysTypeLoc == nil {
-			t.Fatal("sysTypeLoc is nil")
-		}
-		pkgIncTypes := make(map[string]map[string][]string)
-
-		// full type in all std lib
-		for name, info := range typConv.SysTypeLoc {
-			targetPkg, isDefault := convert.IncPathToPkg(info.IncPath)
-			if isDefault {
-				targetPkg = "github.com/goplus/llgo/c [default]"
-			}
-			if pkgIncTypes[targetPkg] == nil {
-				pkgIncTypes[targetPkg] = make(map[string][]string, 0)
-			}
-			if pkgIncTypes[targetPkg][info.IncPath] == nil {
-				pkgIncTypes[targetPkg][info.IncPath] = make([]string, 0)
-			}
-			pkgIncTypes[targetPkg][info.IncPath] = append(pkgIncTypes[targetPkg][info.IncPath], name)
-		}
-
-		for pkg, incTypes := range pkgIncTypes {
-			t.Logf("\x1b[1;32m %s \x1b[0m Package contains inc types:", pkg)
-			for incPath, types := range incTypes {
-				t.Logf("\x1b[1;33m  - %s\x1b[0m (%s):", incPath, pkg)
-				sort.Strings(types)
-				t.Logf("    - %s", strings.Join(types, " "))
-			}
-		}
-
-		// check referd type in std lib
-		// Expected type to package mappings
-		expected := map[string]string{
-			"mbstate_t":   "github.com/goplus/llgo/c",
-			"wint_t":      "github.com/goplus/llgo/c",
-			"ptrdiff_t":   "github.com/goplus/llgo/c",
-			"int8_t":      "github.com/goplus/llgo/c",
-			"max_align_t": "github.com/goplus/llgo/c",
-			"FILE":        "github.com/goplus/llgo/c",
-			"tm":          "github.com/goplus/llgo/c/time",
-			"time_t":      "github.com/goplus/llgo/c/time",
-			"clock_t":     "github.com/goplus/llgo/c/time",
-			"fenv_t":      "github.com/goplus/llgo/c/math",
-			"size_t":      "github.com/goplus/llgo/c",
-		}
-
-		for name, exp := range expected {
-			if _, ok := typConv.SysTypePkg[name]; ok {
-				if typConv.SysTypePkg[name].PkgPath != exp {
-					t.Errorf("type [%s]: expected package [%s], got [%s] in header [%s]", name, exp, typConv.SysTypePkg[name].PkgPath, typConv.SysTypePkg[name].Header.IncPath)
-				} else {
-					t.Logf("refer type [%s] expected package [%s] from header [%s]", name, exp, typConv.SysTypePkg[name].Header.IncPath)
-				}
-			} else {
-				t.Logf("missing expected type %s (package: %s)", name, exp)
-			}
-		}
-	})
 }
 
 func TestDepPkg(t *testing.T) {
@@ -467,7 +398,7 @@ func TestWritePkgFilesFail(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to change directory permissions: %v", err)
 	}
-	converter.VisitStart("test.h", "/path/to/test.h", false, llcppg.Inter)
+	converter.VisitStart("/path/to/test.h", llcppg.Inter)
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("Expected panic, but got: %v", r)

@@ -149,13 +149,11 @@ func (p *AstConvert) VisitTypedefDecl(typedefDecl *ast.TypedefDecl) {
 	}
 }
 
-func (p *AstConvert) VisitStart(path string, incPath string, isSys bool, fileType llcppg.FileType) {
+func (p *AstConvert) VisitStart(path string, fileType llcppg.FileType) {
 	p.Pkg.SetCurFile(&HeaderFile{
 		File:         path,
-		IncPath:      incPath,
 		IsHeaderFile: true,
 		FileType:     fileType,
-		IsSys:        isSys,
 	})
 }
 

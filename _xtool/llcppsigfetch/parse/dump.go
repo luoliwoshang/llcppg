@@ -12,12 +12,9 @@ func MarshalFileSet(files []*llcppg.FileEntry) *cjson.JSON {
 	for _, entry := range files {
 		f := cjson.Object()
 		path := cjson.String(c.AllocaCStr(entry.Path))
-		incPath := cjson.String(c.AllocaCStr(entry.IncPath))
 		f.SetItem(c.Str("_Type"), stringField("FileEntry"))
-		f.SetItem(c.Str("incPath"), incPath)
 		f.SetItem(c.Str("path"), path)
 		f.SetItem(c.Str("doc"), MarshalASTFile(entry.Doc))
-		f.SetItem(c.Str("isSys"), boolField(entry.IsSys))
 		f.SetItem(c.Str("fileType"), numberField(uint(entry.FileType)))
 		root.AddItem(f)
 	}

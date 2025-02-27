@@ -55,8 +55,6 @@ const (
 
 type FileEntry struct {
 	Path     string
-	IncPath  string
-	IsSys    bool
 	FileType FileType
 	Doc      *ast.File
 }

@@ -106,10 +106,9 @@ func TestProcessFileNotExist(t *testing.T) {
 	manager := visitor.NewDocVisitorList(docVisitors)
 	p := filesetprocessor.NewDocFileSetProcessor(&filesetprocessor.ProcesserConfig{
 		Exec: func(file *llcppg.FileEntry) error {
-			manager.Visit(file.Doc, file.Path, file.IncPath, file.IsSys, file.FileType)
+			manager.Visit(file.Doc, file.Path, file.FileType)
 			return nil
 		},
-		DepIncs: []string{},
 	})
 	err = p.ProcessFileSetFromPath("notexist.json")
 	if !os.IsNotExist(err) {
@@ -143,10 +142,9 @@ func TestProcessInvalidSigfetchContent(t *testing.T) {
 	manager := visitor.NewDocVisitorList(docVisitors)
 	p := filesetprocessor.NewDocFileSetProcessor(&filesetprocessor.ProcesserConfig{
 		Exec: func(file *llcppg.FileEntry) error {
-			manager.Visit(file.Doc, file.Path, file.IncPath, file.IsSys, file.FileType)
+			manager.Visit(file.Doc, file.Path, file.FileType)
 			return nil
 		},
-		DepIncs: []string{},
 	})
 	err = p.ProcessFileSetFromPath(tempFileName)
 	if err != nil {
@@ -164,9 +162,8 @@ func TestCustomExec(t *testing.T) {
 	}()
 	file := []*llcppg.FileEntry{
 		{
-			Path:  "/path/to/foo.h",
-			IsSys: false,
-			Doc:   &ast.File{},
+			Path: "/path/to/foo.h",
+			Doc:  &ast.File{},
 		},
 	}
 	p := filesetprocessor.NewDocFileSetProcessor(&filesetprocessor.ProcesserConfig{
@@ -181,12 +178,9 @@ func TestCustomExec(t *testing.T) {
 }
 
 func TestExecOrder(t *testing.T) {
-	depIncs := []string{"/path/to/int16_t.h"}
 	fileSet := []*llcppg.FileEntry{
 		{
-			Path:    "/path/to/foo.h",
-			IncPath: "foo.h",
-			IsSys:   false,
+			Path: "/path/to/foo.h",
 			Doc: &ast.File{
 				Includes: []*ast.Include{
 					{Path: "/path/to/cdef.h"},
@@ -195,9 +189,7 @@ func TestExecOrder(t *testing.T) {
 			},
 		},
 		{
-			Path:    "/path/to/cdef.h",
-			IncPath: "cdef.h",
-			IsSys:   false,
+			Path: "/path/to/cdef.h",
 			Doc: &ast.File{
 				Includes: []*ast.Include{
 					{Path: "/path/to/int8_t.h"},
@@ -206,9 +198,7 @@ func TestExecOrder(t *testing.T) {
 			},
 		},
 		{
-			Path:    "/path/to/stdint.h",
-			IncPath: "stdint.h",
-			IsSys:   false,
+			Path: "/path/to/stdint.h",
 			Doc: &ast.File{
 				Includes: []*ast.Include{
 					{Path: "/path/to/int8_t.h"},
@@ -217,25 +207,19 @@ func TestExecOrder(t *testing.T) {
 			},
 		},
 		{
-			Path:    "/path/to/int8_t.h",
-			IncPath: "int8_t.h",
-			IsSys:   false,
+			Path: "/path/to/int8_t.h",
 			Doc: &ast.File{
 				Includes: []*ast.Include{},
 			},
 		},
 		{
-			Path:    "/path/to/int16_t.h",
-			IncPath: "int16_t.h",
-			IsSys:   false,
+			Path: "/path/to/int16_t.h",
 			Doc: &ast.File{
 				Includes: []*ast.Include{},
 			},
 		},
 		{
-			Path:    "/path/to/bar.h",
-			IncPath: "bar.h",
-			IsSys:   false,
+			Path: "/path/to/bar.h",
 			Doc: &ast.File{
 				Includes: []*ast.Include{
 					{Path: "/path/to/stdint.h"},
@@ -245,9 +229,7 @@ func TestExecOrder(t *testing.T) {
 		},
 		// circular dependency
 		{
-			Path:    "/path/to/a.h",
-			IncPath: "a.h",
-			IsSys:   false,
+			Path: "/path/to/a.h",
 			Doc: &ast.File{
 				Includes: []*ast.Include{
 					{Path: "/path/to/bar.h"},
@@ -271,7 +253,6 @@ func TestExecOrder(t *testing.T) {
 			processFiles = append(processFiles, file.Path)
 			return nil
 		},
-		DepIncs: depIncs,
 	})
 	p.ProcessFileSet(fileSet)
 	if !reflect.DeepEqual(processFiles, expectedOrder) {
