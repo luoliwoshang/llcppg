@@ -242,6 +242,7 @@ func TestExecOrder(t *testing.T) {
 	var processFiles []string
 	expectedOrder := []string{
 		"/path/to/int8_t.h",
+		"/path/to/int16_t.h",
 		"/path/to/cdef.h",
 		"/path/to/stdint.h",
 		"/path/to/foo.h",

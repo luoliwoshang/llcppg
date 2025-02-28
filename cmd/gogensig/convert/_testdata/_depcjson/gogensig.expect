@@ -8,10 +8,6 @@ import (
 
 type X_depcjsonType c.Int
 
-type ThirdDep3 struct {
-	B c.Long
-}
-
 ===== temp.go =====
 package _depcjson
 
@@ -20,6 +16,7 @@ import (
 	"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/cjson"
 	"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/thirddep"
 	"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/thirddep2"
+	"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/thirddep3"
 	"github.com/goplus/llgo/c"
 	_ "unsafe"
 )
@@ -32,7 +29,7 @@ func SerializeResponse(response *cjson.CJSON, buffer *int8, length c.Int, pretty
 //go:linkname ThirdDepfn C.third_depfn
 func ThirdDepfn(a *thirddep.ThirdDep, b *thirddep2.ThirdDep2, c X_depcjsonType, d basicdep.BasicDep) thirddep.ThirdDep
 //go:linkname ThirdType C.third_type
-func ThirdType(a *ThirdDep3) ThirdDep3
+func ThirdType(a *thirddep3.ThirdDep3) thirddep3.ThirdDep3
 
 ===== llcppg.pub =====
 _depcjson_type X_depcjsonType

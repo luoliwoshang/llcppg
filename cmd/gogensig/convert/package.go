@@ -70,6 +70,18 @@ func NewPackage(config *PackageConfig) *Package {
 		nameMapper:      names.NewNameMapper(),
 	}
 
+	// default have load llgo/c
+	hasC := false
+	for _, dep := range config.CppgConf.Deps {
+		if dep == "c" || dep == "github.com/goplus/llgo/c" {
+			hasC = true
+			break
+		}
+	}
+	if !hasC {
+		config.CppgConf.Deps = append([]string{"c"}, config.CppgConf.Deps...)
+	}
+
 	mod, err := gopmod.Load(config.OutputDir)
 	if err != nil {
 		log.Panicf("failed to load mod: %s", err.Error())

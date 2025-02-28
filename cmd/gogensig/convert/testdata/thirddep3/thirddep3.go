@@ -1,4 +1,4 @@
-package thirddep2
+package thirddep3
 
 import (
 	_ "unsafe"

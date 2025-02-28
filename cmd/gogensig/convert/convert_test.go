@@ -287,6 +287,8 @@ func TestVisitFail(t *testing.T) {
 		t.Fatal("NewAstConvert Fail")
 	}
 
+	converter.VisitStart("/path/to/temp.h", llcppg.Inter)
+
 	// expect type
 	converter.VisitTypedefDecl(&ast.TypedefDecl{
 		Name: &ast.Ident{Name: "NormalType"},
@@ -359,7 +361,7 @@ func TestVisitFail(t *testing.T) {
 	})
 	// not appear in output
 
-	buf, err := converter.Pkg.WriteDefaultFileToBuffer()
+	buf, err := converter.Pkg.WriteToBuffer("temp.go")
 	if err != nil {
 		t.Fatalf("WriteTo failed: %v", err)
 	}

@@ -5,6 +5,7 @@ import (
 	"go/token"
 	"go/types"
 	"log"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -84,11 +85,7 @@ func (pm *PkgDepLoader) Import(pkgPath string) (*PkgInfo, error) {
 	}
 
 	// standard C library paths
-	std := false
-	if pkgPath == "c" || strings.HasPrefix(pkgPath, "c/") {
-		std = true
-		pkgPath = "github.com/goplus/llgo/" + pkgPath
-	}
+	pkgPath, isStd := IsDepStd(pkgPath)
 
 	pkg, err := pm.module.Lookup(pkgPath)
 	if err != nil {
@@ -106,7 +103,7 @@ func (pm *PkgDepLoader) Import(pkgPath string) (*PkgInfo, error) {
 	}
 
 	var conf *llcppg.Config
-	if !std {
+	if !isStd {
 		conf, err = cfg.GetCppgCfgFromPath(filepath.Join(pkgDir, args.LLCPPG_CFG))
 		if err != nil {
 			return nil, err
@@ -168,4 +165,11 @@ func (pm *PkgDepLoader) RegisterDep(dep *PkgInfo) {
 			}
 		}
 	}
+}
+
+func IsDepStd(pkgPath string) (string, bool) {
+	if pkgPath == "c" || strings.HasPrefix(pkgPath, "c/") {
+		return path.Join("github.com/goplus/llgo/", pkgPath), true
+	}
+	return pkgPath, false
 }

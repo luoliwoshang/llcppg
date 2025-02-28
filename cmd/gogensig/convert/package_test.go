@@ -213,8 +213,15 @@ func TestToType(t *testing.T) {
 	}
 }
 
+var tempFile = &convert.HeaderFile{
+	File:         "/path/to/temp.go",
+	FileType:     llcppg.Inter,
+	IsHeaderFile: true,
+}
+
 func TestNewPackage(t *testing.T) {
 	pkg := createTestPkg(t, &convert.PackageConfig{})
+	pkg.SetCurFile(tempFile)
 	comparePackageOutput(t, pkg, `
 	package testpkg
 	import _ "unsafe"
@@ -1147,6 +1154,7 @@ func TestRedef(t *testing.T) {
 			},
 		),
 	})
+	pkg.SetCurFile(tempFile)
 
 	flds := &ast.FieldList{
 		List: []*ast.Field{
@@ -1442,7 +1450,7 @@ func TestIdentRefer(t *testing.T) {
 	pkg.SetCurFile(&convert.HeaderFile{
 		File:         "/path/to/stdio.h",
 		IsHeaderFile: true,
-		FileType:     llcppg.Inter,
+		FileType:     llcppg.Third,
 	})
 	pkg.NewTypedefDecl(&ast.TypedefDecl{
 		DeclBase: ast.DeclBase{
@@ -1509,8 +1517,9 @@ func TestIdentRefer(t *testing.T) {
 				CppgConf: &llcppg.Config{},
 			},
 		})
+		pkg.SetCurFile(tempFile)
 		err := pkg.NewTypedefDecl(&ast.TypedefDecl{
-			Name: &ast.Ident{Name: "int8_t"},
+			Name: &ast.Ident{Name: "typ_int8_t"},
 			Type: &ast.BuiltinType{
 				Kind:  ast.Char,
 				Flags: ast.Signed,
@@ -1528,7 +1537,7 @@ func TestIdentRefer(t *testing.T) {
 						{
 							Names: []*ast.Ident{{Name: "a"}},
 							Type: &ast.Ident{
-								Name: "int8_t",
+								Name: "typ_int8_t",
 							},
 						},
 					},
@@ -1541,9 +1550,9 @@ func TestIdentRefer(t *testing.T) {
 		comparePackageOutput(t, pkg, `
 		package testpkg
 		import _ "unsafe"
-		type Int8T int8
+		type TypInt8T int8
 		type Foo struct {
-			A Int8T
+			A TypInt8T
 		}
 		`)
 	})
@@ -1558,6 +1567,7 @@ func TestForwardDecl(t *testing.T) {
 			},
 		),
 	})
+	pkg.SetCurFile(tempFile)
 
 	forwardDecl := &ast.TypeDecl{
 		Name: &ast.Ident{Name: "Foo"},
@@ -1633,6 +1643,7 @@ func testGenDecl(t *testing.T, tc genDeclTestCase) {
 	if pkg == nil {
 		t.Fatal("NewPackage failed")
 	}
+	pkg.SetCurFile(tempFile)
 	var err error
 	switch d := tc.decl.(type) {
 	case *ast.TypeDecl:
@@ -1703,7 +1714,7 @@ func createTestPkg(t *testing.T, config *convert.PackageConfig) *convert.Package
 func comparePackageOutput(t *testing.T, pkg *convert.Package, expect string) {
 	t.Helper()
 	// For Test,The Test package's header filename same as package name
-	buf, err := pkg.WriteDefaultFileToBuffer()
+	buf, err := pkg.WriteToBuffer("temp.go")
 	if err != nil {
 		t.Fatalf("WriteTo failed: %v", err)
 	}

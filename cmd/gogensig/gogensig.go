@@ -100,6 +100,10 @@ func prepareEnv(wd, pkg string, deps []string) error {
 	}
 
 	for _, dep := range deps {
+		_, std := convert.IsDepStd(dep)
+		if std {
+			continue
+		}
 		err := config.RunCommand(dir, "go", "get", dep)
 		if err != nil {
 			return err
