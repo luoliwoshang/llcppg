@@ -3,7 +3,59 @@ package convert
 import (
 	"go/types"
 	"testing"
+
+	"github.com/goplus/gogen"
+	"github.com/goplus/llcppg/ast"
+	cfg "github.com/goplus/llcppg/cmd/gogensig/config"
+	"github.com/goplus/llcppg/llcppg"
 )
+
+func TestTypeRefIncompleteFail(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatal("Expected panic, got nil")
+		}
+	}()
+	pkg := NewPackage(&PackageConfig{
+		PkgBase: PkgBase{
+			PkgPath:  ".",
+			CppgConf: &llcppg.Config{},
+			Pubs:     make(map[string]string),
+		},
+		Name:        "testpkg",
+		GenConf:     &gogen.Config{},
+		OutputDir:   "",
+		SymbolTable: cfg.CreateSymbolTable([]cfg.SymbolEntry{}),
+	})
+	pkg.SetCurFile(&HeaderFile{
+		File:     "temp.h",
+		FileType: llcppg.Inter,
+	})
+	pkg.cvt.thirdTypeLoc["Bar"] = "Bar"
+	pkg.incompleteTypes.Add(&Incomplete{cname: "Bar"})
+	err := pkg.NewTypedefDecl(&ast.TypedefDecl{
+		Name: &ast.Ident{Name: "Foo"},
+		Type: &ast.TagExpr{
+			Name: &ast.Ident{Name: "Bar"},
+		},
+	})
+	if err != nil {
+		t.Fatal("NewTypedefDecl failed:", err)
+	}
+	pkg.incompleteTypes.Complete("Bar")
+
+	err = pkg.WritePkgFiles()
+	if err == nil {
+		t.Fatal("Expected error, got nil")
+	}
+
+	pkg.handleTyperefIncomplete(&ast.TagExpr{
+		Tag: 0,
+		Name: &ast.ScopingExpr{
+			X: &ast.Ident{Name: "Bar"},
+		},
+	}, nil, "NewBar")
+}
 
 func TestPubMethodName(t *testing.T) {
 	name := types.NewTypeName(0, nil, "Foo", nil)

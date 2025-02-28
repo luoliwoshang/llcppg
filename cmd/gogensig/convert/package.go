@@ -107,7 +107,6 @@ func NewPackage(config *PackageConfig) *Package {
 		SymbolTable: config.SymbolTable,
 		Package:     p,
 	})
-	p.SetCurFile(&HeaderFile{File: p.conf.Name})
 	return p
 }
 
@@ -121,7 +120,7 @@ func (p *Package) SetCurFile(hfile *HeaderFile) {
 	}
 
 	if curFile == nil {
-		curFile = NewHeaderFile(hfile.File, hfile.IsHeaderFile, hfile.FileType)
+		curFile = NewHeaderFile(hfile.File, hfile.FileType)
 		p.files = append(p.files, curFile)
 	}
 
@@ -132,9 +131,7 @@ func (p *Package) SetCurFile(hfile *HeaderFile) {
 		if dbg.GetDebugLog() {
 			log.Printf("SetCurFile: %s File in Current Package: %v\n", fileName, curFile.FileType)
 		}
-		if _, err := p.p.SetCurFile(fileName, true); err != nil {
-			log.Panicf("fail to set current file %s\n", curFile.File)
-		}
+		p.p.SetCurFile(fileName, true)
 		p.p.Unsafe().MarkForceUsed(p.p)
 	}
 }
@@ -145,10 +142,6 @@ func (p *Package) GetGenPackage() *gogen.Package {
 
 func (p *Package) GetOutputDir() string {
 	return p.conf.OutputDir
-}
-
-func (p *Package) GetTypeConv() *TypeConv {
-	return p.cvt
 }
 
 // todo(zzy):refine logic
@@ -645,8 +638,7 @@ func (p *Package) WritePkgFiles() error {
 		return err
 	}
 	for _, file := range p.files {
-		// todo(zzy):file.IsSys will remove in new dependency execute logic
-		if file.IsHeaderFile && file.InCurPkg() && file.FileType == llcppg.Inter {
+		if file.InCurPkg() && file.FileType == llcppg.Inter {
 			err := p.Write(file.File)
 			if err != nil {
 				return err
@@ -699,16 +691,6 @@ func (p *Package) WriteLinkFile() (string, error) {
 		return "", fmt.Errorf("failed to write file: %w", err)
 	}
 	return filePath, nil
-}
-
-// WriteDefaultFileToBuffer writes the content of the default Go file to a buffer.
-// The default file is named after the package (p.Name() + ".go").
-// This method is particularly useful for testing type outputs, especially in package tests
-// where there typically isn't (and doesn't need to be) a corresponding header file.
-// Before calling SetCurFile, all type creations are written to this default gogen file.
-// It allows for easy inspection of generated types without the need for actual file I/O.
-func (p *Package) WriteDefaultFileToBuffer() (*bytes.Buffer, error) {
-	return p.WriteToBuffer(p.conf.Name + ".go")
 }
 
 // Write the corresponding files in gogen package to the file

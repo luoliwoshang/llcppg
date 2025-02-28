@@ -151,9 +151,8 @@ func (p *AstConvert) VisitTypedefDecl(typedefDecl *ast.TypedefDecl) {
 
 func (p *AstConvert) VisitStart(path string, fileType llcppg.FileType) {
 	p.Pkg.SetCurFile(&HeaderFile{
-		File:         path,
-		IsHeaderFile: true,
-		FileType:     fileType,
+		File:     path,
+		FileType: fileType,
 	})
 }
 

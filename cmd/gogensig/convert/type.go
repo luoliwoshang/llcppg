@@ -34,7 +34,7 @@ const (
 type TypeConv struct {
 	gogen.PkgRef
 
-	ThirdTypeLoc map[string]string   // type name from third package -> define location
+	thirdTypeLoc map[string]string   // type name from third package -> define location
 	symbolTable  *config.SymbolTable // llcppg.symb.json
 	typeMap      *BuiltinTypeMap
 	ctx          TypeContext
@@ -54,7 +54,7 @@ func NewConv(conf *TypeConfig) *TypeConv {
 		symbolTable:  conf.SymbolTable,
 		typeMap:      conf.TypeMap,
 		conf:         conf,
-		ThirdTypeLoc: make(map[string]string),
+		thirdTypeLoc: make(map[string]string),
 	}
 	typeConv.Types = conf.Types
 	return typeConv
@@ -147,7 +147,7 @@ func (p *TypeConv) handleIdentRefer(t ast.Expr) (types.Type, error) {
 		obj := gogen.Lookup(p.Types.Scope(), name)
 		if obj == nil {
 			// in third hfile but not have converted go type
-			if path, ok := p.ThirdTypeLoc[name]; ok {
+			if path, ok := p.thirdTypeLoc[name]; ok {
 				return nil, fmt.Errorf("%s[%s] not found correspoding type", name, path)
 			} else {
 				// implicit forward decl
@@ -367,11 +367,11 @@ func (p *TypeConv) handleThirdType(ident *ast.Ident, loc *ast.Location) (skip bo
 	if curPkg := p.conf.Package.curFile.InCurPkg(); curPkg || anony {
 		return !curPkg, anony
 	}
-	if _, ok := p.ThirdTypeLoc[ident.Name]; ok {
+	if _, ok := p.thirdTypeLoc[ident.Name]; ok {
 		// a third ident in multiple location is permit
 		return true, anony
 	}
-	p.ThirdTypeLoc[ident.Name] = loc.File
+	p.thirdTypeLoc[ident.Name] = loc.File
 	return true, anony
 }
 

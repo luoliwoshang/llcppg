@@ -214,9 +214,8 @@ func TestToType(t *testing.T) {
 }
 
 var tempFile = &convert.HeaderFile{
-	File:         "/path/to/temp.go",
-	FileType:     llcppg.Inter,
-	IsHeaderFile: true,
+	File:     "/path/to/temp.go",
+	FileType: llcppg.Inter,
 }
 
 func TestNewPackage(t *testing.T) {
@@ -250,7 +249,7 @@ func TestPackageWrite(t *testing.T) {
 	filePath := filepath.Join("/path", "to", incPath)
 	genPath := names.HeaderFileToGo(filePath)
 
-	headerFile := convert.NewHeaderFile(filePath, true, llcppg.Inter)
+	headerFile := convert.NewHeaderFile(filePath, llcppg.Inter)
 
 	t.Run("OutputToTempDir", func(t *testing.T) {
 		tempDir, err := os.MkdirTemp(dir, "test_package_write")
@@ -1448,9 +1447,8 @@ const (
 func TestIdentRefer(t *testing.T) {
 	pkg := createTestPkg(t, &convert.PackageConfig{})
 	pkg.SetCurFile(&convert.HeaderFile{
-		File:         "/path/to/stdio.h",
-		IsHeaderFile: true,
-		FileType:     llcppg.Third,
+		File:     "/path/to/stdio.h",
+		FileType: llcppg.Third,
 	})
 	pkg.NewTypedefDecl(&ast.TypedefDecl{
 		DeclBase: ast.DeclBase{
@@ -1463,9 +1461,8 @@ func TestIdentRefer(t *testing.T) {
 		},
 	})
 	pkg.SetCurFile(&convert.HeaderFile{
-		File:         "/path/to/notsys.h",
-		IsHeaderFile: true,
-		FileType:     llcppg.Inter,
+		File:     "/path/to/notsys.h",
+		FileType: llcppg.Inter,
 	})
 	t.Run("undef sys ident ref", func(t *testing.T) {
 		err := pkg.NewTypeDecl(&ast.TypeDecl{
@@ -1780,9 +1777,8 @@ func TestTypeClean(t *testing.T) {
 
 	for i, tc := range testCases {
 		pkg.SetCurFile(&convert.HeaderFile{
-			File:         tc.headerFile,
-			IsHeaderFile: true,
-			FileType:     llcppg.Inter,
+			File:     tc.headerFile,
+			FileType: llcppg.Inter,
 		})
 		tc.addType()
 
@@ -1926,5 +1922,5 @@ func TestUnkownHfile(t *testing.T) {
 			t.Fatal("Expect Error")
 		}
 	}()
-	convert.NewHeaderFile("/path/to/foo.h", true, 0).ToGoFileName("Pkg")
+	convert.NewHeaderFile("/path/to/foo.h", 0).ToGoFileName("Pkg")
 }
