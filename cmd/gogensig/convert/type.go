@@ -51,9 +51,10 @@ type TypeConfig struct {
 
 func NewConv(conf *TypeConfig) *TypeConv {
 	typeConv := &TypeConv{
-		symbolTable: conf.SymbolTable,
-		typeMap:     conf.TypeMap,
-		conf:        conf,
+		symbolTable:  conf.SymbolTable,
+		typeMap:      conf.TypeMap,
+		conf:         conf,
+		ThirdTypeLoc: make(map[string]string),
 	}
 	typeConv.Types = conf.Types
 	return typeConv
@@ -142,25 +143,19 @@ func (p *TypeConv) handleIdentRefer(t ast.Expr) (types.Type, error) {
 		// We don't check for types.Named here because the type returned from ConvertType
 		// for aliases like int8_t might be a built-in type (e.g., int8),
 
-		// check if the type is a system type
-		obj, err := p.referThirdType(name)
-		if err != nil {
-			return nil, err
-		}
-
 		var typ types.Type
-		// system type
-		if obj != nil {
-			typ = obj.Type()
-		} else {
-			obj = gogen.Lookup(p.Types.Scope(), name)
-			if obj == nil {
+		obj := gogen.Lookup(p.Types.Scope(), name)
+		if obj == nil {
+			// in third hfile but not have converted go type
+			if path, ok := p.ThirdTypeLoc[name]; ok {
+				return nil, fmt.Errorf("%s[%s] not found correspoding type", name, path)
+			} else {
 				// implicit forward decl
 				decl := p.conf.Package.handleImplicitForwardDecl(name)
 				typ = decl.Type()
-			} else {
-				typ = obj.Type()
 			}
+		} else {
+			typ = obj.Type()
 		}
 
 		if p.ctx == Record {
@@ -370,7 +365,7 @@ func (p *TypeConv) inComplete(recordType *ast.RecordType) bool {
 func (p *TypeConv) handleThirdType(ident *ast.Ident, loc *ast.Location) (skip bool, anony bool) {
 	anony = ident == nil
 	if curPkg := p.conf.Package.curFile.InCurPkg(); curPkg || anony {
-		return curPkg, anony
+		return !curPkg, anony
 	}
 	if _, ok := p.ThirdTypeLoc[ident.Name]; ok {
 		// a third ident in multiple location is permit
@@ -378,27 +373,6 @@ func (p *TypeConv) handleThirdType(ident *ast.Ident, loc *ast.Location) (skip bo
 	}
 	p.ThirdTypeLoc[ident.Name] = loc.File
 	return true, anony
-}
-
-func (p *TypeConv) referThirdType(name string) (types.Object, error) {
-	if path, ok := p.ThirdTypeLoc[name]; ok {
-		var obj types.Object
-		// pkg, _ := IncPathToPkg(info.IncPath)
-		// in current converter process 's ref type
-		// p.SysTypePkg[name] = &Header2Pkg{
-		// 	Header:  info,
-		// 	PkgPath: pkg,
-		// }
-		// depPkg := p.conf.Package.p.Import(pkg)
-		// obj = depPkg.TryRef(names.PubName(name))
-		if obj == nil {
-			// return nil, errs.NewSysTypeNotFoundError(name, info.IncPath, pkg, info.Path)
-			// todo(zzy): hello
-			return nil, errors.New(name + path + "not found correspoding type")
-		}
-		return obj, nil
-	}
-	return nil, nil
 }
 
 func (p *TypeConv) LookupSymbol(mangleName config.MangleNameType) (*GoFuncSpec, error) {

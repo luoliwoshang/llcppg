@@ -114,14 +114,17 @@ func (p *Package) SetCurFile(hfile *HeaderFile) {
 	}
 
 	p.curFile = curFile
-	fileName := curFile.ToGoFileName(p.conf.Name)
-	if dbg.GetDebugLog() {
-		log.Printf("SetCurFile: %s File in Current Package: %v\n", fileName, curFile.FileType)
+	// for third hfile not register to gogen.Package
+	if curFile.FileType != llcppg.Third {
+		fileName := curFile.ToGoFileName(p.conf.Name)
+		if dbg.GetDebugLog() {
+			log.Printf("SetCurFile: %s File in Current Package: %v\n", fileName, curFile.FileType)
+		}
+		if _, err := p.p.SetCurFile(fileName, true); err != nil {
+			log.Panicf("fail to set current file %s\n", curFile.File)
+		}
+		p.p.Unsafe().MarkForceUsed(p.p)
 	}
-	if _, err := p.p.SetCurFile(fileName, true); err != nil {
-		log.Panicf("fail to set current file %s\n", curFile.File)
-	}
-	p.p.Unsafe().MarkForceUsed(p.p)
 }
 
 func (p *Package) GetGenPackage() *gogen.Package {
@@ -407,7 +410,7 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 	skip, _ := p.cvt.handleThirdType(typedefDecl.Name, typedefDecl.Loc)
 	if skip {
 		if dbg.GetDebugLog() {
-			log.Printf("NewTypedefDecl: %v is a typedef of system header file\n", typedefDecl.Name)
+			log.Printf("NewTypedefDecl: %v is a typedef of third header file\n", typedefDecl.Name)
 		}
 		return nil
 	}
