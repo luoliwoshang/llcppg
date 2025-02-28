@@ -6,15 +6,13 @@ import (
 	"go/types"
 	"log"
 	"path/filepath"
+	"strings"
 
 	"github.com/goplus/gogen"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/args"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/config/cfgparse"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/syspath"
 	cfg "github.com/goplus/llcppg/cmd/gogensig/config"
 	"github.com/goplus/llcppg/cmd/gogensig/errs"
 	"github.com/goplus/llcppg/llcppg"
-	"github.com/goplus/llgo/xtool/env"
 	"github.com/goplus/mod/gopmod"
 )
 
@@ -39,9 +37,8 @@ func NewPkgDepLoader(mod *gopmod.Module, pkg *gogen.Package) *PkgDepLoader {
 // for current package & dependent packages
 type PkgInfo struct {
 	PkgBase
-	Deps     []*PkgInfo
-	Dir      string   // absolute local path of the package
-	includes []string // abs header path
+	Deps []*PkgInfo
+	Dir  string // absolute local path of the package
 }
 
 type PkgBase struct {
@@ -85,6 +82,14 @@ func (pm *PkgDepLoader) Import(pkgPath string) (*PkgInfo, error) {
 	if pkg, exist := pm.pkgCache[pkgPath]; exist {
 		return pkg, nil
 	}
+
+	// standard C library paths
+	std := false
+	if pkgPath == "c" || strings.HasPrefix(pkgPath, "c/") {
+		std = true
+		pkgPath = "github.com/goplus/llgo/" + pkgPath
+	}
+
 	pkg, err := pm.module.Lookup(pkgPath)
 	if err != nil {
 		return nil, err
@@ -94,18 +99,24 @@ func (pm *PkgDepLoader) Import(pkgPath string) (*PkgInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	pubs, err := cfg.ReadPubFile(filepath.Join(pkgDir, args.LLCPPG_PUB))
 	if err != nil {
 		return nil, err
 	}
-	cfg, err := cfg.GetCppgCfgFromPath(filepath.Join(pkgDir, args.LLCPPG_CFG))
-	if err != nil {
-		return nil, err
+
+	var conf *llcppg.Config
+	if !std {
+		conf, err = cfg.GetCppgCfgFromPath(filepath.Join(pkgDir, args.LLCPPG_CFG))
+		if err != nil {
+			return nil, err
+		}
 	}
-	newPkg := NewPkgInfo(pkgPath, pkgDir, cfg, pubs)
+
+	newPkg := NewPkgInfo(pkgPath, pkgDir, conf, pubs)
 	pm.pkgCache[pkgPath] = newPkg
 
-	if len(cfg.Deps) > 0 {
+	if conf != nil && len(conf.Deps) > 0 {
 		deps, err := pm.LoadDeps(newPkg)
 		newPkg.Deps = deps
 		if err != nil {
@@ -157,15 +168,4 @@ func (pm *PkgDepLoader) RegisterDep(dep *PkgInfo) {
 			}
 		}
 	}
-}
-
-func (p *PkgInfo) GetIncPaths() ([]string, []string, error) {
-	if p.includes != nil {
-		return p.includes, nil, nil
-	}
-	expandedIncFlags := env.ExpandEnv(p.CppgConf.CFlags)
-	cflags := cfgparse.ParseCFlags(expandedIncFlags)
-	incPaths, notFounds, err := cflags.GenHeaderFilePaths(p.CppgConf.Include, syspath.GetIncludePaths())
-	p.includes = incPaths
-	return incPaths, notFounds, err
 }

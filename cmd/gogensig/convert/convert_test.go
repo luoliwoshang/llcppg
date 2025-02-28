@@ -91,6 +91,15 @@ func TestDepPkg(t *testing.T) {
 	testFrom(t, name, depcjson, false, nil)
 }
 
+func TestSysToPkg(t *testing.T) {
+	name := "_systopkg"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, nil)
+}
+
 func testFromDir(t *testing.T, relDir string, gen bool) {
 	dir, err := os.Getwd()
 	if err != nil {
