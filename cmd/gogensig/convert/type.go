@@ -148,7 +148,7 @@ func (p *TypeConv) handleIdentRefer(t ast.Expr) (types.Type, error) {
 		if obj == nil {
 			// in third hfile but not have converted go type
 			if path, ok := p.thirdTypeLoc[name]; ok {
-				return nil, fmt.Errorf("%s[%s] not found correspoding type", name, path)
+				log.Panicf("'%s' from third-party header '%s' has no corresponding Go type definition", name, path)
 			} else {
 				// implicit forward decl
 				decl := p.conf.Package.handleImplicitForwardDecl(name)
