@@ -28,28 +28,6 @@ func MarshalFileInfo(info *llcppg.FileInfo) *cjson.JSON {
 	return root
 }
 
-func MarshalFileSet(files []*llcppg.FileEntry) *cjson.JSON {
-	root := cjson.Array()
-	for _, entry := range files {
-		f := cjson.Object()
-		path := cjson.String(c.AllocaCStr(entry.Path))
-		f.SetItem(c.Str("_Type"), stringField("FileEntry"))
-		f.SetItem(c.Str("path"), path)
-		f.SetItem(c.Str("doc"), MarshalASTFile(entry.Doc))
-		f.SetItem(c.Str("fileType"), numberField(uint(entry.FileType)))
-		root.AddItem(f)
-	}
-	return root
-}
-
-func MarshalASTFiles(files []*llcppg.FileEntry) *cjson.JSON {
-	root := cjson.Object()
-	for _, entry := range files {
-		root.SetItem(c.AllocaCStr(entry.Path), MarshalASTFile(entry.Doc))
-	}
-	return root
-}
-
 func MarshalDeclList(list []ast.Decl) *cjson.JSON {
 	root := cjson.Array()
 	for _, item := range list {

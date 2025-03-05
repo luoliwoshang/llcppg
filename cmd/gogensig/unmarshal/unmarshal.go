@@ -45,33 +45,7 @@ func init() {
 		"EnumTypeDecl": EnumTypeDecl,
 
 		"File": File,
-
-		// todo:remove
-		"FileEntry": FileEntry,
 	}
-}
-
-func FileSet(data []byte) ([]*llcppg.FileEntry, error) {
-	type fileSetTemp []json.RawMessage
-
-	var fileSetData fileSetTemp
-	if err := json.Unmarshal(data, &fileSetData); err != nil {
-		return nil, newDeserializeError("FileSet", fileSetData, data, err)
-	}
-	fileSet := []*llcppg.FileEntry{}
-	for _, fileData := range fileSetData {
-		fileNode, err := Node(fileData)
-		if err != nil {
-			return nil, newUnmarshalFieldError("FileSet", fileSetData, "Files", data, err)
-		}
-		file, ok := fileNode.(*llcppg.FileEntry)
-		if !ok {
-			return nil, newUnexpectType("FileSet", fileNode, &llcppg.FileEntry{})
-		}
-		fileSet = append(fileSet, file)
-	}
-
-	return fileSet, nil
 }
 
 func Pkg(data []byte) (*llcppg.Pkg, error) {
@@ -91,40 +65,12 @@ func Pkg(data []byte) (*llcppg.Pkg, error) {
 
 	file, ok := fileNode.(*ast.File)
 	if !ok {
-		return nil, newUnexpectType("FileEntry", fileNode, &ast.File{})
+		return nil, newUnexpectType("File", fileNode, &ast.File{})
 	}
 
 	return &llcppg.Pkg{
 		File:    file,
 		FileMap: pkgData.FileMap,
-	}, nil
-}
-
-func FileEntry(data []byte) (ast.Node, error) {
-	type fileEntryTemp struct {
-		Path     string          `json:"path"`
-		Doc      json.RawMessage `json:"doc"`
-		FileType llcppg.FileType `json:"fileType"`
-	}
-	var fileEntryData fileEntryTemp
-	if err := json.Unmarshal(data, &fileEntryData); err != nil {
-		return nil, newDeserializeError("FileEntry", fileEntryData, data, err)
-	}
-
-	docNode, err := Node(fileEntryData.Doc)
-	if err != nil {
-		return nil, newFileEntryError(fileEntryData.Path, err)
-	}
-
-	file, ok := docNode.(*ast.File)
-	if !ok {
-		return nil, newUnexpectType("FileEntry", docNode, &ast.File{})
-	}
-
-	return &llcppg.FileEntry{
-		Path:     fileEntryData.Path,
-		FileType: fileEntryData.FileType,
-		Doc:      file,
 	}, nil
 }
 

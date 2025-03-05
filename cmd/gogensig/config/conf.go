@@ -11,7 +11,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/goplus/llcppg/cmd/gogensig/unmarshal"
 	"github.com/goplus/llcppg/llcppg"
 )
 
@@ -34,8 +33,16 @@ func GetPubFromPath(filePath string) (map[string]string, error) {
 	return ReadPubFile(filePath)
 }
 
-func GetCppgSigfetchFromByte(data []byte) ([]*llcppg.FileEntry, error) {
-	return unmarshal.FileSet(data)
+func ReadSigfetchFile(sigfetchFile string) ([]byte, error) {
+	_, file := filepath.Split(sigfetchFile)
+	var data []byte
+	var err error
+	if file == "-" {
+		data, err = io.ReadAll(os.Stdin)
+	} else {
+		data, err = os.ReadFile(sigfetchFile)
+	}
+	return data, err
 }
 
 type SigfetchExtractConfig struct {

@@ -34,11 +34,11 @@ func RunTest(testName string, testCases []string) {
 }
 
 func RunTestWithConfig(config *parse.ParseConfig) {
-	pkg, err := parse.Do(config)
+	cvt, err := parse.Do(config)
 	if err != nil {
 		panic(err)
 	}
-	result := MarshalPkg(pkg)
+	result := MarshalPkg(cvt.Pkg)
 	str := result.Print()
 	c.Printf(c.Str("%s\n\n"), str)
 	cjson.FreeCStr(str)

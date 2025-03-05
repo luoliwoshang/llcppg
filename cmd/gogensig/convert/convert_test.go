@@ -14,8 +14,6 @@ import (
 	"github.com/goplus/llcppg/cmd/gogensig/convert"
 	"github.com/goplus/llcppg/cmd/gogensig/dbg"
 	"github.com/goplus/llcppg/cmd/gogensig/unmarshal"
-	"github.com/goplus/llcppg/llcppg"
-	ctoken "github.com/goplus/llcppg/token"
 	"github.com/goplus/llgo/xtool/env"
 )
 
@@ -201,7 +199,7 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 		t.Fatal(err)
 	}
 
-	cvt, err := convert.NewConverter(&convert.ConverterConfig{
+	cvt, err := convert.NewConverter(&convert.Config{
 		PkgName:   name,
 		SymbFile:  symbPath,
 		CfgFile:   flagedCfgPath,
@@ -213,7 +211,7 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 	if err != nil {
 		t.Fatal(err)
 	}
-	cvt.Process()
+	cvt.Convert()
 
 	var res strings.Builder
 
@@ -259,8 +257,8 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 }
 
 // ===========================error
-func TestNewAstConvert(t *testing.T) {
-	_, err := convert.NewAstConvert(&convert.Config{
+func TestNewConvert(t *testing.T) {
+	_, err := convert.NewConverter(&convert.Config{
 		PkgName:  "test",
 		SymbFile: "",
 		CfgFile:  "",
@@ -270,169 +268,11 @@ func TestNewAstConvert(t *testing.T) {
 	}
 }
 
-func TestNewAstConvertFail(t *testing.T) {
-	_, err := convert.NewAstConvert(nil)
+func TestNewConvertFail(t *testing.T) {
+	_, err := convert.NewConverter(nil)
 	if err == nil {
 		t.Fatal("no error")
 	}
-}
-
-func TestVisitDone(t *testing.T) {
-	pkg, err := convert.NewAstConvert(&convert.Config{
-		PkgName:  "test",
-		SymbFile: "",
-		CfgFile:  "",
-	})
-	if err != nil {
-		t.Fatal("NewAstConvert Fail")
-	}
-	pkg.SetVisitDone(func(pkg *convert.Package, incPath string) {
-		if incPath != "test.h" {
-			t.Fatal("doc path error")
-		}
-	})
-	pkg.VisitDone("test.h")
-}
-
-func TestVisitFail(t *testing.T) {
-	converter, err := convert.NewAstConvert(&convert.Config{
-		PkgName:  "test",
-		SymbFile: "",
-		CfgFile:  "",
-	})
-	if err != nil {
-		t.Fatal("NewAstConvert Fail")
-	}
-
-	converter.VisitStart("/path/to/temp.h", llcppg.Inter)
-
-	// expect type
-	converter.VisitTypedefDecl(&ast.TypedefDecl{
-		Name: &ast.Ident{Name: "NormalType"},
-		Type: &ast.BuiltinType{Kind: ast.Int},
-	})
-
-	// not appear in output,because expect error
-	converter.VisitTypedefDecl(&ast.TypedefDecl{
-		Name: &ast.Ident{Name: "Foo"},
-		Type: nil,
-	})
-
-	errRecordType := &ast.RecordType{
-		Tag: ast.Struct,
-		Fields: &ast.FieldList{
-			List: []*ast.Field{
-				{Type: &ast.BuiltinType{Kind: ast.Int, Flags: ast.Double}},
-			},
-		},
-	}
-	// error field type for struct
-	converter.VisitStruct(&ast.Ident{Name: "Foo"}, nil, &ast.TypeDecl{
-		Name: &ast.Ident{Name: "Foo"},
-		Type: errRecordType,
-	})
-
-	// error field type for anonymous struct
-	converter.VisitStruct(&ast.Ident{Name: "Foo"}, nil, &ast.TypeDecl{
-		Name: nil,
-		Type: errRecordType,
-	})
-
-	converter.VisitStruct(&ast.Ident{Name: "Union (unnamed at /usr/local/Cellar/msgpack/6.0.2/include/msgpack/object.h:75:9)"}, nil, &ast.TypeDecl{
-		Name: &ast.Ident{Name: "Union (unnamed at /usr/local/Cellar/msgpack/6.0.2/include/msgpack/object.h:75:9)"},
-		Type: errRecordType,
-	})
-
-	converter.VisitEnumTypeDecl(&ast.EnumTypeDecl{
-		Name: &ast.Ident{Name: "NormalType"},
-		Type: &ast.EnumType{},
-	})
-
-	// error enum item for anonymous enum
-	converter.VisitEnumTypeDecl(&ast.EnumTypeDecl{
-		Name: nil,
-		Type: &ast.EnumType{
-			Items: []*ast.EnumItem{
-				{Name: &ast.Ident{Name: "Item1"}},
-			},
-		},
-	})
-
-	converter.VisitFuncDecl(&ast.FuncDecl{
-		Name: &ast.Ident{Name: "Foo"},
-		Type: &ast.FuncType{
-			Params: &ast.FieldList{
-				List: []*ast.Field{
-					{Type: &ast.BuiltinType{Kind: ast.Int, Flags: ast.Double}},
-				},
-			},
-		},
-	})
-
-	converter.VisitMacro(&ast.Macro{
-		Name: "Foo",
-		Tokens: []*ast.Token{
-			{Token: ctoken.IDENT, Lit: "Foo"},
-			{Token: ctoken.LITERAL, Lit: "1"},
-		},
-	})
-	// not appear in output
-
-	buf, err := converter.Pkg.WriteToBuffer("temp.go")
-	if err != nil {
-		t.Fatalf("WriteTo failed: %v", err)
-	}
-
-	expectedOutput :=
-		`
-package test
-
-import (
-	"github.com/goplus/llgo/c"
-	_ "unsafe"
-)
-
-type NormalType c.Int
-type Foo struct {
-	Unused [8]uint8
-}
-`
-	if strings.TrimSpace(expectedOutput) != strings.TrimSpace(buf.String()) {
-		t.Errorf("does not match expected.\nExpected:\n%s\nGot:\n%s", expectedOutput, buf.String())
-	}
-}
-
-func TestWritePkgFilesFail(t *testing.T) {
-	tempDir, err := os.MkdirTemp(dir, "test_package_write_unwritable")
-	if err != nil {
-		t.Fatalf("Failed to create temporary directory: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
-	converter, err := convert.NewAstConvert(&convert.Config{
-		PkgName:   "test",
-		SymbFile:  "",
-		CfgFile:   "",
-		OutputDir: tempDir,
-	})
-	if err != nil {
-		t.Fatal("NewAstConvert Fail")
-	}
-	err = os.Chmod(tempDir, 0555)
-	defer func() {
-		if err := os.Chmod(tempDir, 0755); err != nil {
-			t.Fatalf("Failed to change directory permissions: %v", err)
-		}
-	}()
-	if err != nil {
-		t.Fatalf("Failed to change directory permissions: %v", err)
-	}
-	converter.VisitStart("/path/to/test.h", llcppg.Inter)
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("Expected panic, but got: %v", r)
-		}
-	}()
-	converter.WritePkgFiles()
 }
 
 func ModInit(name string) (string, error) {

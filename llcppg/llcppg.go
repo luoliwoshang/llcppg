@@ -53,12 +53,6 @@ const (
 	Third
 )
 
-type FileEntry struct {
-	Path     string
-	FileType FileType
-	Doc      *ast.File
-}
-
 type FileInfo struct {
 	FileType FileType
 }
