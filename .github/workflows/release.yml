@@ -53,15 +53,30 @@ jobs:
           echo "LLGO_ROOT=$LLGO_ROOT" >> $GITHUB_ENV
       - name: Build components
         run: |
-          mkdir -p build/${{matrix.platform}}-${{matrix.arch}}
+          BINDIR="$GITHUB_WORKSPACE/build/${{matrix.platform}}-${{matrix.arch}}"
+          mkdir -p $BINDIR
           cd $GITHUB_WORKSPACE
-          llgo build -o build/${{matrix.platform}}-${{matrix.arch}}/llcppsymg ./_xtool/llcppsymg
-          llgo build -o build/${{matrix.platform}}-${{matrix.arch}}/llcppsigfetch ./_xtool/llcppsigfetch
-          go build -o build/${{matrix.platform}}-${{matrix.arch}}/gogensig ./cmd/gogensig
-          go build -o build/${{matrix.platform}}-${{matrix.arch}}/llcppg .
-          go build -o build/${{matrix.platform}}-${{matrix.arch}}/llcppcfg ./cmd/llcppcfg
+          llgo build -o $BINDIR/llcppsymg ./_xtool/llcppsymg
+          llgo build -o $BINDIR/llcppsigfetch ./_xtool/llcppsigfetch
+          go build -o $BINDIR/gogensig ./cmd/gogensig
+          go build -o $BINDIR/llcppg .
+          go build -o $BINDIR/llcppcfg ./cmd/llcppcfg
           cd build
           zip -r llcppg-${{matrix.platform}}-${{matrix.arch}}.zip ${{matrix.platform}}-${{matrix.arch}}/
+
+      - name: Prepare llcppg binaries test
+        run: |
+          go install ./cmd/llcppgtest
+          echo "PATH=$GITHUB_WORKSPACE/build/${{matrix.platform}}-${{matrix.arch}}:$PATH" >> $GITHUB_ENV
+
+      - name: Test llcppg binaries with demo test
+        if: startsWith(matrix.os, 'macos')
+        run: bash .github/workflows/test_macos.sh
+
+      - name: Test llcppg binaries with demo test
+        if: startsWith(matrix.os, 'ubuntu')
+        run: bash .github/workflows/test_linux.sh
+
       - name: Upload binaries
         uses: actions/upload-artifact@v4
         with:
