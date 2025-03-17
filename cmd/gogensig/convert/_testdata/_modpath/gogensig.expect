@@ -1,0 +1,17 @@
+===== _modpath_autogen_link.go =====
+package _modpath
+
+const LLGoPackage string = "link: $(pkg-config --libs xxx);"
+
+===== temp.go =====
+package _modpath
+
+import (
+	"github.com/goplus/llgo/c"
+	_ "unsafe"
+)
+
+type Temp c.Long
+
+===== llcppg.pub =====
+temp Temp

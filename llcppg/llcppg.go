@@ -33,6 +33,7 @@ type Config struct {
 	KeepUnderScore bool        `json:"keepUnderScore"`
 	Impl           []ImplFiles `json:"impl"`
 	Mix            bool        `json:"mix"`
+	ModulePath     string      `json:"modulePath"`
 }
 
 func NewDefaultConfig() *Config {

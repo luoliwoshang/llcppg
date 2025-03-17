@@ -58,7 +58,7 @@ func main() {
 	wd, err := os.Getwd()
 	check(err)
 
-	err = prepareEnv(wd, conf.Name, conf.Deps)
+	err = prepareEnv(wd, conf.Name, conf.ModulePath, conf.Deps)
 	check(err)
 
 	data, err := config.ReadSigfetchFile(filepath.Join(wd, ags.CfgFile))
@@ -86,7 +86,7 @@ func check(err error) {
 	}
 }
 
-func prepareEnv(wd, pkg string, deps []string) error {
+func prepareEnv(wd, pkg, modulePath string, deps []string) error {
 	dir := filepath.Join(wd, pkg)
 
 	err := os.MkdirAll(dir, 0744)
@@ -99,7 +99,12 @@ func prepareEnv(wd, pkg string, deps []string) error {
 		return err
 	}
 
-	err = config.RunCommand(dir, "go", "mod", "init", pkg)
+	modPath := pkg
+	if modulePath != "" {
+		modPath = modulePath
+	}
+
+	err = config.RunCommand(dir, "go", "mod", "init", modPath)
 	if err != nil {
 		return err
 	}

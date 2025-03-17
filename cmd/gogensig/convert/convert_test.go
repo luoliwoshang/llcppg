@@ -54,6 +54,24 @@ func TestSysToPkg(t *testing.T) {
 	})
 }
 
+func TestModPath(t *testing.T) {
+	name := "_modpath"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, name, path.Join(dir, "_testdata", name), false, func(t *testing.T, pkg *convert.Package, cvt *convert.Converter) {
+		modPath := path.Join(cvt.Conf.OutputDir, "go.mod")
+		content, err := os.ReadFile(modPath)
+		if err != nil {
+			t.Fatal("ReadFile failed:", err)
+		}
+		if !strings.Contains(string(content), pkg.CppgConf.ModulePath) {
+			t.Fatal("modPath mismatch:", string(content))
+		}
+	})
+}
+
 func TestDepPkg(t *testing.T) {
 	name := "_depcjson"
 	dir, err := os.Getwd()
@@ -183,7 +201,7 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 			t.Fatal(err)
 		}
 	}()
-	outputDir, err := ModInit(name)
+	outputDir, err := ModInit(name, cfg.ModulePath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -285,7 +303,7 @@ func TestNewConvertReadPubFail(t *testing.T) {
 	}
 }
 
-func ModInit(name string) (string, error) {
+func ModInit(name string, modulePath string) (string, error) {
 	tempDir, err := os.MkdirTemp("", "gogensig-test")
 	if err != nil {
 		return "", err
@@ -303,7 +321,11 @@ func ModInit(name string) (string, error) {
 		return "", err
 	}
 
-	err = config.RunCommand(outputDir, "go", "mod", "init", name)
+	modPath := name
+	if modulePath != "" {
+		modPath = modulePath
+	}
+	err = config.RunCommand(outputDir, "go", "mod", "init", modPath)
 	if err != nil {
 		return "", err
 	}
