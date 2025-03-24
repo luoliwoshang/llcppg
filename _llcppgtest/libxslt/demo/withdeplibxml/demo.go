@@ -8,11 +8,11 @@ import (
 	"libxslt"
 
 	"github.com/goplus/llgo/c"
-	libxml2 "github.com/luoliwoshang/llcppg-libxml"
+	"github.com/luoliwoshang/goplus-llpkg/libxml2"
 )
 
 func main() {
-	libxml2.XmlInitParser()
+	libxml2.InitParser()
 
 	xml :=
 		`<?xml version='1.0'?>
@@ -35,30 +35,30 @@ func main() {
 			</xsl:template>
 		</xsl:stylesheet>
 	`
-	xmlDoc := libxml2.XmlReadMemory((*int8)(unsafe.Pointer(unsafe.StringData(xml))), c.Int(len(xml)), nil, nil, 0)
-	xsltDoc := libxml2.XmlReadMemory((*int8)(unsafe.Pointer(unsafe.StringData(xslt))), c.Int(len(xslt)), nil, nil, 0)
+	xmlDoc := libxml2.ReadMemory((*int8)(unsafe.Pointer(unsafe.StringData(xml))), c.Int(len(xml)), nil, nil, 0)
+	xsltDoc := libxml2.ReadMemory((*int8)(unsafe.Pointer(unsafe.StringData(xslt))), c.Int(len(xslt)), nil, nil, 0)
 
 	if xmlDoc == nil || xsltDoc == nil {
 		panic("cant read xml or xslt")
 	}
 
-	stylesheet := libxslt.XsltParseStylesheetDoc(xsltDoc)
+	stylesheet := libxslt.ParseStylesheetDoc(xsltDoc)
 	if stylesheet == nil {
 		panic("cant parse xslt")
 	}
-	result := libxslt.XsltApplyStylesheet(stylesheet, xmlDoc, (**int8)(unsafe.Pointer(uintptr(0))))
+	result := libxslt.ApplyStylesheet(stylesheet, xmlDoc, (**int8)(unsafe.Pointer(uintptr(0))))
 	if result == nil {
 		panic("cant apply xslt")
 	}
 
-	libxslt.XsltSaveResultToFilename(c.Str("output.html"), result, stylesheet, 0)
+	libxslt.SaveResultToFilename(c.Str("output.html"), result, stylesheet, 0)
 
-	libxml2.XmlFreeDoc(xmlDoc)
-	libxml2.XmlFreeDoc(result)
-	libxslt.XsltFreeStylesheet(stylesheet)
+	libxml2.FreeDoc(xmlDoc)
+	libxml2.FreeDoc(result)
+	libxslt.FreeStylesheet(stylesheet)
 
-	libxslt.XsltCleanupGlobals()
-	libxml2.XmlCleanupParser()
+	libxslt.CleanupGlobals()
+	libxml2.CleanupParser()
 
 	buf, err := os.ReadFile("./output.html")
 	if err != nil {
