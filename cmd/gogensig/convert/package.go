@@ -722,7 +722,7 @@ func (p *Package) deferTypeBuild() error {
 }
 
 func (p *Package) WritePubFile() error {
-	return config.WritePubFile(filepath.Join(p.GetOutputDir(), "llcppg.pub"), p.Pubs)
+	return config.WritePubFile(filepath.Join(p.GetOutputDir(), llcppg.LLCPPG_PUB), p.Pubs)
 }
 
 // For a decl name, it should be unique

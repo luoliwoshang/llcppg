@@ -27,6 +27,7 @@ import (
 	"github.com/goplus/llcppg/cmd/gogensig/convert"
 	"github.com/goplus/llcppg/cmd/gogensig/dbg"
 	"github.com/goplus/llcppg/cmd/gogensig/unmarshal"
+	"github.com/goplus/llcppg/llcppg"
 )
 
 func main() {
@@ -46,11 +47,11 @@ func main() {
 	for i := 0; i < len(remainArgs); i++ {
 		arg := remainArgs[i]
 		if strings.HasPrefix(arg, "-cfg=") {
-			cfgFile = args.StringArg(arg, args.LLCPPG_CFG)
+			cfgFile = args.StringArg(arg, llcppg.LLCPPG_CFG)
 		}
 	}
 	if cfgFile == "" {
-		cfgFile = args.LLCPPG_CFG
+		cfgFile = llcppg.LLCPPG_CFG
 	}
 
 	conf, err := config.GetCppgCfgFromPath(cfgFile)
@@ -69,9 +70,9 @@ func main() {
 
 	cvt, err := convert.NewConverter(&convert.Config{
 		PkgName:  conf.Name,
-		SymbFile: filepath.Join(wd, args.LLCPPG_SYMB),
+		SymbFile: filepath.Join(wd, llcppg.LLCPPG_SYMB),
 		CfgFile:  filepath.Join(wd, cfgFile),
-		PubFile:  filepath.Join(wd, args.LLCPPG_PUB),
+		PubFile:  filepath.Join(wd, llcppg.LLCPPG_PUB),
 		Pkg:      convertPkg,
 	})
 	if err != nil {

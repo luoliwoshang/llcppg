@@ -25,7 +25,6 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/goplus/llcppg/_xtool/llcppsymg/args"
 	"github.com/goplus/llcppg/cmd/gogensig/config"
 	"github.com/goplus/llcppg/llcppg"
 	"github.com/goplus/llgo/xtool/env"
@@ -152,7 +151,7 @@ func main() {
 	if len(remainArgs) > 0 {
 		cfgFile = remainArgs[0]
 	} else {
-		cfgFile = args.LLCPPG_CFG
+		cfgFile = llcppg.LLCPPG_CFG
 	}
 
 	do(cfgFile, mode, verbose)

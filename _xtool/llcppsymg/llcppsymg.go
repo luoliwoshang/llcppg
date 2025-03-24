@@ -27,12 +27,11 @@ import (
 	"github.com/goplus/llcppg/_xtool/llcppsymg/dbg"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/parse"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/symbol"
+	"github.com/goplus/llcppg/llcppg"
 )
 
 func main() {
-	symbFile := "llcppg.symb.json"
-
-	ags, _ := args.ParseArgs(os.Args[1:], args.LLCPPG_CFG, nil)
+	ags, _ := args.ParseArgs(os.Args[1:], llcppg.LLCPPG_CFG, nil)
 
 	if ags.Help {
 		printUsage()
@@ -86,10 +85,10 @@ func main() {
 	headerInfos, err := parse.ParseHeaderFile(pkgHfiles.CurPkgFiles(), conf.TrimPrefixes, strings.Fields(conf.CFlags), conf.Cplusplus, false)
 	check(err)
 
-	symbolData, err := symbol.GenerateAndUpdateSymbolTable(symbols, headerInfos, symbFile)
+	symbolData, err := symbol.GenerateAndUpdateSymbolTable(symbols, headerInfos, llcppg.LLCPPG_SYMB)
 	check(err)
 
-	err = os.WriteFile(symbFile, symbolData, 0644)
+	err = os.WriteFile(llcppg.LLCPPG_SYMB, symbolData, 0644)
 	check(err)
 }
 

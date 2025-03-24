@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/goplus/llcppg/llcppg"
 )
 
 // runSingleDemo tests a single LLCPPG conversion case in the given demo directory.
@@ -43,7 +45,7 @@ func RunGenPkgDemo(demoRoot string, confDir string) {
 	}
 
 	configPath := filepath.Join(absPath, confDir)
-	configFile := filepath.Join(configPath, "llcppg.cfg")
+	configFile := filepath.Join(configPath, llcppg.LLCPPG_CFG)
 	fmt.Printf("Looking for config file at: %s\n", configFile)
 
 	if _, err = os.Stat(configFile); os.IsNotExist(err) {
@@ -59,14 +61,14 @@ func RunGenPkgDemo(demoRoot string, confDir string) {
 	defer os.RemoveAll(outDir)
 
 	// copy configs to out dir
-	cfgFiles := []string{"llcppg.cfg", "llcppg.pub", "llcppg.symb.json"}
+	cfgFiles := []string{llcppg.LLCPPG_CFG, llcppg.LLCPPG_PUB, llcppg.LLCPPG_SYMB}
 	for _, cfg := range cfgFiles {
 		src := filepath.Join(configPath, cfg)
 		dst := filepath.Join(outDir, cfg)
 		var content []byte
 		content, err = os.ReadFile(src)
 		if err != nil {
-			if os.IsNotExist(err) && cfg != "llcppg.cfg" {
+			if os.IsNotExist(err) && cfg != llcppg.LLCPPG_CFG {
 				continue
 			}
 			panic(fmt.Sprintf("failed to read config file: %v", err))
@@ -135,7 +137,7 @@ func getFirstLevelDemos(baseDir string, confDir string) []string {
 	for _, entry := range entries {
 		if entry.IsDir() {
 			demoRoot := filepath.Join(baseDir, entry.Name())
-			configPath := filepath.Join(demoRoot, confDir, "llcppg.cfg")
+			configPath := filepath.Join(demoRoot, confDir, llcppg.LLCPPG_CFG)
 			if _, err := os.Stat(configPath); err == nil {
 				demos = append(demos, demoRoot)
 			}

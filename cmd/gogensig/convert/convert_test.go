@@ -8,12 +8,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/goplus/llcppg/_xtool/llcppsymg/args"
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cmd/gogensig/config"
 	"github.com/goplus/llcppg/cmd/gogensig/convert"
 	"github.com/goplus/llcppg/cmd/gogensig/dbg"
 	"github.com/goplus/llcppg/cmd/gogensig/unmarshal"
+	"github.com/goplus/llcppg/llcppg"
 	"github.com/goplus/llgo/xtool/env"
 )
 
@@ -91,7 +91,7 @@ func TestDepPkg(t *testing.T) {
 	}
 
 	depcjson := path.Join(dir, "_testdata", name)
-	depcjsonConf := path.Join(depcjson, "conf", "llcppg.cfg")
+	depcjsonConf := path.Join(depcjson, "conf", llcppg.LLCPPG_CFG)
 
 	thirdDepPath := buildTestPath(dir, testDataDir, "thirddep")
 	thirdDep2Path := buildTestPath(dir, testDataDir, "thirddep2")
@@ -105,9 +105,9 @@ func TestDepPkg(t *testing.T) {
 
 	cleanups := []func(){
 		inc(depcjsonConf, fmt.Sprintf(" -I%s -I%s -I%s -I%s", thirdDepHFile, thirdDep2HFile, thirdDep3HFile, basicDepHFile)),
-		inc(buildTestPath(thirdDepPath, "llcppg.cfg"), fmt.Sprintf(" -I%s -I%s", thirdDepHFile, basicDepHFile)),
-		inc(buildTestPath(thirdDep2Path, "llcppg.cfg"), fmt.Sprintf(" -I%s -I%s -I%s", thirdDep2HFile, thirdDepHFile, basicDepHFile)),
-		inc(buildTestPath(basicDepPath, "llcppg.cfg"), fmt.Sprintf(" -I%s", basicDepHFile)),
+		inc(buildTestPath(thirdDepPath, llcppg.LLCPPG_CFG), fmt.Sprintf(" -I%s -I%s", thirdDepHFile, basicDepHFile)),
+		inc(buildTestPath(thirdDep2Path, llcppg.LLCPPG_CFG), fmt.Sprintf(" -I%s -I%s -I%s", thirdDep2HFile, thirdDepHFile, basicDepHFile)),
+		inc(buildTestPath(basicDepPath, llcppg.LLCPPG_CFG), fmt.Sprintf(" -I%s", basicDepHFile)),
 	}
 
 	for i := len(cleanups) - 1; i >= 0; i-- {
@@ -140,9 +140,9 @@ func testFromDir(t *testing.T, relDir string, gen bool) {
 
 func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *testing.T, pkg *convert.Package, converter *convert.Converter)) {
 	confPath := filepath.Join(dir, "conf")
-	cfgPath := filepath.Join(confPath, "llcppg.cfg")
-	symbPath := filepath.Join(confPath, "llcppg.symb.json")
-	pubPath := filepath.Join(confPath, "llcppg.pub")
+	cfgPath := filepath.Join(confPath, llcppg.LLCPPG_CFG)
+	symbPath := filepath.Join(confPath, llcppg.LLCPPG_SYMB)
+	pubPath := filepath.Join(confPath, llcppg.LLCPPG_PUB)
 	expect := filepath.Join(dir, "gogensig.expect")
 	var expectContent []byte
 	if !gen {
@@ -164,7 +164,7 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 	}
 
 	cfg.CFlags = " -I" + filepath.Join(dir, "hfile") + " " + cfg.CFlags
-	flagedCfgPath, err := config.CreateTmpJSONFile(args.LLCPPG_CFG, cfg)
+	flagedCfgPath, err := config.CreateTmpJSONFile(llcppg.LLCPPG_CFG, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -220,7 +220,7 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 		t.Fatal(err)
 	}
 	for _, fi := range outDir {
-		if strings.HasSuffix(fi.Name(), "go.mod") || strings.HasSuffix(fi.Name(), "go.sum") || strings.HasSuffix(fi.Name(), "llcppg.pub") {
+		if strings.HasSuffix(fi.Name(), "go.mod") || strings.HasSuffix(fi.Name(), "go.sum") || strings.HasSuffix(fi.Name(), llcppg.LLCPPG_PUB) {
 			continue
 		} else {
 			content, err := os.ReadFile(filepath.Join(outputDir, fi.Name()))
@@ -233,7 +233,7 @@ func testFrom(t *testing.T, name, dir string, gen bool, validateFunc func(t *tes
 		}
 	}
 
-	pub, err := os.ReadFile(filepath.Join(outputDir, "llcppg.pub"))
+	pub, err := os.ReadFile(filepath.Join(outputDir, llcppg.LLCPPG_PUB))
 	if err == nil {
 		res.WriteString("===== llcppg.pub =====\n")
 		res.Write(pub)
@@ -277,8 +277,8 @@ func TestNewConvertFail(t *testing.T) {
 
 func TestNewConvertReadPubFail(t *testing.T) {
 	_, err := convert.NewConverter(&convert.Config{
-		CfgFile: "./testdata/cjson/llcppg.cfg",
-		PubFile: "./testdata/invalidpub/llcppg.pub",
+		CfgFile: path.Join("./testdata", "cjson", llcppg.LLCPPG_CFG),
+		PubFile: path.Join("./testdata", "invalidpub", llcppg.LLCPPG_PUB),
 	})
 	if err == nil {
 		t.Fatal("no error")

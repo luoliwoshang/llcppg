@@ -34,7 +34,7 @@ import (
 )
 
 func main() {
-	ags, remainArgs := args.ParseArgs(os.Args[1:], args.LLCPPG_CFG, map[string]bool{
+	ags, remainArgs := args.ParseArgs(os.Args[1:], llcppg.LLCPPG_CFG, map[string]bool{
 		"--extract": true,
 	})
 
@@ -213,7 +213,7 @@ func check(err error) {
 
 func outputResult(result *c.Char, outputToFile bool) {
 	if outputToFile {
-		outputFile := "llcppg.sigfetch.json"
+		outputFile := llcppg.LLCPPG_SIGFETCH
 		err := os.WriteFile(outputFile, []byte(c.GoString(result)), 0644)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error writing to output file: %v\n", err)

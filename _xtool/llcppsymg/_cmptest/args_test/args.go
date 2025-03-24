@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/goplus/llcppg/_xtool/llcppsymg/args"
+	"github.com/goplus/llcppg/llcppg"
 )
 
 func main() {
@@ -51,7 +52,7 @@ func TestParseArgs() {
 		fmt.Printf("Test case: %s\n", tc.name)
 		fmt.Printf("Input: %v\n", tc.input)
 
-		result, filteredArgs := args.ParseArgs(tc.input, args.LLCPPG_CFG, swflags)
+		result, filteredArgs := args.ParseArgs(tc.input, llcppg.LLCPPG_CFG, swflags)
 
 		fmt.Printf("Help: %v\n", result.Help)
 		fmt.Printf("Verbose: %v\n", result.Verbose)

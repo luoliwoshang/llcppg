@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/goplus/gogen"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/args"
 	cfg "github.com/goplus/llcppg/cmd/gogensig/config"
 	"github.com/goplus/llcppg/cmd/gogensig/errs"
 	"github.com/goplus/llcppg/llcppg"
@@ -97,14 +96,14 @@ func (pm *PkgDepLoader) Import(pkgPath string) (*PkgInfo, error) {
 		return nil, err
 	}
 
-	pubs, err := cfg.ReadPubFile(filepath.Join(pkgDir, args.LLCPPG_PUB))
+	pubs, err := cfg.ReadPubFile(filepath.Join(pkgDir, llcppg.LLCPPG_PUB))
 	if err != nil {
 		return nil, err
 	}
 
 	var conf *llcppg.Config
 	if !isStd {
-		conf, err = cfg.GetCppgCfgFromPath(filepath.Join(pkgDir, args.LLCPPG_CFG))
+		conf, err = cfg.GetCppgCfgFromPath(filepath.Join(pkgDir, llcppg.LLCPPG_CFG))
 		if err != nil {
 			return nil, err
 		}

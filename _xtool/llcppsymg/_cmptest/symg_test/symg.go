@@ -9,6 +9,7 @@ import (
 	"github.com/goplus/llcppg/_xtool/llcppsymg/config"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/parse"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/symbol"
+	"github.com/goplus/llcppg/llcppg"
 	"github.com/goplus/llgo/xtool/nm"
 )
 
@@ -77,7 +78,7 @@ func TestParseHeaderFile() {
 		if err != nil {
 			fmt.Println("Get Abs Path Error:", err)
 		}
-		cfgdata, err := os.ReadFile(filepath.Join(projPath, "llcppg.cfg"))
+		cfgdata, err := os.ReadFile(filepath.Join(projPath, llcppg.LLCPPG_CFG))
 		if err != nil {
 			fmt.Println("Read Cfg File Error:", err)
 		}
@@ -105,7 +106,7 @@ func TestParseHeaderFile() {
 		for _, symb := range tc.dylibSymbols {
 			dylibsymbs = append(dylibsymbs, &nm.Symbol{Name: symbol.AddSymbolPrefixUnder(symb, cfg.Cplusplus)})
 		}
-		symbolData, err := symbol.GenerateAndUpdateSymbolTable(dylibsymbs, headerSymbolMap, filepath.Join(projPath, "llcppg.symb.json"))
+		symbolData, err := symbol.GenerateAndUpdateSymbolTable(dylibsymbs, headerSymbolMap, filepath.Join(projPath, llcppg.LLCPPG_SYMB))
 		if err != nil {
 			fmt.Println("Error:", err)
 		}

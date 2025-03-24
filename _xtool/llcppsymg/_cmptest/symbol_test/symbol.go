@@ -71,7 +71,7 @@ func TestGetCommonSymbols() {
 func TestReadExistingSymbolTable() {
 	fmt.Println("=== Test ReadExistingSymbolTable ===")
 
-	tmpFile, err := os.CreateTemp("", "llcppg.symb.json")
+	tmpFile, err := os.CreateTemp("", llcppg.LLCPPG_SYMB)
 	if err != nil {
 		fmt.Printf("Failed to create temp file: %v\n", err)
 		return

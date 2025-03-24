@@ -2,6 +2,7 @@ package config_test
 
 import (
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -14,7 +15,7 @@ import (
 )
 
 func TestLookupSymbolOK(t *testing.T) {
-	table, err := config.NewSymbolTable("./_testinput/llcppg.symb.json")
+	table, err := config.NewSymbolTable(path.Join("./_testinput", llcppg.LLCPPG_SYMB))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +36,7 @@ func TestLookupSymbolError(t *testing.T) {
 	if err == nil {
 		t.Error("expect error")
 	}
-	table, err := config.NewSymbolTable("./_testinput/llcppg.symb.json")
+	table, err := config.NewSymbolTable(path.Join("./_testinput", llcppg.LLCPPG_SYMB))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -247,7 +248,7 @@ func TestRunCommand(t *testing.T) {
 }
 
 func TestGetPubFromPath(t *testing.T) {
-	pub, err := config.GetPubFromPath("./_testinput/llcppg.pub")
+	pub, err := config.GetPubFromPath(path.Join("./_testinput", llcppg.LLCPPG_PUB))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -291,7 +292,7 @@ func TestWritePubFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer os.RemoveAll(tempDir)
-	pubFile := filepath.Join(tempDir, "llcppg.pub")
+	pubFile := filepath.Join(tempDir, llcppg.LLCPPG_PUB)
 	err = config.WritePubFile(pubFile, pub)
 	if err != nil {
 		t.Fatal(err)
