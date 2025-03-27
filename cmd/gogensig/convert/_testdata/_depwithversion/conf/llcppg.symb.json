@@ -1,0 +1,7 @@
+[
+  {
+    "mangle": "xsltGetNsProp",
+    "c++": "xsltGetNsProp",
+    "go": "XsltGetNsProp"
+  }
+]

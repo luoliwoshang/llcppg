@@ -87,10 +87,10 @@ func llcppsigfetch(conf []byte, v verboseFlags, out *io.PipeWriter) {
 	out.Close()
 }
 
-func gogensig(in io.Reader, cfg string, v verboseFlags) error {
+func gogensig(in io.Reader, cfg string, modulePath string, v verboseFlags) error {
 	cmd := command(CommandOptions{
 		Name:    "gogensig",
-		Args:    []string{"-", "-cfg=" + cfg},
+		Args:    []string{"-", "-cfg=" + cfg, "-mod=" + modulePath},
 		Verbose: (v & VerboseGogen) != 0,
 	})
 	cmd.Stdin = in
@@ -102,6 +102,7 @@ func gogensig(in io.Reader, cfg string, v verboseFlags) error {
 func main() {
 	var symbGen, codeGen, help bool
 	var vSymg, vSigfetch, vGogen, vAll bool
+	var modulePath string
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "Usage: llcppg [-v|-vfetch|-vsymg|-vgogen] [-symbgen] [-codegen] [-h|--help] [config-file]")
 		fmt.Fprintln(os.Stderr, "Options:")
@@ -115,6 +116,7 @@ func main() {
 	flag.BoolVar(&codeGen, "codegen", false, "Only use (llcppsigfetch & gogensig) to generate go code binding")
 	flag.BoolVar(&help, "h", false, "Display help information")
 	flag.BoolVar(&help, "help", false, "Display help information")
+	flag.StringVar(&modulePath, "mod", "", "The module path of the generated code,if not set,will not init a new module")
 	flag.Parse()
 
 	verbose := verboseFlags(0)
@@ -154,10 +156,10 @@ func main() {
 		cfgFile = llcppg.LLCPPG_CFG
 	}
 
-	do(cfgFile, mode, verbose)
+	do(cfgFile, mode, verbose, modulePath)
 }
 
-func do(cfgFile string, mode modeFlags, verbose verboseFlags) {
+func do(cfgFile string, mode modeFlags, verbose verboseFlags, modulePath string) {
 	f, err := os.Open(cfgFile)
 	check(err)
 	defer f.Close()
@@ -179,7 +181,7 @@ func do(cfgFile string, mode modeFlags, verbose verboseFlags) {
 		r, w := io.Pipe()
 		go llcppsigfetch(b, verbose, w)
 
-		err = gogensig(r, cfgFile, verbose)
+		err = gogensig(r, cfgFile, modulePath, verbose)
 		check(err)
 	}
 }

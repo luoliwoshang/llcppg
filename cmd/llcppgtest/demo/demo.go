@@ -52,7 +52,7 @@ func RunGenPkgDemo(demoRoot string, confDir string) {
 		panic(fmt.Sprintf("config file not found: %s", configFile))
 	}
 
-	llcppgArgs := []string{"-v"}
+	llcppgArgs := []string{"-v", "-mod", demoPkgName}
 
 	outDir := filepath.Join(absPath, "out")
 	if err = os.MkdirAll(outDir, 0755); err != nil {

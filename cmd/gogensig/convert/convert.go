@@ -3,11 +3,10 @@ package convert
 import (
 	"errors"
 	"log"
-	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/goplus/llcppg/ast"
+
 	cfg "github.com/goplus/llcppg/cmd/gogensig/config"
 	"github.com/goplus/llcppg/cmd/gogensig/dbg"
 	"github.com/goplus/llcppg/llcppg"
@@ -21,6 +20,33 @@ type Config struct {
 	OutputDir string
 
 	Pkg *llcppg.Pkg
+}
+
+// if modulePath is not empty, init the module by modulePath
+func ModInit(deps []string, outputDir string, modulePath string) error {
+	var err error
+	if modulePath != "" {
+		err = cfg.RunCommand(outputDir, "go", "mod", "init", modulePath)
+		if err != nil {
+			return err
+		}
+	}
+
+	loadDeps := []string{"github.com/goplus/llgo@v0.10.0"}
+
+	for _, dep := range deps {
+		_, std := IsDepStd(dep)
+		if !std {
+			loadDeps = append(loadDeps, dep)
+		}
+	}
+	for _, dep := range loadDeps {
+		err = cfg.RunCommand(outputDir, "go", "get", dep)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 type Converter struct {
@@ -74,6 +100,7 @@ func (p *Converter) Convert() {
 	p.Process()
 	p.Write()
 	p.Fmt()
+	p.Tidy()
 }
 
 func (p *Converter) Process() {
@@ -134,13 +161,16 @@ func (p *Converter) Write() {
 }
 
 func (p *Converter) Fmt() {
-	cmd := exec.Command("go", "fmt", ".")
-	cmd.Dir = p.Conf.OutputDir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
+	err := cfg.RunCommand(p.Conf.OutputDir, "go", "fmt", ".")
 	if err != nil {
 		log.Panicf("go fmt: %v\n", err)
+	}
+}
+
+func (p *Converter) Tidy() {
+	err := cfg.RunCommand(p.Conf.OutputDir, "go", "mod", "tidy")
+	if err != nil {
+		log.Panicf("go mod tidy: %v\n", err)
 	}
 }
 

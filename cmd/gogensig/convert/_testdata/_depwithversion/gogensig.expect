@@ -1,0 +1,16 @@
+===== _depwithversion_autogen_link.go =====
+package _depwithversion
+
+const LLGoPackage string = "link: $(pkg-config --libs xxx);"
+
+===== temp.go =====
+package _depwithversion
+
+import (
+	"github.com/luoliwoshang/goplus-llpkg/libxml2"
+	_ "unsafe"
+)
+
+//go:linkname XsltGetNsProp C.xsltGetNsProp
+func XsltGetNsProp(node libxml2.NodePtr) *libxml2.Char
+

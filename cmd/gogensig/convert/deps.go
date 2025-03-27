@@ -86,6 +86,8 @@ func (pm *PkgDepLoader) Import(pkgPath string) (*PkgInfo, error) {
 	// standard C library paths
 	pkgPath, isStd := IsDepStd(pkgPath)
 
+	pkgPath, _ = splitPkgPath(pkgPath)
+
 	pkg, err := pm.module.Lookup(pkgPath)
 	if err != nil {
 		return nil, err
@@ -120,6 +122,14 @@ func (pm *PkgDepLoader) Import(pkgPath string) (*PkgInfo, error) {
 		}
 	}
 	return newPkg, nil
+}
+
+func splitPkgPath(pkgPath string) (string, string) {
+	parts := strings.Split(pkgPath, "@")
+	if len(parts) == 1 {
+		return parts[0], ""
+	}
+	return parts[0], "@" + parts[1]
 }
 
 func (pm *PkgDepLoader) InitDeps(p *PkgInfo) error {
