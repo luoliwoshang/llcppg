@@ -86,12 +86,10 @@ func TestUnionDecl(t *testing.T) {
 				},
 			},
 			expected: `package testpkg
-import (
-	"github.com/goplus/lib/c"
-	_ "unsafe"
-)
+import _ "unsafe"
+
 type U struct {
-	B c.Long
+	B int64
 }`,
 		},
 	}
@@ -192,12 +190,12 @@ func TestToType(t *testing.T) {
 		{"Char32", &ast.BuiltinType{Kind: ast.Char32}, "int32"},
 		{"Short", &ast.BuiltinType{Kind: ast.Int, Flags: ast.Short}, "int16"},
 		{"UShort", &ast.BuiltinType{Kind: ast.Int, Flags: ast.Short | ast.Unsigned}, "uint16"},
-		{"Int", &ast.BuiltinType{Kind: ast.Int}, "github.com/goplus/lib/c.Int"},
-		{"UInt", &ast.BuiltinType{Kind: ast.Int, Flags: ast.Unsigned}, "github.com/goplus/lib/c.Uint"},
-		{"Long", &ast.BuiltinType{Kind: ast.Int, Flags: ast.Long}, "github.com/goplus/lib/c.Long"},
-		{"ULong", &ast.BuiltinType{Kind: ast.Int, Flags: ast.Long | ast.Unsigned}, "github.com/goplus/lib/c.Ulong"},
-		{"LongLong", &ast.BuiltinType{Kind: ast.Int, Flags: ast.LongLong}, "github.com/goplus/lib/c.LongLong"},
-		{"ULongLong", &ast.BuiltinType{Kind: ast.Int, Flags: ast.LongLong | ast.Unsigned}, "github.com/goplus/lib/c.UlongLong"},
+		{"Int", &ast.BuiltinType{Kind: ast.Int}, "int32"},
+		{"UInt", &ast.BuiltinType{Kind: ast.Int, Flags: ast.Unsigned}, "uint32"},
+		{"Long", &ast.BuiltinType{Kind: ast.Int, Flags: ast.Long}, "int64"},
+		{"ULong", &ast.BuiltinType{Kind: ast.Int, Flags: ast.Long | ast.Unsigned}, "uint64"},
+		{"LongLong", &ast.BuiltinType{Kind: ast.Int, Flags: ast.LongLong}, "int64"},
+		{"ULongLong", &ast.BuiltinType{Kind: ast.Int, Flags: ast.LongLong | ast.Unsigned}, "uint64"},
 		{"Float", &ast.BuiltinType{Kind: ast.Float}, "github.com/goplus/llgo/c.Float"},
 		{"Double", &ast.BuiltinType{Kind: ast.Float, Flags: ast.Double}, "github.com/goplus/llgo/c.Double"},
 		{"ComplexFloat", &ast.BuiltinType{Kind: ast.Complex}, "complex64"},
@@ -523,13 +521,10 @@ func Foo(a uint16, b bool) c.Double`,
 			expected: `
 package testpkg
 
-import (
-"github.com/goplus/lib/c"
-_ "unsafe"
-)
+import _ "unsafe"
 
 //go:linkname Foo C.foo
-func Foo(a c.Uint, b c.Long) c.Ulong
+func Foo(a uint32, b int64) uint64
 `,
 		},
 		{
@@ -563,13 +558,10 @@ func Foo(a c.Uint, b c.Long) c.Ulong
 			expected: `
 package testpkg
 
-import (
-"github.com/goplus/lib/c"
-_ "unsafe"
-)
+import _ "unsafe"
 
 //go:linkname Foo C.foo
-func Foo(a c.Uint, b c.Long) c.Ulong
+func Foo(a uint32, b int64) uint64
 `,
 		},
 		{
@@ -612,10 +604,7 @@ func Foo(a c.Uint, b c.Long) c.Ulong
 			expected: `
 package testpkg
 
-import (
-"github.com/goplus/lib/c"
-_ "unsafe"
-)
+import _ "unsafe"
 
 //go:linkname Foo C.foo
 func Foo(a *c.Uint, b *c.Long) *c.Double
@@ -712,10 +701,7 @@ func Foo(a c.Pointer) c.Pointer
 			expected: `
 package testpkg
 
-import (
-"github.com/goplus/lib/c"
-_ "unsafe"
-)
+import _ "unsafe"
 
 //go:linkname Foo C.foo
 func Foo(a *c.Uint, b *c.Double) **c.Char
@@ -872,10 +858,7 @@ type Foo struct {
 			expected: `
 package testpkg
 
-import (
-"github.com/goplus/lib/c"
-_ "unsafe"
-)
+import _ "unsafe"
 
 type Foo struct {
 	A c.Int
@@ -983,10 +966,7 @@ type Foo struct {
 			expected: `
 package testpkg
 
-import (
-"github.com/goplus/lib/c"
-_ "unsafe"
-)
+import _ "unsafe"
 
 type Foo struct {
 	A [4]c.Char
@@ -1032,10 +1012,7 @@ type Foo struct {
 			expected: `
 package testpkg
 
-import (
-"github.com/goplus/lib/c"
-_ "unsafe"
-)
+import _ "unsafe"
 
 type Foo struct {
 	A [4]c.Char
@@ -1144,12 +1121,10 @@ func TestTypedefFunc(t *testing.T) {
 			expected: `
 package testpkg
 
-import (
-"github.com/goplus/lib/c"
-_ "unsafe"
-)
+import _ "unsafe"
+
 // llgo:type C
-type Foo func(a c.Int, b c.Int) c.Int`,
+type Foo func(a int32, b int32) int32`,
 		},
 	}
 	for _, tc := range testCases {
@@ -1255,13 +1230,10 @@ func TestRedef(t *testing.T) {
 	expect := `
 package testpkg
 
-import (
-	"github.com/goplus/lib/c"
-	_ "unsafe"
-)
+import _ "unsafe"
 
 type Foo struct {
-	c.Int
+	int32
 }
 //go:linkname Bar C.Bar
 func Bar()
@@ -1315,12 +1287,9 @@ type DOUBLE c.Double`,
 			expected: `
 package testpkg
 
-import (
-"github.com/goplus/lib/c"
-_ "unsafe"
-)
+import _ "unsafe"
 
-type INT c.Int
+type INT int32
 			`,
 		},
 		{
@@ -1426,12 +1395,9 @@ func TestEnumDecl(t *testing.T) {
 			expected: `
 package testpkg
 
-import (
-	"github.com/goplus/lib/c"
-	_ "unsafe"
-)
+import _ "unsafe"
 
-type Color c.Int
+type Color int32
 const (
 	Red   Color = 0
 	Green Color = 1
@@ -1453,15 +1419,12 @@ const (
 			expected: `
 package testpkg
 
-import (
-	"github.com/goplus/lib/c"
-	_ "unsafe"
-)
+import _ "unsafe"
 
 const (
-	Red   c.Int = 0
-	Green c.Int = 1
-	Blue  c.Int = 2
+	Red   int32 = 0
+	Green int32 = 1
+	Blue  int32 = 2
 )`,
 		},
 	}
@@ -1647,13 +1610,10 @@ func TestForwardDecl(t *testing.T) {
 	expect := `
 package testpkg
 
-import (
-	"github.com/goplus/lib/c"
-	_ "unsafe"
-)
+import _ "unsafe"
 
 type Foo struct {
-	A c.Int
+	A int32
 }
 `
 	comparePackageOutput(t, pkg, expect)

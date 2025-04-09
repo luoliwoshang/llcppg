@@ -1,12 +1,9 @@
 ===== depcjson_autogen.go =====
 package depcjson
 
-import (
-	"github.com/goplus/lib/c"
-	_ "unsafe"
-)
+import _ "unsafe"
 
-type X_depcjsonType c.Int
+type X_depcjsonType int32
 
 ===== depcjson_autogen_link.go =====
 package depcjson
@@ -30,7 +27,6 @@ import (
 	"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/thirddep"
 	"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/thirddep2"
 	"github.com/goplus/llcppg/cmd/gogensig/convert/testdata/thirddep3"
-	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
 
