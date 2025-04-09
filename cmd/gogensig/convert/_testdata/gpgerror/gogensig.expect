@@ -2,7 +2,7 @@
 package gpgerror
 
 import (
-	"github.com/goplus/llgo/c"
+	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
 
@@ -80,7 +80,7 @@ func (recv_ *GpgrtLockT) LockDestroy() CodeT {
 ===== gpgerror_autogen_link.go =====
 package gpgerror
 
-import _ "github.com/goplus/llgo/c"
+import _ "github.com/goplus/lib/c"
 
 const LLGoPackage string = "link: $(pkg-config --libs gpg-error);"
 

@@ -12,5 +12,6 @@ require (
 
 require (
 	github.com/qiniu/x v1.13.19 // indirect
+	github.com/goplus/lib v0.2.0 // indirect
 	golang.org/x/mod v0.23.0 // indirect
 )

@@ -1,7 +1,7 @@
 ===== keepcomment_autogen_link.go =====
 package keepcomment
 
-import _ "github.com/goplus/llgo/c"
+import _ "github.com/goplus/lib/c"
 
 const LLGoPackage string = "link: $(pkg-config --libs xxx);"
 
@@ -9,7 +9,7 @@ const LLGoPackage string = "link: $(pkg-config --libs xxx);"
 package keepcomment
 
 import (
-	"github.com/goplus/llgo/c"
+	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
 

@@ -8,10 +8,7 @@ const LLGoPackage string = "link: $(pkg-config --libs xxx);"
 ===== temp.go =====
 package nested
 
-import (
-	"github.com/goplus/llgo/c"
-	_ "unsafe"
-)
+import _ "unsafe"
 
 type Struct1 struct {
 	B    *c.Char

@@ -2,7 +2,7 @@
 package lua
 
 import (
-	"github.com/goplus/llgo/c"
+	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
 
@@ -170,7 +170,7 @@ type Stream struct {
 package lua
 
 import (
-	"github.com/goplus/llgo/c"
+	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
 
@@ -613,7 +613,7 @@ type CallInfo struct {
 ===== lua_autogen_link.go =====
 package lua
 
-import _ "github.com/goplus/llgo/c"
+import _ "github.com/goplus/lib/c"
 
 const LLGoPackage string = "link: $(pkg-config --libs lua);"
 
@@ -646,7 +646,7 @@ const IDSIZE = 60
 package lua
 
 import (
-	"github.com/goplus/llgo/c"
+	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
 

@@ -2,7 +2,7 @@
 package cjson
 
 import (
-	"github.com/goplus/llgo/c"
+	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
 
@@ -424,7 +424,7 @@ func Free(object c.Pointer)
 package cjson
 
 import (
-	"github.com/goplus/llgo/c"
+	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
 
@@ -509,7 +509,7 @@ func (recv_ *JSON) SortObjectCaseSensitive() {
 ===== cjson_autogen_link.go =====
 package cjson
 
-import _ "github.com/goplus/llgo/c"
+import _ "github.com/goplus/lib/c"
 
 const LLGoPackage string = "link: $(pkg-config --libs xxx);"
 
