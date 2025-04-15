@@ -35,7 +35,6 @@ func GetConf(data []byte) (Conf, error) {
 		Cplusplus:    GetBoolItem(parsedConf, "cplusplus"),
 		Mix:          GetBoolItem(parsedConf, "mix"),
 		SymMap:       GetStringMapItem(parsedConf, "symMap"),
-		SymMap:       GetStringMapItem(parsedConf, "symMap"),
 	}
 
 	return Conf{
