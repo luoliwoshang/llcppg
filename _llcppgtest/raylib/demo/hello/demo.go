@@ -13,7 +13,7 @@ func main() {
 	white := raylib.GetColor(0xFFFFFFFF)
 	raylib.InitWindow(screenWidth, screenHeight, c.Str("Raylib DEMO"))
 	startTime := raylib.GetTime()
-	for raylib.WindowShouldClose() == 0 {
+	for !raylib.WindowShouldClose() {
 		currentTime := raylib.GetTime()
 		if currentTime-startTime >= 1.0 {
 			break
