@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -18,13 +19,18 @@ type SymbolInfo struct {
 	ProtoName string
 }
 
+type CustomSym struct {
+	GoName   string
+	ToMethod bool // determine want to be a method
+}
+
 type SymbolProcessor struct {
 	Files    []string
 	Prefixes []string
 	// custom symbol map like:
 	// "sqlite3_finalize":".Close" -> method
 	// "sqlite3_open":"Open" -> function
-	CustomSymMap map[string]string
+	CustomSymMap map[string]*CustomSym
 	SymbolMap    map[string]*SymbolInfo
 	NameCounts   map[string]int
 	// for independent files,signal that the file has been processed
@@ -34,14 +40,35 @@ type SymbolProcessor struct {
 }
 
 func NewSymbolProcessor(Files []string, Prefixes []string, SymMap map[string]string) *SymbolProcessor {
-	return &SymbolProcessor{
+	p := &SymbolProcessor{
 		Files:           Files,
 		Prefixes:        Prefixes,
-		CustomSymMap:    SymMap,
 		SymbolMap:       make(map[string]*SymbolInfo),
 		NameCounts:      make(map[string]int),
+		CustomSymMap:    make(map[string]*CustomSym),
 		processedFiles:  make(map[string]struct{}),
 		processingFiles: make(map[string]struct{}),
+	}
+
+	p.preprocessCustomSymMap(SymMap)
+	return p
+}
+
+func (p *SymbolProcessor) preprocessCustomSymMap(SymMap map[string]string) {
+	var symbolNames []string
+	for symbolName := range SymMap {
+		symbolNames = append(symbolNames, symbolName)
+	}
+	sort.Strings(symbolNames)
+
+	for _, symbolName := range symbolNames {
+		goName := SymMap[symbolName]
+		name, found := strings.CutPrefix(goName, ".")
+		p.CustomSymMap[symbolName] = &CustomSym{
+			GoName:   name,
+			ToMethod: found,
+		}
+		p.AddSuffix(name)
 	}
 }
 
@@ -174,11 +201,11 @@ func (p *SymbolProcessor) isMethod(cur clang.Cursor, isArg bool) (bool, bool, st
 
 // sqlite3_finalize -> .Close -> method
 // sqlite3_open -> Open -> function
-func (p *SymbolProcessor) customGoName(mangled string) (goName string, isMethod bool) {
-	if goName, ok := p.CustomSymMap[mangled]; ok {
-		return strings.CutPrefix(goName, ".")
+func (p *SymbolProcessor) customGoName(mangled string) (goName string, isMethod bool, ok bool) {
+	if customName, ok := p.CustomSymMap[mangled]; ok {
+		return customName.GoName, customName.ToMethod, ok
 	}
-	return "", false
+	return "", false, false
 }
 
 func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) string {
@@ -191,13 +218,13 @@ func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) stri
 		convertedName = names.GoName(originName, p.Prefixes, p.inCurPkg(cursor, false))
 	}
 
-	// expect gen method name,if can't gen method,use the origin function type
-	customGoName, isMethod := p.customGoName(symbolName)
+	// also config to gen method name,if can't gen method,use the origin function type
+	customGoName, toMethod, isCustom := p.customGoName(symbolName)
 
 	// for class method,gen method name
 	if parent := cursor.SemanticParent(); parent.Kind == clang.CursorClassDecl {
 		class := names.GoName(clang.GoString(parent.String()), p.Prefixes, p.inCurPkg(cursor, false))
-		if customGoName != "" {
+		if isCustom {
 			convertedName = customGoName
 		}
 		return p.AddSuffix(p.GenMethodName(class, convertedName, isDestructor, true))
@@ -206,21 +233,21 @@ func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) stri
 	// for function,gen function name
 	numArgs := cursor.NumArguments()
 	if numArgs > 0 {
-		if customGoName != "" && !isMethod {
-			return p.AddSuffix(customGoName)
+		if isCustom && !toMethod {
+			return customGoName
 		}
 		// check if the function can be gen method name
 		if ok, isPtr, typeName := p.isMethod(cursor.Argument(0), true); ok {
 			// for method,if can't gen method name,use the origin function type
-			if customGoName != "" {
+			if isCustom {
 				convertedName = customGoName
 			}
 			return p.AddSuffix(p.GenMethodName(typeName, convertedName, isDestructor, isPtr))
 		}
 	}
 
-	if customGoName != "" {
-		return p.AddSuffix(customGoName)
+	if isCustom {
+		return customGoName
 	}
 	return p.AddSuffix(convertedName)
 }

@@ -1,9 +1,17 @@
 #stdout
 === Test Case: c ===
 [{
+		"mangle":	"Foo_Bar",
+		"c++":	"Foo_Bar()",
+		"go":	"Bar__1"
+	}, {
 		"mangle":	"Foo_Delete",
 		"c++":	"Foo_Delete(Foo *)",
 		"go":	"Delete"
+	}, {
+		"mangle":	"Foo_ForBar",
+		"c++":	"Foo_ForBar()",
+		"go":	"Bar"
 	}, {
 		"mangle":	"Foo_ParseWithLength",
 		"c++":	"Foo_ParseWithLength(const char *, size_t)",

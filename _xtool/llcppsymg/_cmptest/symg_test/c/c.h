@@ -10,3 +10,6 @@ void Foo_Delete(Foo *item);
 Foo *Foo_ParseWithLength(const char *value, size_t buffer_length);
 // only can be a normal function but config be a method,keep output as function
 Foo *Foo_ParseWithSize(const char *value, size_t buffer_length);
+// config Foo_ForBar to Bar,so Foo_Bar to Bar__1
+void Foo_Bar();
+void Foo_ForBar();
