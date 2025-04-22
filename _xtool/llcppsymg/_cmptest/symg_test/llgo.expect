@@ -1,4 +1,48 @@
 #stdout
+=== Test Case: c ===
+[{
+		"mangle":	"Foo_Delete",
+		"c++":	"Foo_Delete(Foo *)",
+		"go":	"Delete"
+	}, {
+		"mangle":	"Foo_ParseWithLength",
+		"c++":	"Foo_ParseWithLength(const char *, size_t)",
+		"go":	"ParseWithLength"
+	}, {
+		"mangle":	"Foo_ParseWithSize",
+		"c++":	"Foo_ParseWithSize(const char *, size_t)",
+		"go":	"ParseWithSize"
+	}, {
+		"mangle":	"Foo_Print",
+		"c++":	"Foo_Print(const Foo *)",
+		"go":	"(*Foo).Print"
+	}]
+=== Test Case: cpp ===
+[{
+		"mangle":	"_ZN3Foo6HasBarEv",
+		"c++":	"Foo::HasBar()",
+		"go":	"(*Foo).HasBar"
+	}, {
+		"mangle":	"_ZN3FooC1EPKc",
+		"c++":	"Foo::Foo(const char *)",
+		"go":	"(*Foo).Init"
+	}, {
+		"mangle":	"_ZN3FooC1EPKcl",
+		"c++":	"Foo::Foo(const char *, long)",
+		"go":	"(*Foo).Init__1"
+	}, {
+		"mangle":	"_ZN3FooD1Ev",
+		"c++":	"Foo::~Foo()",
+		"go":	"(*Foo).Dispose"
+	}, {
+		"mangle":	"_ZNK3Foo3GetEPKcS1_S1_",
+		"c++":	"Foo::Get(const char *, const char *, const char *)",
+		"go":	"(*Foo).Get"
+	}, {
+		"mangle":	"_ZNK3Foo8ParseBarEv",
+		"c++":	"Foo::ParseBar()",
+		"go":	"(*Foo).ModifyedParseBarEv"
+	}]
 === Test Case: inireader ===
 [{
 		"mangle":	"_ZN9INIReaderC1EPKc",

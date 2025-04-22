@@ -23,6 +23,28 @@ func TestParseHeaderFile() {
 		dylibSymbols []string
 	}{
 		{
+			name: "c",
+			path: "./c",
+			dylibSymbols: []string{
+				"Foo_Print",
+				"Foo_ParseWithLength",
+				"Foo_Delete",
+				"Foo_ParseWithSize",
+			},
+		},
+		{
+			name: "cpp",
+			path: "./cpp",
+			dylibSymbols: []string{
+				"ZN3FooC1EPKc",
+				"ZN3FooC1EPKcl",
+				"ZN3FooD1Ev",
+				"ZNK3Foo8ParseBarEv",
+				"ZNK3Foo3GetEPKcS1_S1_",
+				"ZN3Foo6HasBarEv",
+			},
+		},
+		{
 			name: "inireader",
 			path: "./inireader",
 			dylibSymbols: []string{
