@@ -1,7 +1,7 @@
 ===== stdtype_autogen_link.go =====
 package stdtype
 
-import _ "github.com/goplus/llgo/c"
+import _ "github.com/goplus/lib/c"
 
 const LLGoPackage string = "link: $(pkg-config --libs xxx);"
 
@@ -9,7 +9,7 @@ const LLGoPackage string = "link: $(pkg-config --libs xxx);"
 package stdtype
 
 import (
-	"github.com/goplus/llgo/c"
+	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
 

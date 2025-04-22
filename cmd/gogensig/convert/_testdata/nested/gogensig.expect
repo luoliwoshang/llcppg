@@ -1,14 +1,17 @@
 ===== nested_autogen_link.go =====
 package nested
 
-import _ "github.com/goplus/llgo/c"
+import _ "github.com/goplus/lib/c"
 
 const LLGoPackage string = "link: $(pkg-config --libs xxx);"
 
 ===== temp.go =====
 package nested
 
-import _ "unsafe"
+import (
+	"github.com/goplus/lib/c"
+	_ "unsafe"
+)
 
 type Struct1 struct {
 	B    *c.Char

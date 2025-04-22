@@ -1,17 +1,20 @@
 ===== receiver_autogen_link.go =====
 package receiver
 
-import _ "github.com/goplus/llgo/c"
+import _ "github.com/goplus/lib/c"
 
 const LLGoPackage string = "link: $(pkg-config --libs xxx);"
 
 ===== temp.go =====
 package receiver
 
-import _ "unsafe"
+import (
+	"github.com/goplus/lib/c"
+	_ "unsafe"
+)
 
 type InAddr1 struct {
-	SAddr uint32
+	SAddr c.Uint
 }
 
 type AresIn6Addr struct {
@@ -21,7 +24,7 @@ type AresIn6Addr struct {
 }
 
 type AresAddr struct {
-	Family int32
+	Family c.Int
 	Addr   struct {
 		Addr6 AresIn6Addr
 	}
@@ -31,7 +34,7 @@ type AresAddr struct {
 package receiver
 
 import (
-	"github.com/goplus/llgo/c"
+	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
 

@@ -1,17 +1,20 @@
 ===== temp.go =====
 package union
 
-import _ "unsafe"
+import (
+	"github.com/goplus/lib/c"
+	_ "unsafe"
+)
 
 type X__u struct {
-	B int64
+	B c.Long
 }
 type U X__u
 
 ===== union_autogen_link.go =====
 package union
 
-import _ "github.com/goplus/llgo/c"
+import _ "github.com/goplus/lib/c"
 
 const LLGoPackage string = "link: $(pkg-config --libs xxx);"
 

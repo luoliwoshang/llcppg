@@ -2,11 +2,11 @@
 package xml2
 
 import (
-	"github.com/goplus/llgo/c"
+	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
 
-type ElementType int32
+type ElementType c.Int
 
 const (
 	ELEMENTNODE      ElementType = 1
@@ -31,7 +31,7 @@ const (
 	XINCLUDEEND      ElementType = 20
 )
 
-type AttributeType int32
+type AttributeType c.Int
 
 const (
 	ATTRIBUTECDATA       AttributeType = 1
@@ -69,8 +69,8 @@ type X_xmlDoc struct {
 	Next        *X_xmlNode
 	Prev        *X_xmlNode
 	Doc         *X_xmlDoc
-	Compression int32
-	Standalone  int32
+	Compression c.Int
+	Standalone  c.Int
 	IntSubset   *X_xmlDtd
 	ExtSubset   *X_xmlDtd
 	OldNs       *X_xmlNs
@@ -79,7 +79,7 @@ type X_xmlDoc struct {
 	Ids         c.Pointer
 	Refs        c.Pointer
 	URL         *Char
-	Charset     int32
+	Charset     c.Int
 	Dict        *X_xmlDict
 	Psvi        c.Pointer
 	ParseFlags  c.Int
@@ -149,7 +149,7 @@ type X_xmlID struct {
 	Value  *Char
 	Attr   AttrPtr
 	Name   *Char
-	Lineno int32
+	Lineno c.Int
 	Doc    *X_xmlDoc
 }
 type ID X_xmlID
@@ -166,26 +166,29 @@ type X_xmlDict struct {
 ===== xml2_autogen_link.go =====
 package xml2
 
-import _ "github.com/goplus/llgo/c"
+import _ "github.com/goplus/lib/c"
 
 const LLGoPackage string = "link: $(pkg-config --libs xxx);"
 
 ===== xmlexports.go =====
 package xml2
 
-import _ "unsafe"
+import (
+	"github.com/goplus/lib/c"
+	_ "unsafe"
+)
 
 /*
  * Originally declared in xmlversion.h which is generated
  */
 //go:linkname CheckVersion C.xmlCheckVersion
-func CheckVersion(version int32)
+func CheckVersion(version c.Int)
 
 ===== xmlstring.go =====
 package xml2
 
 import (
-	"github.com/goplus/llgo/c"
+	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
 
@@ -200,7 +203,7 @@ func (recv_ *Char) Strdup() *Char {
 }
 
 // llgo:link (*Char).Strndup C.xmlStrndup
-func (recv_ *Char) Strndup(len int32) *Char {
+func (recv_ *Char) Strndup(len c.Int) *Char {
 	return nil
 }
 
@@ -211,7 +214,7 @@ func CharStrndup(cur *c.Char, len c.Int) *Char
 func CharStrdup(cur *c.Char) *Char
 
 // llgo:link (*Char).Strsub C.xmlStrsub
-func (recv_ *Char) Strsub(start int32, len int32) *Char {
+func (recv_ *Char) Strsub(start c.Int, len c.Int) *Char {
 	return nil
 }
 
@@ -231,37 +234,37 @@ func (recv_ *Char) Strcasestr(val *Char) *Char {
 }
 
 // llgo:link (*Char).Strcmp C.xmlStrcmp
-func (recv_ *Char) Strcmp(str2 *Char) int32 {
+func (recv_ *Char) Strcmp(str2 *Char) c.Int {
 	return 0
 }
 
 // llgo:link (*Char).Strncmp C.xmlStrncmp
-func (recv_ *Char) Strncmp(str2 *Char, len int32) int32 {
+func (recv_ *Char) Strncmp(str2 *Char, len c.Int) c.Int {
 	return 0
 }
 
 // llgo:link (*Char).Strcasecmp C.xmlStrcasecmp
-func (recv_ *Char) Strcasecmp(str2 *Char) int32 {
+func (recv_ *Char) Strcasecmp(str2 *Char) c.Int {
 	return 0
 }
 
 // llgo:link (*Char).Strncasecmp C.xmlStrncasecmp
-func (recv_ *Char) Strncasecmp(str2 *Char, len int32) int32 {
+func (recv_ *Char) Strncasecmp(str2 *Char, len c.Int) c.Int {
 	return 0
 }
 
 // llgo:link (*Char).StrEqual C.xmlStrEqual
-func (recv_ *Char) StrEqual(str2 *Char) int32 {
+func (recv_ *Char) StrEqual(str2 *Char) c.Int {
 	return 0
 }
 
 // llgo:link (*Char).StrQEqual C.xmlStrQEqual
-func (recv_ *Char) StrQEqual(name *Char, str *Char) int32 {
+func (recv_ *Char) StrQEqual(name *Char, str *Char) c.Int {
 	return 0
 }
 
 // llgo:link (*Char).Strlen C.xmlStrlen
-func (recv_ *Char) Strlen() int32 {
+func (recv_ *Char) Strlen() c.Int {
 	return 0
 }
 
@@ -271,12 +274,12 @@ func (recv_ *Char) Strcat(add *Char) *Char {
 }
 
 // llgo:link (*Char).Strncat C.xmlStrncat
-func (recv_ *Char) Strncat(add *Char, len int32) *Char {
+func (recv_ *Char) Strncat(add *Char, len c.Int) *Char {
 	return nil
 }
 
 // llgo:link (*Char).StrncatNew C.xmlStrncatNew
-func (recv_ *Char) StrncatNew(str2 *Char, len int32) *Char {
+func (recv_ *Char) StrncatNew(str2 *Char, len c.Int) *Char {
 	return nil
 }
 
@@ -297,42 +300,42 @@ func GetUTF8Char(utf *c.Char, len *c.Int) c.Int
 func CheckUTF8(utf *c.Char) c.Int
 
 // llgo:link (*Char).UTF8Strsize C.xmlUTF8Strsize
-func (recv_ *Char) UTF8Strsize(len int32) int32 {
+func (recv_ *Char) UTF8Strsize(len c.Int) c.Int {
 	return 0
 }
 
 // llgo:link (*Char).UTF8Strndup C.xmlUTF8Strndup
-func (recv_ *Char) UTF8Strndup(len int32) *Char {
+func (recv_ *Char) UTF8Strndup(len c.Int) *Char {
 	return nil
 }
 
 // llgo:link (*Char).UTF8Strpos C.xmlUTF8Strpos
-func (recv_ *Char) UTF8Strpos(pos int32) *Char {
+func (recv_ *Char) UTF8Strpos(pos c.Int) *Char {
 	return nil
 }
 
 // llgo:link (*Char).UTF8Strloc C.xmlUTF8Strloc
-func (recv_ *Char) UTF8Strloc(utfchar *Char) int32 {
+func (recv_ *Char) UTF8Strloc(utfchar *Char) c.Int {
 	return 0
 }
 
 // llgo:link (*Char).UTF8Strsub C.xmlUTF8Strsub
-func (recv_ *Char) UTF8Strsub(start int32, len int32) *Char {
+func (recv_ *Char) UTF8Strsub(start c.Int, len c.Int) *Char {
 	return nil
 }
 
 // llgo:link (*Char).UTF8Strlen C.xmlUTF8Strlen
-func (recv_ *Char) UTF8Strlen() int32 {
+func (recv_ *Char) UTF8Strlen() c.Int {
 	return 0
 }
 
 // llgo:link (*Char).UTF8Size C.xmlUTF8Size
-func (recv_ *Char) UTF8Size() int32 {
+func (recv_ *Char) UTF8Size() c.Int {
 	return 0
 }
 
 // llgo:link (*Char).UTF8Charcmp C.xmlUTF8Charcmp
-func (recv_ *Char) UTF8Charcmp(utf2 *Char) int32 {
+func (recv_ *Char) UTF8Charcmp(utf2 *Char) c.Int {
 	return 0
 }
 

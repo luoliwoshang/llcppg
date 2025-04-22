@@ -1,18 +1,21 @@
 ===== pubfile_autogen_link.go =====
 package pubfile
 
-import _ "github.com/goplus/llgo/c"
+import _ "github.com/goplus/lib/c"
 
 const LLGoPackage string = "link: $(pkg-config --libs xxx);"
 
 ===== temp.go =====
 package pubfile
 
-import _ "unsafe"
+import (
+	"github.com/goplus/lib/c"
+	_ "unsafe"
+)
 
 type Point struct {
-	X int32
-	Y int32
+	X c.Int
+	Y c.Int
 }
 
 type Keep_Under_Score struct {
@@ -21,22 +24,22 @@ type Keep_Under_Score struct {
 }
 
 type Capital struct {
-	X int32
-	Y int32
+	X c.Int
+	Y c.Int
 }
 
 type CustomData struct {
 	Str [20]c.Char
 }
-type UintT uint32
-type Color int32
+type UintT c.Uint
+type Color c.Int
 
 const RED Color = 0
 
 //go:linkname Func C.func
-func Func(a int32, b int32)
+func Func(a c.Int, b c.Int)
 
-type X_privateTyp int64
+type X_privateTyp c.Long
 
 ===== llcppg.pub =====
 Capital

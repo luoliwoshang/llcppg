@@ -2,7 +2,7 @@
 package depwithversion
 
 import (
-	_ "github.com/goplus/llgo/c"
+	_ "github.com/goplus/lib/c"
 	_ "github.com/goplus/llpkg/libxml2"
 	_ "github.com/goplus/llpkg/zlib"
 )

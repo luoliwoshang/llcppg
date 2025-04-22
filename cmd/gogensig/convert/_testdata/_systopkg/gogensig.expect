@@ -2,8 +2,8 @@
 package systopkg
 
 import (
-	_ "github.com/goplus/llgo/c"
-	_ "github.com/goplus/llgo/c/time"
+	_ "github.com/goplus/lib/c"
+	_ "github.com/goplus/lib/c/time"
 )
 
 const LLGoPackage string = "link: $(pkg-config --libs xxx);"

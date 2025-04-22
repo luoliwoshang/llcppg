@@ -1,14 +1,17 @@
 ===== selfref_autogen_link.go =====
 package selfref
 
-import _ "github.com/goplus/llgo/c"
+import _ "github.com/goplus/lib/c"
 
 const LLGoPackage string = "link: $(pkg-config --libs xxx);"
 
 ===== temp.go =====
 package selfref
 
-import _ "unsafe"
+import (
+	"github.com/goplus/lib/c"
+	_ "unsafe"
+)
 
 type CJSON struct {
 	Next        *CJSON
