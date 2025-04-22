@@ -64,11 +64,11 @@ func (p *SymbolProcessor) preprocessCustomSymMap(SymMap map[string]string) {
 	for _, symbolName := range symbolNames {
 		goName := SymMap[symbolName]
 		name, found := strings.CutPrefix(goName, ".")
+
 		p.CustomSymMap[symbolName] = &CustomSym{
-			GoName:   name,
+			GoName:   p.AddSuffix(name),
 			ToMethod: found,
 		}
-		p.AddSuffix(name)
 	}
 }
 
@@ -224,8 +224,9 @@ func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) stri
 	// for class method,gen method name
 	if parent := cursor.SemanticParent(); parent.Kind == clang.CursorClassDecl {
 		class := names.GoName(clang.GoString(parent.String()), p.Prefixes, p.inCurPkg(cursor, false))
+		// concat method name
 		if isCustom {
-			convertedName = customGoName
+			return p.GenMethodName(class, customGoName, isDestructor, true)
 		}
 		return p.AddSuffix(p.GenMethodName(class, convertedName, isDestructor, true))
 	}
@@ -238,9 +239,8 @@ func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) stri
 		}
 		// check if the function can be gen method name
 		if ok, isPtr, typeName := p.isMethod(cursor.Argument(0), true); ok {
-			// for method,if can't gen method name,use the origin function type
 			if isCustom {
-				convertedName = customGoName
+				return p.GenMethodName(typeName, customGoName, isDestructor, isPtr)
 			}
 			return p.AddSuffix(p.GenMethodName(typeName, convertedName, isDestructor, isPtr))
 		}

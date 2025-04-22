@@ -32,6 +32,10 @@ func TestParseHeaderFile() {
 				"Foo_ParseWithSize",
 				"Foo_Bar",
 				"Foo_ForBar",
+				"Foo_Bar2",
+				"Foo_ForBar2",
+				"Foo_BarMethod",
+				"Foo_ForBarMethod",
 			},
 		},
 		{
