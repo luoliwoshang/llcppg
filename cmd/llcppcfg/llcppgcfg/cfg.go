@@ -12,7 +12,6 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/goplus/llcppg/cmdout"
 	"github.com/goplus/llcppg/llcppg"
 )
 
@@ -77,7 +76,7 @@ func isExcludeDir(relPath string, excludeSubdirs []string) bool {
 
 func ExpandName(name string, dir string, cfgKey llcppCfgKey) string {
 	originString := fmt.Sprintf("$(pkg-config --%s %s)", cfgKey, name)
-	return cmdout.ExpandString(originString, dir)
+	return ExpandString(originString, dir)
 }
 
 func findDepSlice(lines []string) ([]string, string) {
@@ -139,8 +138,8 @@ func parseFileEntry(cflags, trimCflag, path string, d fs.DirEntry, exts []string
 		return nil, errors.New("file in excluded directory")
 	}
 	args := getClangArgs(cflags, relPath)
-	clangCmd := cmdout.NewExecCommand("clang", args...)
-	outString, err := cmdout.GetOut(clangCmd, trimCflag)
+	clangCmd := NewExecCommand("clang", args...)
+	outString, err := GetOut(clangCmd, trimCflag)
 	if err != nil {
 		log.Println(outString)
 		return NewObjFile(relPath, relPath), errors.New(outString)

@@ -1,4 +1,4 @@
-package cmdout
+package llcppgcfg
 
 import (
 	"bytes"
