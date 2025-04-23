@@ -36,6 +36,10 @@ func TestParseHeaderFile() {
 				"Foo_ForBar2",
 				"Foo_BarMethod",
 				"Foo_ForBarMethod",
+				"Foo_ReceiverParse",
+				"Foo_FunctionParse",
+				"Foo_ReceiverParse2",
+				"Foo_FunctionParse2",
 			},
 		},
 		{

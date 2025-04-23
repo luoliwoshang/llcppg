@@ -29,6 +29,14 @@
 		"c++":	"Foo_ForBarMethod(Foo *)",
 		"go":	"(*Foo).BarMethod__1"
 	}, {
+		"mangle":	"Foo_FunctionParse",
+		"c++":	"Foo_FunctionParse()",
+		"go":	"Parse"
+	}, {
+		"mangle":	"Foo_FunctionParse2",
+		"c++":	"Foo_FunctionParse2(Foo2 *)",
+		"go":	"(*Foo2).Parse"
+	}, {
 		"mangle":	"Foo_ParseWithLength",
 		"c++":	"Foo_ParseWithLength(const char *, size_t)",
 		"go":	"ParseWithLength"
@@ -40,6 +48,14 @@
 		"mangle":	"Foo_Print",
 		"c++":	"Foo_Print(const Foo *)",
 		"go":	"(*Foo).Print"
+	}, {
+		"mangle":	"Foo_ReceiverParse",
+		"c++":	"Foo_ReceiverParse(Foo *)",
+		"go":	"(*Foo).Parse"
+	}, {
+		"mangle":	"Foo_ReceiverParse2",
+		"c++":	"Foo_ReceiverParse2(Foo *)",
+		"go":	"(*Foo).Parse__1"
 	}]
 === Test Case: cpp ===
 [{

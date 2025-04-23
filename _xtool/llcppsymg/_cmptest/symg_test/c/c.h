@@ -2,6 +2,9 @@
 typedef struct Foo {
     struct Foo *next;
 } Foo;
+typedef struct Foo2{
+    struct Foo2 *next;
+} Foo2;
 // remove prefix Foo_ & can be a method of Foo (*Foo).Delete
 char *Foo_Print(const Foo *item);
 // config not be a method in llcppg.cfg/symMap
@@ -21,3 +24,13 @@ void Foo_ForBar2();
 // config same method name,and the next method name is the same,so we need add suffix
 void Foo_BarMethod(Foo *item);
 void Foo_ForBarMethod(Foo *item);
+
+// first receiver Foo's method,with name 'Parse'
+void Foo_ReceiverParse(Foo *item); 
+// first function with name 'Parse'
+void Foo_FunctionParse();
+// second receiver Foo's method,with name 'Parse', and the next method name is the same,so we need add suffix
+void Foo_ReceiverParse2(Foo *item);
+// not same receiver,but same function name,we don't need add suffix
+void Foo_FunctionParse2(Foo2 *item);
+

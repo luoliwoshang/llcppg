@@ -65,10 +65,21 @@ func (p *SymbolProcessor) preprocessCustomSymMap(SymMap map[string]string) {
 		goName := SymMap[symbolName]
 		name, found := strings.CutPrefix(goName, ".")
 
-		p.CustomSymMap[symbolName] = &CustomSym{
-			GoName:   p.AddSuffix(name),
+		// For configurations expected to generate methods, add prefix in the symbol table is not correct
+		// because method names have non-unique scopes within their corresponding structs
+		customSym := &CustomSym{
+			GoName:   name,
 			ToMethod: found,
 		}
+
+		// For configurations expected to generate functions,
+		// pre-registration is required add trimprefix in the symbol table because function names
+		// have unique scopes in the global namespace
+		if !found {
+			customSym.GoName = p.AddSuffix(name)
+		}
+
+		p.CustomSymMap[symbolName] = customSym
 	}
 }
 
@@ -226,7 +237,7 @@ func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) stri
 		class := names.GoName(clang.GoString(parent.String()), p.Prefixes, p.inCurPkg(cursor, false))
 		// concat method name
 		if isCustom {
-			return p.GenMethodName(class, customGoName, isDestructor, true)
+			convertedName = customGoName
 		}
 		return p.AddSuffix(p.GenMethodName(class, convertedName, isDestructor, true))
 	}
@@ -240,7 +251,7 @@ func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) stri
 		// check if the function can be gen method name
 		if ok, isPtr, typeName := p.isMethod(cursor.Argument(0), true); ok {
 			if isCustom {
-				return p.GenMethodName(typeName, customGoName, isDestructor, isPtr)
+				convertedName = customGoName
 			}
 			return p.AddSuffix(p.GenMethodName(typeName, convertedName, isDestructor, isPtr))
 		}
