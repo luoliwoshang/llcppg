@@ -5,10 +5,6 @@
 		"c++":	"Foo_Bar()",
 		"go":	"Bar__1"
 	}, {
-		"mangle":	"Foo_Bar2",
-		"c++":	"Foo_Bar2()",
-		"go":	"Bar2"
-	}, {
 		"mangle":	"Foo_BarMethod",
 		"c++":	"Foo_BarMethod(Foo *)",
 		"go":	"(*Foo).BarMethod"
@@ -20,10 +16,6 @@
 		"mangle":	"Foo_ForBar",
 		"c++":	"Foo_ForBar()",
 		"go":	"Bar"
-	}, {
-		"mangle":	"Foo_ForBar2",
-		"c++":	"Foo_ForBar2()",
-		"go":	"Bar2__1"
 	}, {
 		"mangle":	"Foo_ForBarMethod",
 		"c++":	"Foo_ForBarMethod(Foo *)",

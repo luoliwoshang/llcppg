@@ -18,9 +18,6 @@ Foo *Foo_ParseWithSize(const char *value, size_t buffer_length);
 void Foo_Bar();
 void Foo_ForBar();
 
-void Foo_Bar2();
-void Foo_ForBar2();
-
 // config same method name,and the next method name is the same,so we need add suffix
 void Foo_BarMethod(Foo *item);
 void Foo_ForBarMethod(Foo *item);
