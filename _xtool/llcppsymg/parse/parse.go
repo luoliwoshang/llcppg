@@ -25,15 +25,14 @@ type Collect struct {
 }
 
 type SymbolProcessor struct {
-	Files    []string
-	Prefixes []string
+	Files      []string
+	Prefixes   []string
+	SymbolMap  map[string]*SymbolInfo
+	NameCounts map[string]int
 	// custom symbol map like:
 	// "sqlite3_finalize":".Close" -> method
 	// "sqlite3_open":"Open" -> function
 	CustomSymMap map[string]string
-	SymbolMap    map[string]*SymbolInfo
-	NameCounts   map[string]int
-
 	// register queue
 	collectQueue []*Collect
 	// for independent files,signal that the file has been processed
@@ -46,14 +45,13 @@ func NewSymbolProcessor(Files []string, Prefixes []string, SymMap map[string]str
 	p := &SymbolProcessor{
 		Files:           Files,
 		Prefixes:        Prefixes,
+		CustomSymMap:    SymMap,
 		SymbolMap:       make(map[string]*SymbolInfo),
 		NameCounts:      make(map[string]int),
-		CustomSymMap:    SymMap,
 		processedFiles:  make(map[string]struct{}),
 		processingFiles: make(map[string]struct{}),
 		collectQueue:    make([]*Collect, 0),
 	}
-
 	return p
 }
 
@@ -204,10 +202,9 @@ func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) stri
 		convertedName = names.GoName(originName, p.Prefixes, p.inCurPkg(cursor, false))
 	}
 
-	// also config to gen method name,if can't gen method,use the origin function type
 	customGoName, toMethod, isCustom := p.customGoName(symbolName)
 
-	// for class method,gen method name
+	// 1. for class method,gen method name
 	if parent := cursor.SemanticParent(); parent.Kind == clang.CursorClassDecl {
 		class := names.GoName(clang.GoString(parent.String()), p.Prefixes, p.inCurPkg(cursor, false))
 		// concat method name
@@ -217,12 +214,15 @@ func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) stri
 		return p.AddSuffix(p.GenMethodName(class, convertedName, isDestructor, true))
 	}
 
-	// for function,gen function name
+	// 2. check if can gen method name
 	numArgs := cursor.NumArguments()
+	// also config to gen method name,if can't gen method,use the origin function type
 	if numArgs > 0 {
+		// also can gen method name,but not want to be method,output func not method
 		if isCustom && !toMethod {
-			convertedName = customGoName
-		} else if ok, isPtr, typeName := p.isMethod(cursor.Argument(0), true); ok {
+			return p.AddSuffix(customGoName)
+		}
+		if ok, isPtr, typeName := p.isMethod(cursor.Argument(0), true); ok {
 			if isCustom {
 				convertedName = customGoName
 			}
@@ -230,8 +230,9 @@ func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) stri
 		}
 	}
 
+	// 3. normal function name
 	if isCustom {
-		convertedName = customGoName
+		return p.AddSuffix(customGoName)
 	}
 	return p.AddSuffix(convertedName)
 }
@@ -276,8 +277,6 @@ func (p *SymbolProcessor) collectFuncInfo(cursor clang.Cursor) {
 	if _, exists := p.SymbolMap[symbolName]; exists {
 		return
 	}
-
-	// // temp
 	p.SymbolMap[symbolName] = &SymbolInfo{}
 	p.collectQueue = append(p.collectQueue, &Collect{
 		SymName: symbolName,
