@@ -37,6 +37,10 @@
 		"c++":	"Foo_ParseWithSize(const char *, size_t)",
 		"go":	"ParseWithSize"
 	}, {
+		"mangle":	"Foo_Prefix_BarMethod",
+		"c++":	"Foo_Prefix_BarMethod(Foo *)",
+		"go":	"(*Foo).BarMethod__2"
+	}, {
 		"mangle":	"Foo_Print",
 		"c++":	"Foo_Print(const Foo *)",
 		"go":	"(*Foo).Print"

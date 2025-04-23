@@ -18,9 +18,9 @@ Foo *Foo_ParseWithSize(const char *value, size_t buffer_length);
 void Foo_Bar();
 void Foo_ForBar();
 
-// config same method name,and the next method name is the same,so we need add suffix
-void Foo_BarMethod(Foo *item);
-void Foo_ForBarMethod(Foo *item);
+void Foo_Prefix_BarMethod(Foo *item); // to BarMethod,but follow config the BarMethod,so it need add prefix
+void Foo_BarMethod(Foo *item); // config BarMethod
+void Foo_ForBarMethod(Foo *item);// config BarMethod,so it need add suffix
 
 // first receiver Foo's method,with name 'Parse'
 void Foo_ReceiverParse(Foo *item); 
