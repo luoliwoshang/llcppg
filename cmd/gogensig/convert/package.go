@@ -407,7 +407,6 @@ func (p *Package) handleCompleteType(incom *Incomplete, typ *ast.RecordType, nam
 	structType, err := p.cvt.RecordTypeToStruct(typ)
 	if err != nil {
 		// For incomplete type's conerter error, we use default struct type
-		// incom.decl.InitType(p.p, types.NewStruct(p.cvt.defaultRecordField(), nil))
 		return err
 	}
 	incom.decl.InitType(p.p, structType)
@@ -477,7 +476,6 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 
 	typ, err := p.ToType(typedefDecl.Type)
 	if err != nil {
-		// typeSpecdecl.InitType(p.p, types.NewStruct(p.cvt.defaultRecordField(), nil))
 		log.Panicf("NewTypedefDecl:fail to convert type : %s\n", err.Error())
 	}
 
