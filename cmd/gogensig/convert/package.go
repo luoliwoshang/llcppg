@@ -307,7 +307,7 @@ func (p *Package) NewFuncDecl(funcDecl *ast.FuncDecl) error {
 
 	recv, err := p.funcIsDefined(fnSpec, funcDecl)
 	if err != nil {
-		return err
+		log.Panicf("NewFuncDecl: %s\n", err.Error())
 	}
 
 	sig, err := p.ToSigSignature(recv, funcDecl)
