@@ -150,7 +150,7 @@ func testFromDir(t *testing.T, relDir string, gen bool) {
 	}
 	for _, fi := range fis {
 		name := fi.Name()
-		if strings.HasPrefix(name, "_") || strings.HasPrefix(name, ".") {
+		if strings.HasPrefix(name, "_") {
 			continue
 		}
 		t.Run(name, func(t *testing.T) {
