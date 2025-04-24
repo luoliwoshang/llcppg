@@ -1508,6 +1508,18 @@ const (
 	Blue  c.Int = 2
 )`,
 		},
+		{
+			name: "invalid enum item",
+			decl: &ast.EnumTypeDecl{
+				Name: nil,
+				Type: &ast.EnumType{
+					Items: []*ast.EnumItem{
+						{Name: &ast.Ident{Name: "red"}, Value: &ast.ArrayType{Elt: &ast.BuiltinType{Kind: ast.Bool}}},
+					},
+				},
+			},
+			expectedPanic: "createEnumItems:fail to convert *ast.ArrayType to int",
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {

@@ -590,7 +590,7 @@ func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type) er
 		}
 		val, err := Expr(item.Value).ToInt()
 		if err != nil {
-			return err
+			log.Panicf("createEnumItems:fail to convert %T to int:%s", item.Value, err.Error())
 		}
 		defs.New(val, enumType, name)
 		if changed {
