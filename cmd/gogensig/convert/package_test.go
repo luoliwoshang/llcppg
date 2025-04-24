@@ -881,7 +881,7 @@ type Foo struct {
 					},
 				},
 			},
-			expectedErr: "not found in type map",
+			expectedPanic: "NewTypeDecl: fail to complete type : not found in type map",
 		},
 		// struct Foo { int a; double b; bool c; }
 		{
@@ -1096,10 +1096,8 @@ type Foo struct {
 					Fields: &ast.FieldList{},
 				},
 			},
-			expected: `
-package testpkg
-import _ "unsafe"
-			`},
+			expectedPanic: "NewFuncDecl: fail convert anonymous type",
+		},
 		{
 			name: "struct array field without len",
 			decl: &ast.TypeDecl{
@@ -1121,7 +1119,7 @@ import _ "unsafe"
 					},
 				},
 			},
-			expectedErr: "unsupport field with array without length",
+			expectedPanic: "NewTypeDecl: fail to complete type : unsupport field with array without length",
 		},
 		{
 			name: "struct array field without len",
@@ -1145,7 +1143,7 @@ import _ "unsafe"
 					},
 				},
 			},
-			expectedErr: "can't determine the array length",
+			expectedPanic: "NewTypeDecl: fail to complete type : can't determine the array length",
 		},
 	}
 

@@ -292,8 +292,7 @@ func (p *Package) NewFuncDecl(funcDecl *ast.FuncDecl) error {
 		log.Printf("NewFuncDecl: %v\n", funcDecl.Name)
 	}
 	if anony {
-		// Unreachable
-		log.Panicln("NewFuncDecl: fail convert anonymous function")
+		log.Panicln("NewFuncDecl: fail convert anonymous function") // Unreachable
 	}
 
 	fnSpec, err := p.LookupSymbol(funcDecl.MangledName)
@@ -354,10 +353,7 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 		log.Printf("NewTypeDecl: %v\n", typeDecl.Name)
 	}
 	if anony {
-		if dbg.GetDebugLog() {
-			log.Println("NewTypeDecl:Skip a anonymous type")
-		}
-		return nil
+		log.Panicln("NewFuncDecl: fail convert anonymous type") // Unreachable
 	}
 
 	cname := typeDecl.Name.Name
@@ -379,7 +375,7 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 
 	if !isForward {
 		if err := p.handleCompleteType(incom, typeDecl.Type, cname); err != nil {
-			return err
+			log.Panicf("NewTypeDecl: fail to complete type : %s\n", err.Error())
 		}
 	}
 	return nil
@@ -411,7 +407,7 @@ func (p *Package) handleCompleteType(incom *Incomplete, typ *ast.RecordType, nam
 	structType, err := p.cvt.RecordTypeToStruct(typ)
 	if err != nil {
 		// For incomplete type's conerter error, we use default struct type
-		incom.decl.InitType(p.p, types.NewStruct(p.cvt.defaultRecordField(), nil))
+		// incom.decl.InitType(p.p, types.NewStruct(p.cvt.defaultRecordField(), nil))
 		return err
 	}
 	incom.decl.InitType(p.p, structType)
