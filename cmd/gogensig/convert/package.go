@@ -240,9 +240,9 @@ func (p *Package) handleFuncDecl(fnSpec *GoFuncSpec, sig *types.Signature, funcD
 		decl = p.p.NewFuncDecl(token.NoPos, fnPubName, sig)
 	}
 
-	doc := CommentGroup(funcDecl.Doc)
-	doc.AddCommentGroup(NewFuncDocComments(funcDecl.Name.Name, fnPubName))
-	decl.SetComments(p.p, doc.CommentGroup)
+	doc := NewCommentGroupFromC(funcDecl.Doc)
+	doc.List = append(doc.List, NewFuncDocComment(funcDecl.Name.Name, fnPubName))
+	decl.SetComments(p.p, doc)
 	return nil
 }
 
@@ -442,7 +442,7 @@ func (p *Package) handleImplicitForwardDecl(name string) *gogen.TypeDecl {
 
 func (p *Package) emptyTypeDecl(name string, doc *ast.CommentGroup) *gogen.TypeDecl {
 	typeBlock := p.p.NewTypeDefs()
-	typeBlock.SetComments(CommentGroup(doc).CommentGroup)
+	typeBlock.SetComments(NewCommentGroupFromC(doc))
 	return typeBlock.NewType(name)
 }
 
@@ -486,7 +486,7 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 
 	typeSpecdecl.InitType(p.p, typ)
 	if _, ok := typ.(*types.Signature); ok {
-		genDecl.SetComments(NewTypecDocComments())
+		genDecl.SetComments(NewCommentGroup(NewTypecDocComment()))
 	}
 
 	return nil
