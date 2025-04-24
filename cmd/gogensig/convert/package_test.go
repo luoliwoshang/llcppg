@@ -418,7 +418,7 @@ func Foo(__llgo_va_list ...interface{})`,
 					GoName:     "InvalidFunc",
 				},
 			},
-			expectedErr: "not found in type map",
+			expectedPanic: "NewFuncDecl: fail convert signature : not found in type map",
 		},
 		{
 			name: "explict void return",
@@ -746,7 +746,7 @@ func Foo(a *c.Uint, b *c.Double) **c.Char
 					GoName:     "Foo",
 				},
 			},
-			expectedErr: "error convert elem type",
+			expectedPanic: "NewFuncDecl: fail convert signature : error convert elem type: not found in type map",
 		},
 		{
 			name: "error return type",
@@ -765,7 +765,7 @@ func Foo(a *c.Uint, b *c.Double) **c.Char
 					GoName:     "Foo",
 				},
 			},
-			expectedErr: "error convert return type",
+			expectedPanic: "NewFuncDecl: fail convert signature : error convert return type: not found in type map",
 		},
 		{
 			name: "error nil param",
@@ -788,7 +788,53 @@ func Foo(a *c.Uint, b *c.Double) **c.Char
 					GoName:     "Foo",
 				},
 			},
-			expectedErr: "unexpected nil field",
+			expectedPanic: "NewFuncDecl: fail convert signature : error convert type: unexpected nil field",
+		},
+		{
+			name: "error receiver",
+			decl: &ast.FuncDecl{
+				DeclBase: ast.DeclBase{
+					Loc: &ast.Location{File: tempFile.File},
+				},
+				Name:        &ast.Ident{Name: "foo"},
+				MangledName: "foo",
+				Type: &ast.FuncType{
+					Params: &ast.FieldList{
+						List: []*ast.Field{
+							{
+								Type: &ast.BuiltinType{Kind: ast.Int, Flags: ast.Double},
+							},
+						},
+					},
+				},
+			},
+			symbs: []config.SymbolEntry{
+				{
+					CppName:    "foo",
+					MangleName: "foo",
+					GoName:     "(*Foo).foo",
+				},
+			},
+			expectedPanic: "newReceiver:failed to convert type",
+		},
+		{
+			name: "anony func",
+			decl: &ast.FuncDecl{
+				Name:        nil,
+				MangledName: "foo",
+				Type: &ast.FuncType{
+					Params: nil,
+					Ret:    &ast.BuiltinType{Kind: ast.Void},
+				},
+			},
+			symbs: []config.SymbolEntry{
+				{
+					CppName:    "foo",
+					MangleName: "foo",
+					GoName:     "Foo",
+				},
+			},
+			expectedPanic: "NewFuncDecl: fail convert anonymous function",
 		},
 	}
 	for _, tc := range testCases {
@@ -1660,16 +1706,28 @@ type Foo struct {
 }
 
 type genDeclTestCase struct {
-	name        string
-	decl        ast.Decl
-	symbs       []config.SymbolEntry
-	cppgconf    *llcppg.Config
-	expected    string
-	expectedErr string
+	name          string
+	decl          ast.Decl
+	symbs         []config.SymbolEntry
+	cppgconf      *llcppg.Config
+	expected      string
+	expectedErr   string
+	expectedPanic string
 }
 
 func testGenDecl(t *testing.T, tc genDeclTestCase) {
 	t.Helper()
+	defer func() {
+		if r := recover(); r != nil {
+			if tc.expectedPanic != "" {
+				if !strings.HasPrefix(r.(string), tc.expectedPanic) {
+					t.Errorf("Expected panic %s, but got: %v", tc.expectedPanic, r)
+				}
+			} else {
+				t.Fatal("unexpect panic", r)
+			}
+		}
+	}()
 	pkg := createTestPkg(t, &convert.PackageConfig{
 		SymbolTable: config.CreateSymbolTable(tc.symbs),
 		PkgBase: convert.PkgBase{

@@ -181,7 +181,7 @@ func (p *Package) newReceiver(typ *ast.FuncType) *types.Var {
 	recvField := typ.Params.List[0]
 	recvType, err := p.ToType(recvField.Type)
 	if err != nil {
-		log.Println(err)
+		log.Panicf("newReceiver:failed to convert type: %s", err.Error())
 	}
 	return p.p.NewParam(token.NoPos, "recv_", recvType)
 }
@@ -292,7 +292,8 @@ func (p *Package) NewFuncDecl(funcDecl *ast.FuncDecl) error {
 		log.Printf("NewFuncDecl: %v\n", funcDecl.Name)
 	}
 	if anony {
-		return errs.NewAnonymousFuncNotSupportError()
+		// Unreachable
+		log.Panicln("NewFuncDecl: fail convert anonymous function")
 	}
 
 	fnSpec, err := p.LookupSymbol(funcDecl.MangledName)
@@ -312,7 +313,7 @@ func (p *Package) NewFuncDecl(funcDecl *ast.FuncDecl) error {
 
 	sig, err := p.ToSigSignature(recv, funcDecl)
 	if err != nil {
-		return err
+		log.Panicf("NewFuncDecl: fail convert signature : %s\n", err.Error())
 	}
 	return p.handleFuncDecl(fnSpec, sig, funcDecl)
 }
