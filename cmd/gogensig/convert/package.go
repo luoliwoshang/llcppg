@@ -477,8 +477,8 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 
 	typ, err := p.ToType(typedefDecl.Type)
 	if err != nil {
-		typeSpecdecl.InitType(p.p, types.NewStruct(p.cvt.defaultRecordField(), nil))
-		return err
+		// typeSpecdecl.InitType(p.p, types.NewStruct(p.cvt.defaultRecordField(), nil))
+		log.Panicf("NewTypedefDecl:fail to convert type : %s\n", err.Error())
 	}
 
 	typeSpecdecl.InitType(p.p, typ)

@@ -1345,7 +1345,7 @@ type DOUBLE c.Double`,
 					Flags: ast.Double,
 				},
 			},
-			expectedErr: "not found in type map",
+			expectedPanic: "NewTypedefDecl:fail to convert type : not found in type map",
 		},
 		// typedef int INT;
 		{
@@ -1442,7 +1442,7 @@ type Name *c.Char`,
 					},
 				},
 			},
-			expectedErr: "error convert baseType",
+			expectedPanic: "NewTypedefDecl:fail to convert type : error convert baseType: not found in type map",
 		},
 	}
 
