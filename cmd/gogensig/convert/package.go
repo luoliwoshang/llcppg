@@ -330,11 +330,16 @@ func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (rec
 			}
 		}
 	} else {
-		if obj := p.p.Types.Scope().Lookup(fnSpec.FnName); obj != nil {
+		if obj := p.Lookup(fnSpec.FnName); obj != nil {
 			return nil, errs.NewFuncAlreadyDefinedError(fnSpec.GoSymbName)
 		}
 	}
 	return
+}
+
+func (p *Package) Lookup(name string) types.Object {
+	obj := gogen.Lookup(p.p.Types.Scope(), name)
+	return obj
 }
 
 // NewTypeDecl converts C/C++ type declarations to Go.
@@ -576,7 +581,7 @@ func (p *Package) createEnumType(enumName *ast.Ident) (types.Type, error) {
 	enumType := p.cvt.ToDefaultEnumType()
 	if name != "" {
 		t = p.NewTypedefs(name, enumType)
-		enumType = p.p.Types.Scope().Lookup(name).Type()
+		enumType = p.Lookup(name).Type()
 	}
 	if changed {
 		substObj(p.p.Types, p.p.Types.Scope(), enumName.Name, t.Type().Obj())
@@ -597,7 +602,7 @@ func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type) er
 		}
 		defs.New(val, enumType, name)
 		if changed {
-			if obj := p.p.Types.Scope().Lookup(name); obj != nil {
+			if obj := p.Lookup(name); obj != nil {
 				substObj(p.p.Types, p.p.Types.Scope(), item.Name.Name, obj)
 			}
 		}
@@ -770,7 +775,7 @@ func (p *Package) WritePubFile() error {
 func (p *Package) DeclName(name string, toCamel bool) (pubName string, changed bool, err error) {
 	pubName, changed = p.nameMapper.GetUniqueGoName(name, p.trimPrefixes(), toCamel)
 	// if the type is incomplete,it's ok to have the same name
-	obj := p.p.Types.Scope().Lookup(name)
+	obj := p.Lookup(name)
 	_, ok := p.incompleteTypes.Lookup(name)
 	if obj != nil && !ok {
 		return "", false, errs.NewTypeDefinedError(pubName, name)
