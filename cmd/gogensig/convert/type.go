@@ -101,7 +101,6 @@ func (p *TypeConv) handlePointerType(t *ast.PointerType) (types.Type, error) {
 		return nil, fmt.Errorf("error convert baseType: %w", err)
 	}
 	// void * -> c.Pointer
-	// todo(zzy):alias visit the origin type unsafe.Pointer,c.Pointer is better
 	if p.typeMap.IsVoidType(baseType) {
 		return p.typeMap.CType("Pointer"), nil
 	}

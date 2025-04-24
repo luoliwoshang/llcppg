@@ -696,7 +696,6 @@ func (p *Package) Write(headerFile string) error {
 
 func (p *Package) WriteAutogenFile() error {
 	if file, ok := p.p.File(p.conf.Name + "_autogen.go"); ok {
-		// fileName := p.conf.Name + "_autogen.go"
 		filePath := filepath.Join(p.GetOutputDir(), file.Name())
 		return p.writeToFile(file.Name(), filePath)
 	}

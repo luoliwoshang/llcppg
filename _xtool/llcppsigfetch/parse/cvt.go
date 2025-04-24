@@ -188,13 +188,10 @@ func createLoc(cursor clang.Cursor) *ast.Location {
 
 // extracts and parses comments associated with a given Clang cursor,
 // distinguishing between documentation comments and line comments.
-// It uses libclang to parse only Doxygen-style comments.
-
-// Reference for Doxygen documentation blocks: https://www.doxygen.nl/manual/docblocks.html
-
+//
 // The function determines whether a comment is a documentation comment or a line comment by
 // comparing the range of the comment node with the range of the declaration node in the AST.
-
+//
 // Note: In cases where both documentation comments and line comments conceptually exist,
 // only the line comment will be preserved.
 func (ct *Converter) ParseCommentGroup(cursor clang.Cursor) (comentGroup *ast.CommentGroup, isDoc bool) {
