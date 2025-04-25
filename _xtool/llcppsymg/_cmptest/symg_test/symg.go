@@ -30,6 +30,7 @@ func TestParseHeaderFile() {
 				"Foo_ParseWithLength",
 				"Foo_Delete",
 				"Foo_ParseWithSize",
+				"Foo_ignoreFunc",
 				"Foo_Bar",
 				"Foo_ForBar",
 				"Foo_Bar2",
