@@ -198,7 +198,7 @@ You can specify function mapping behavior in `llcppg.cfg` by config the `symMap`
 ```json
 {
     "symMap":{
-        "mangle":"goFuncName | .goMethodName | -"
+        "mangle":"<goFuncName> | <.goMethodName> | -"
     }
 }
 ```
