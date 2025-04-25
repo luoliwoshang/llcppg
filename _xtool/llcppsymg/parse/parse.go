@@ -50,7 +50,6 @@ func NewSymbolProcessor(Files []string, Prefixes []string, SymMap map[string]str
 		NameCounts:      make(map[string]int),
 		processedFiles:  make(map[string]struct{}),
 		processingFiles: make(map[string]struct{}),
-		collectQueue:    make([]*Collect, 0),
 	}
 	return p
 }
@@ -362,7 +361,7 @@ func (p *SymbolProcessor) processCollect() {
 
 func ParseHeaderFile(files []string, prefixes []string, cflags []string, symMap map[string]string, isCpp bool, isTemp bool) (map[string]*SymbolInfo, error) {
 	index := clang.CreateIndex(0, 0)
-	units := make([]*clang.TranslationUnit, 0)
+	var units []*clang.TranslationUnit
 	if isTemp {
 		files = append(files, clangutils.TEMP_FILE)
 	}
