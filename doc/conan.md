@@ -32,7 +32,7 @@ Ordering issues may arise during batch conversion.
 
 ### 4. Naming Conflicts in Custom Names
 
-The `lib` prefix is removed.
+Remove `lib` prefix.
 
 However, this may cause naming conflicts and needs to be verified.
 
