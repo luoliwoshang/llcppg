@@ -22,7 +22,16 @@ func init() {
 }
 
 func TestFromTestdata(t *testing.T) {
-	testFromDir(t, "./_testdata", false)
+	testFromDir(t, "./_testdata", true)
+}
+
+func TestDepWithVersion2(t *testing.T) {
+	name := "redefine"
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatal("Getwd failed:", err)
+	}
+	testFrom(t, path.Join(dir, "_testdata", name), true, nil)
 }
 
 func TestDepWithVersion(t *testing.T) {

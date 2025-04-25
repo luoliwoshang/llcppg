@@ -48,18 +48,18 @@ func TestNameMapper() {
 	testCases := []struct {
 		name         string
 		trimPrefixes []string
-		toCamel      bool
+		toCamel      names.ConvertKind
 		expected     string
 		expectChange bool
 	}{
-		{"lua_closethread", []string{"lua_", "luaL_"}, true, "Closethread", true},
-		{"luaL_checknumber", []string{"lua_", "luaL_"}, true, "Checknumber", true},
-		{"_gmp_err", []string{}, true, "X_gmpErr", true},
-		{"fn_123illegal", []string{"fn_"}, true, "X123illegal", true},
-		{"fts5_tokenizer", []string{}, true, "Fts5Tokenizer", true},
-		{"Fts5Tokenizer", []string{}, true, "Fts5Tokenizer__1", true},
-		{"normal_var", []string{}, false, "Normal_var", true},
-		{"Cameled", []string{}, false, "Cameled", false},
+		{"lua_closethread", []string{"lua_", "luaL_"}, names.ToCamel, "Closethread", true},
+		{"luaL_checknumber", []string{"lua_", "luaL_"}, names.ToCamel, "Checknumber", true},
+		{"_gmp_err", []string{}, names.ToCamel, "X_gmpErr", true},
+		{"fn_123illegal", []string{"fn_"}, names.ToCamel, "X123illegal", true},
+		{"fts5_tokenizer", []string{}, names.ToCamel, "Fts5Tokenizer", true},
+		{"Fts5Tokenizer", []string{}, names.ToCamel, "Fts5Tokenizer__1", true},
+		{"normal_var", []string{}, names.ToExport, "Normal_var", true},
+		{"Cameled", []string{}, names.ToExport, "Cameled", false},
 	}
 
 	fmt.Println("\nTesting GetUniqueGoName:")

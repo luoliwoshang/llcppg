@@ -226,7 +226,7 @@ func (p *Package) bodyStart(decl *gogen.Func, ret ast.Expr) error {
 
 func (p *Package) handleFuncDecl(fnSpec *GoFuncSpec, sig *types.Signature, funcDecl *ast.FuncDecl) error {
 	var decl *gogen.Func
-	fnPubName := fnSpec.GoSymbName
+	var fnPubName string
 	if fnSpec.IsMethod {
 		decl = p.p.NewFuncDecl(token.NoPos, fnSpec.FnName, sig)
 		err := p.bodyStart(decl, funcDecl.Type.Ret)
@@ -237,7 +237,8 @@ func (p *Package) handleFuncDecl(fnSpec *GoFuncSpec, sig *types.Signature, funcD
 		// both for value receiver and pointer receiver
 		fnPubName = pubMethodName(sig.Recv().Type(), fnSpec)
 	} else {
-		decl = p.p.NewFuncDecl(token.NoPos, fnPubName, sig)
+		fnPubName = fnSpec.FnName
+		decl = p.p.NewFuncDecl(token.NoPos, fnSpec.FnName, sig)
 	}
 
 	doc := CommentGroup(funcDecl.Doc)
@@ -330,8 +331,12 @@ func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (rec
 			}
 		}
 	} else {
-		if obj := p.Lookup(fnSpec.FnName); obj != nil {
-			return nil, errs.NewFuncAlreadyDefinedError(fnSpec.GoSymbName)
+		pubName, change, err := p.FuncName(funcDecl.Name.Name, fnSpec.FnName)
+		if err != nil {
+			return nil, err
+		}
+		if change {
+			fnSpec.FnName = pubName
 		}
 	}
 	return
@@ -362,7 +367,7 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 
 	cname := typeDecl.Name.Name
 	isForward := p.cvt.inComplete(typeDecl.Type)
-	name, changed, err := p.DeclName(cname, true)
+	name, changed, err := p.DeclName(cname, names.ToCamel)
 	if err != nil {
 		if isForward {
 			return nil
@@ -425,7 +430,7 @@ func (p *Package) handleImplicitForwardDecl(name string) *gogen.TypeDecl {
 		return decl.decl
 	}
 
-	pubName, _ := p.nameMapper.GetUniqueGoName(name, p.trimPrefixes(), true)
+	pubName, _ := p.nameMapper.GetUniqueGoName(name, p.trimPrefixes(), names.ToCamel)
 	decl := p.emptyTypeDecl(pubName, nil)
 	inc := &Incomplete{
 		cname: name,
@@ -457,7 +462,7 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 	if dbg.GetDebugLog() {
 		log.Printf("NewTypedefDecl: %v\n", typedefDecl.Name)
 	}
-	name, changed, err := p.DeclName(typedefDecl.Name.Name, true)
+	name, changed, err := p.DeclName(typedefDecl.Name.Name, names.ToCamel)
 	if err != nil {
 		return err
 	}
@@ -566,7 +571,7 @@ func (p *Package) createEnumType(enumName *ast.Ident) (types.Type, error) {
 	var err error
 	var t *gogen.TypeDecl
 	if enumName != nil {
-		name, changed, err = p.DeclName(enumName.Name, true)
+		name, changed, err = p.DeclName(enumName.Name, names.ToCamel)
 		if err != nil {
 			return nil, errs.NewTypeDefinedError(name, enumName.Name)
 		}
@@ -586,7 +591,7 @@ func (p *Package) createEnumType(enumName *ast.Ident) (types.Type, error) {
 func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type) error {
 	defs := p.NewConstGroup()
 	for _, item := range items {
-		name, changed, err := p.DeclName(item.Name.Name, true)
+		name, changed, err := p.DeclName(item.Name.Name, names.ToCamel)
 		if err != nil {
 			return errs.NewTypeDefinedError(name, item.Name.Name)
 		}
@@ -613,7 +618,7 @@ func (p *Package) NewMacro(macro *ast.Macro) error {
 	if len(macro.Tokens) == 2 && macro.Tokens[1].Token == ctoken.LITERAL {
 		value := macro.Tokens[1].Lit
 		defs := p.NewConstGroup()
-		name, _, err := p.DeclName(macro.Name, false)
+		name, _, err := p.DeclName(macro.Name, names.ToExport)
 		if err != nil {
 			return err
 		}
@@ -765,9 +770,19 @@ func (p *Package) WritePubFile() error {
 }
 
 // For a decl name, it should be unique
-func (p *Package) DeclName(name string, toCamel bool) (pubName string, changed bool, err error) {
-	pubName, changed = p.nameMapper.GetUniqueGoName(name, p.trimPrefixes(), toCamel)
+func (p *Package) DeclName(name string, nameKind names.ConvertKind) (pubName string, changed bool, err error) {
+	pubName, changed = p.nameMapper.GetUniqueGoName(name, p.trimPrefixes(), nameKind)
 	// if the type is incomplete,it's ok to have the same name
+	obj := p.Lookup(name)
+	_, ok := p.incompleteTypes.Lookup(name)
+	if obj != nil && !ok {
+		return "", false, errs.NewTypeDefinedError(pubName, name)
+	}
+	return pubName, changed, nil
+}
+
+func (p *Package) FuncName(name string, goName string) (pubName string, changed bool, err error) {
+	pubName, changed = p.nameMapper.GetUniqueFuncName(name, goName)
 	obj := p.Lookup(name)
 	_, ok := p.incompleteTypes.Lookup(name)
 	if obj != nil && !ok {
