@@ -34,7 +34,40 @@ Ordering issues may arise during batch conversion.
 
 Remove `lib` prefix.
 
-However, this may cause naming conflicts and needs to be verified.
+However, this cause naming conflicts.
+
+with follow program verification:
+
+```go
+func main() {
+	names := make(map[string][]string)
+	dirs, err := os.ReadDir("./recipes")
+	if err != nil {
+		panic(err)
+	}
+	for _, pkg := range dirs {
+		if pkg.IsDir() {
+			pkgnoLib := strings.TrimPrefix(pkg.Name(), "lib")
+			names[pkgnoLib] = append(names[pkgnoLib], pkg.Name())
+		}
+	}
+	for name, pkgs := range names {
+		if len(pkgs) > 1 {
+			fmt.Println(name, pkgs)
+		}
+	}
+}
+```
+we got some conflict name
+
+```bash
+❯ go run main.go
+tar [libtar tar]
+serial [libserial serial]
+vdpau [libvdpau vdpau]
+b2 [b2 libb2]
+gettext [gettext libgettext]
+```
 
 ### 5. Demo Validation
 
