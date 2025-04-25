@@ -31,5 +31,5 @@ void Foo_FunctionParse();
 // second receiver Foo's method,with name 'Parse', and the next method name is the same,so we need add suffix
 void Foo_ReceiverParse2(Foo *item);
 // not same receiver,but same function name,we don't need add suffix
-void Foo_FunctionParse2(Foo2 *item);
+void Foo_Receiver2Parse2(Foo2 *item);
 

@@ -41,7 +41,7 @@ func TestParseHeaderFile() {
 				"Foo_ReceiverParse",
 				"Foo_FunctionParse",
 				"Foo_ReceiverParse2",
-				"Foo_FunctionParse2",
+				"Foo_Receiver2Parse2",
 			},
 		},
 		{

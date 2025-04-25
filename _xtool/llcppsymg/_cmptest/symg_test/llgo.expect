@@ -25,10 +25,6 @@
 		"c++":	"Foo_FunctionParse()",
 		"go":	"Parse"
 	}, {
-		"mangle":	"Foo_FunctionParse2",
-		"c++":	"Foo_FunctionParse2(Foo2 *)",
-		"go":	"(*Foo2).Parse"
-	}, {
 		"mangle":	"Foo_ParseWithLength",
 		"c++":	"Foo_ParseWithLength(const char *, size_t)",
 		"go":	"ParseWithLength"
@@ -44,6 +40,10 @@
 		"mangle":	"Foo_Print",
 		"c++":	"Foo_Print(const Foo *)",
 		"go":	"(*Foo).Print"
+	}, {
+		"mangle":	"Foo_Receiver2Parse2",
+		"c++":	"Foo_Receiver2Parse2(Foo2 *)",
+		"go":	"(*Foo2).Parse"
 	}, {
 		"mangle":	"Foo_ReceiverParse",
 		"c++":	"Foo_ReceiverParse(Foo *)",
