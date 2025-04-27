@@ -1239,8 +1239,11 @@ func TestRedef(t *testing.T) {
 			Fields: flds,
 		},
 	})
-	if err == nil {
-		t.Fatal("Expect a redefine err")
+
+	// in the main logic,same name & same node kind as same node,it is permit in c
+	// for these situation,we skip it
+	if err != nil {
+		t.Fatal("unexpect redefine err")
 	}
 
 	pkg.NewTypedefDecl(&ast.TypedefDecl{
@@ -1266,8 +1269,8 @@ func TestRedef(t *testing.T) {
 		MangledName: "Bar",
 		Type:        &ast.FuncType{},
 	})
-	if err == nil {
-		t.Fatal("Expect a redefine err")
+	if err != nil {
+		t.Fatal("unexpect redefine err")
 	}
 
 	err = pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
@@ -1275,6 +1278,7 @@ func TestRedef(t *testing.T) {
 		Type: &ast.EnumType{},
 	})
 
+	// todo(zzy):unexpect redefine error!
 	if err == nil {
 		t.Fatal("Expect a redefine err")
 	}
@@ -1288,6 +1292,7 @@ func TestRedef(t *testing.T) {
 		},
 	})
 
+	// todo(zzy):unexpect redefine error!
 	if err == nil {
 		t.Fatal("Expect a redefine err")
 	}
