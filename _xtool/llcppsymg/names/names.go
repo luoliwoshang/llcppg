@@ -24,19 +24,16 @@ type NameMethod func(name string) string
 
 // returns a unique Go name for an original name
 // For every go name, it will be unique.
-func (m *NameMapper) GetUniqueGoName(name string, nameMethod NameMethod) (string, bool) {
-	pubName, exist := m.genGoName(name, nameMethod)
+func (m *NameMapper) GetUniqueGoName(name string, nameMethod NameMethod) (pubName string, exist bool, changed bool) {
+	pubName, exist = m.genGoName(name, nameMethod)
 	if exist {
-		return pubName, pubName != name
+		return pubName, exist, pubName != name
 	}
 
-	count := m.count[pubName]
 	m.count[pubName]++
-	if count > 0 {
-		pubName = fmt.Sprintf("%s__%d", pubName, count)
-	}
-
-	return pubName, pubName != name
+	count := m.count[pubName]
+	pubName = SuffixCount(pubName, count)
+	return pubName, exist, pubName != name
 }
 
 // returns the Go name for an original name,if the name is already mapped,return the mapped name
@@ -146,4 +143,11 @@ func HeaderFileToGo(incPath string) string {
 		fileName = "X" + fileName
 	}
 	return fileName + ".go"
+}
+
+func SuffixCount(name string, count int) string {
+	if count > 1 {
+		return fmt.Sprintf("%s__%d", name, count-1)
+	}
+	return name
 }

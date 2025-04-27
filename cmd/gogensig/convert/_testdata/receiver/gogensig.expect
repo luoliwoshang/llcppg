@@ -48,6 +48,11 @@ func (recv_ *AresAddr) AresDnsAddrToPtr() *c.Char {
 	return nil
 }
 
+// llgo:link (*AresAddr).AresDnsAddrToPtr__1 C.ares_dns_addr_to_ptr
+func (recv_ *AresAddr) AresDnsAddrToPtr__1() *c.Char {
+	return nil
+}
+
 ===== llcppg.pub =====
 ares_addr AresAddr
 ares_in6_addr AresIn6Addr

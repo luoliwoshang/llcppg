@@ -75,7 +75,7 @@ func TestNameMapper() {
 
 	fmt.Println("\nTesting GetUniqueGoName:")
 	for _, tc := range testCases {
-		result, changed := mapper.GetUniqueGoName(tc.name, tc.nameMethod(tc.trimPrefixes))
+		result, _, changed := mapper.GetUniqueGoName(tc.name, tc.nameMethod(tc.trimPrefixes))
 		if result != tc.expected || changed != tc.expectChange {
 			fmt.Printf("Input: %s, Expected: %s %t, Got: %s %t\n", tc.name, tc.expected, tc.expectChange, result, changed)
 		} else {
