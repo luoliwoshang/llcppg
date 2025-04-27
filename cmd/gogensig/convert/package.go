@@ -449,7 +449,7 @@ func (p *Package) handleImplicitForwardDecl(name string) *gogen.TypeDecl {
 		return decl.decl
 	}
 
-	pubName, _, _ := p.nameMapper.GetUniqueGoName(name, p.declName)
+	pubName, _ := p.nameMapper.GetUniqueGoName(name, p.declName)
 	decl := p.emptyTypeDecl(pubName, nil)
 	inc := &Incomplete{
 		cname: name,
@@ -806,7 +806,7 @@ func (p *Package) RegisterNode(name string, kind nodeKind, nameMethod names.Name
 		name: name,
 		kind: kind,
 	}
-	pubName, _, changed = p.nameMapper.GetUniqueGoName(name, nameMethod)
+	pubName, changed = p.nameMapper.GetUniqueGoName(name, nameMethod)
 	exist = p.symbols.Lookup(node)
 	if exist {
 		return pubName, changed, exist, nil

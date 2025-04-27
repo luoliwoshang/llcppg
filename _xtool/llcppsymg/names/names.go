@@ -24,16 +24,17 @@ type NameMethod func(name string) string
 
 // returns a unique Go name for an original name
 // For every go name, it will be unique.
-func (m *NameMapper) GetUniqueGoName(name string, nameMethod NameMethod) (pubName string, exist bool, changed bool) {
-	pubName, exist = m.genGoName(name, nameMethod)
+func (m *NameMapper) GetUniqueGoName(name string, nameMethod NameMethod) (pubName string, changed bool) {
+	pubName, exist := m.genGoName(name, nameMethod)
 	if exist {
-		return pubName, exist, pubName != name
+		return pubName, pubName != name
 	}
 
 	m.count[pubName]++
 	count := m.count[pubName]
 	pubName = SuffixCount(pubName, count)
-	return pubName, exist, pubName != name
+
+	return pubName, pubName != name
 }
 
 // returns the Go name for an original name,if the name is already mapped,return the mapped name
