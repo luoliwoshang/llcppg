@@ -338,8 +338,7 @@ func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (rec
 }
 
 func (p *Package) Lookup(name string) types.Object {
-	obj := gogen.Lookup(p.p.Types.Scope(), name)
-	return obj
+	return gogen.Lookup(p.p.Types.Scope(), name)
 }
 
 // NewTypeDecl converts C/C++ type declarations to Go.
