@@ -20,18 +20,12 @@ func NewNameMapper() *NameMapper {
 	}
 }
 
-type ConvertKind uint
-
-const (
-	None ConvertKind = iota
-	ToCamel
-	ToExport
-)
+type NameMethod func(name string) string
 
 // returns a unique Go name for an original name
 // For every go name, it will be unique.
-func (m *NameMapper) GetUniqueGoName(name string, trimPrefixes []string, convertKind ConvertKind) (string, bool) {
-	pubName, exist := m.genGoName(name, trimPrefixes, convertKind)
+func (m *NameMapper) GetUniqueGoName(name string, nameMethod NameMethod) (string, bool) {
+	pubName, exist := m.genGoName(name, nameMethod)
 	if exist {
 		return pubName, pubName != name
 	}
@@ -45,53 +39,15 @@ func (m *NameMapper) GetUniqueGoName(name string, trimPrefixes []string, convert
 	return pubName, pubName != name
 }
 
-func (m *NameMapper) GetUniqueFuncName(name string, goFuncName string) (string, bool) {
-	var funcName string
-	var exist bool
-	goName, exists := m.mapping[name]
-	if exists {
-		exist = true
-		if goName == "" {
-			funcName = name
-		}
-		funcName = goName
-	}
-
-	if exist {
-		return funcName, funcName != name
-	}
-
-	var pubName string
-	count := m.count[goFuncName]
-	m.count[goFuncName]++
-	if count > 0 {
-		pubName = fmt.Sprintf("%s__%d", goFuncName, count)
-	} else {
-		pubName = goFuncName
-	}
-
-	return pubName, pubName != name
-}
-
 // returns the Go name for an original name,if the name is already mapped,return the mapped name
-func (m *NameMapper) genGoName(name string, trimPrefixes []string, convertKind ConvertKind) (string, bool) {
+func (m *NameMapper) genGoName(name string, nameMethod NameMethod) (string, bool) {
 	if goName, exists := m.mapping[name]; exists {
 		if goName == "" {
 			return name, true
 		}
 		return goName, true
 	}
-	name = removePrefixedName(name, trimPrefixes)
-	switch convertKind {
-	case ToCamel:
-		return PubName(name), false
-	case ToExport:
-		return ExportName(name), false
-	case None:
-		return name, false
-	default:
-		panic("unexpect convert kind")
-	}
+	return nameMethod(name), false
 }
 
 func (m *NameMapper) SetMapping(originName, newName string) {
@@ -108,12 +64,12 @@ func (m *NameMapper) Lookup(name string) int {
 
 func GoName(name string, trimPrefixes []string, inCurPkg bool) string {
 	if inCurPkg {
-		name = removePrefixedName(name, trimPrefixes)
+		name = RemovePrefixedName(name, trimPrefixes)
 	}
 	return PubName(name)
 }
 
-func removePrefixedName(name string, trimPrefixes []string) string {
+func RemovePrefixedName(name string, trimPrefixes []string) string {
 	if len(trimPrefixes) == 0 {
 		return name
 	}
