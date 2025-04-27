@@ -312,7 +312,7 @@ func (p *Package) NewFuncDecl(funcDecl *ast.FuncDecl) error {
 
 	sig, err := p.ToSigSignature(recv, funcDecl)
 	if err != nil {
-		log.Panicf("NewFuncDecl: fail convert signature : %s\n", err.Error())
+		log.Panicf("NewFuncDecl: fail convert signature %s : %s\n", funcDecl.Name.Name, err.Error())
 	}
 	return p.handleFuncDecl(fnSpec, sig, funcDecl)
 }
@@ -379,7 +379,7 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 
 	if !isForward {
 		if err := p.handleCompleteType(incom, typeDecl.Type, cname); err != nil {
-			log.Panicf("NewTypeDecl: fail to complete type : %s\n", err.Error())
+			log.Panicf("NewTypeDecl: fail to complete type %s : %s\n", typeDecl.Name.Name, err.Error())
 		}
 	}
 	return nil
@@ -480,7 +480,7 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 
 	typ, err := p.ToType(typedefDecl.Type)
 	if err != nil {
-		log.Panicf("NewTypedefDecl:fail to convert type : %s\n", err.Error())
+		log.Panicf("NewTypedefDecl:fail to convert type %s : %s\n", typedefDecl.Name.Name, err.Error())
 	}
 
 	typeSpecdecl.InitType(p.p, typ)

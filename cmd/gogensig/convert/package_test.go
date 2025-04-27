@@ -419,7 +419,7 @@ func Foo(__llgo_va_list ...interface{})`,
 					GoName:     "InvalidFunc",
 				},
 			},
-			expectedPanic: "NewFuncDecl: fail convert signature : not found in type map",
+			expectedPanic: "NewFuncDecl: fail convert signature invalidFunc : not found in type map",
 		},
 		{
 			name: "explict void return",
@@ -747,7 +747,7 @@ func Foo(a *c.Uint, b *c.Double) **c.Char
 					GoName:     "Foo",
 				},
 			},
-			expectedPanic: "NewFuncDecl: fail convert signature : error convert elem type: not found in type map",
+			expectedPanic: "NewFuncDecl: fail convert signature foo : error convert elem type: not found in type map",
 		},
 		{
 			name: "error return type",
@@ -766,7 +766,7 @@ func Foo(a *c.Uint, b *c.Double) **c.Char
 					GoName:     "Foo",
 				},
 			},
-			expectedPanic: "NewFuncDecl: fail convert signature : error convert return type: not found in type map",
+			expectedPanic: "NewFuncDecl: fail convert signature foo : error convert return type: not found in type map",
 		},
 		{
 			name: "error nil param",
@@ -789,7 +789,7 @@ func Foo(a *c.Uint, b *c.Double) **c.Char
 					GoName:     "Foo",
 				},
 			},
-			expectedPanic: "NewFuncDecl: fail convert signature : error convert type: unexpected nil field",
+			expectedPanic: "NewFuncDecl: fail convert signature foo : error convert type: unexpected nil field",
 		},
 		{
 			name: "error receiver",
@@ -882,7 +882,7 @@ type Foo struct {
 					},
 				},
 			},
-			expectedPanic: "NewTypeDecl: fail to complete type : not found in type map",
+			expectedPanic: "NewTypeDecl: fail to complete type InvalidStruct : not found in type map",
 		},
 		// struct Foo { int a; double b; bool c; }
 		{
@@ -1120,7 +1120,7 @@ type Foo struct {
 					},
 				},
 			},
-			expectedPanic: "NewTypeDecl: fail to complete type : unsupport field with array without length",
+			expectedPanic: "NewTypeDecl: fail to complete type Foo : unsupport field with array without length",
 		},
 		{
 			name: "struct array field without len",
@@ -1144,7 +1144,7 @@ type Foo struct {
 					},
 				},
 			},
-			expectedPanic: "NewTypeDecl: fail to complete type : can't determine the array length",
+			expectedPanic: "NewTypeDecl: fail to complete type Foo : can't determine the array length",
 		},
 	}
 
@@ -1347,7 +1347,7 @@ type DOUBLE c.Double`,
 					Flags: ast.Double,
 				},
 			},
-			expectedPanic: "NewTypedefDecl:fail to convert type : not found in type map",
+			expectedPanic: "NewTypedefDecl:fail to convert type INVALID : not found in type map",
 		},
 		// typedef int INT;
 		{
@@ -1444,7 +1444,7 @@ type Name *c.Char`,
 					},
 				},
 			},
-			expectedPanic: "NewTypedefDecl:fail to convert type : error convert baseType: not found in type map",
+			expectedPanic: "NewTypedefDecl:fail to convert type name : error convert baseType: not found in type map",
 		},
 	}
 
