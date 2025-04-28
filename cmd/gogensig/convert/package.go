@@ -327,6 +327,15 @@ func (p *Package) NewFuncDecl(funcDecl *ast.FuncDecl) error {
 }
 
 func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (recv *types.Var, exist bool, err error) {
+	node := Node{
+		name: funcDecl.Name.Name,
+		kind: FuncDecl,
+	}
+	// if already processed,return
+	exist = p.symbols.Lookup(node)
+	if exist {
+		return nil, true, nil
+	}
 	if fnSpec.IsMethod &&
 		funcDecl.Type.Params.List != nil &&
 		len(funcDecl.Type.Params.List) > 0 {
@@ -340,23 +349,12 @@ func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (rec
 			}
 		}
 	} else {
-		node := Node{
-			name: funcDecl.Name.Name,
-			kind: FuncDecl,
-		}
-		pubName, change, exist, err := p.RegisterNode(node, func(name string) string {
-			return fnSpec.FnName
-		})
-		if err != nil {
-			return nil, false, err
-		}
-		if change {
-			fnSpec.FnName = pubName
-		}
-		if exist {
-			return nil, true, nil
+		if obj := p.Lookup(fnSpec.FnName); obj != nil {
+			return nil, true, errs.NewFuncAlreadyDefinedError(fnSpec.GoSymbName)
 		}
 	}
+	// register the function
+	p.symbols.Register(node)
 	return
 }
 
@@ -385,7 +383,7 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 
 	cname := typeDecl.Name.Name
 	isForward := p.cvt.inComplete(typeDecl.Type)
-	name, changed, exist, err := p.RegisterNode(Node{name: cname, kind: TypeDecl}, p.declName)
+	name, changed, exist, err := p.RegisterNode(Node{name: cname, kind: TypeDecl}, p.declName, p.lookup)
 	if err != nil {
 		// todo(zzy):panic when register error
 		return err
@@ -489,7 +487,7 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 	}
 
 	node := Node{name: typedefDecl.Name.Name, kind: TypedefDecl}
-	name, changed, exist, err := p.RegisterNode(node, p.declName)
+	name, changed, exist, err := p.RegisterNode(node, p.declName, p.lookup)
 	if err != nil {
 		return err
 	}
@@ -611,7 +609,7 @@ func (p *Package) createEnumType(enumName *ast.Ident) (types.Type, bool, error) 
 	var t *gogen.TypeDecl
 	if enumName != nil {
 		node := Node{name: enumName.Name, kind: EnumTypeDecl}
-		name, changed, exist, err = p.RegisterNode(node, p.declName)
+		name, changed, exist, err = p.RegisterNode(node, p.declName, p.lookup)
 		if err != nil {
 			return nil, false, errs.NewTypeDefinedError(name, enumName.Name)
 		}
@@ -634,7 +632,7 @@ func (p *Package) createEnumType(enumName *ast.Ident) (types.Type, bool, error) 
 func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type) error {
 	defs := p.NewConstGroup()
 	for _, item := range items {
-		name, changed, exist, err := p.RegisterNode(Node{name: item.Name.Name, kind: EnumItem}, p.declName)
+		name, changed, exist, err := p.RegisterNode(Node{name: item.Name.Name, kind: EnumItem}, p.declName, p.lookup)
 		if err != nil {
 			return errs.NewTypeDefinedError(name, item.Name.Name)
 		}
@@ -669,7 +667,7 @@ func (p *Package) NewMacro(macro *ast.Macro) error {
 		value := macro.Tokens[1].Lit
 		defs := p.NewConstGroup()
 		node := Node{name: macro.Name, kind: Macro}
-		name, _, exist, err := p.RegisterNode(node, p.macroName)
+		name, _, exist, err := p.RegisterNode(node, p.macroName, p.lookup)
 		if err != nil {
 			return err
 		}
@@ -826,18 +824,24 @@ func (p *Package) WritePubFile() error {
 	return config.WritePubFile(filepath.Join(p.GetOutputDir(), llcppg.LLCPPG_PUB), p.Pubs)
 }
 
-func (p *Package) RegisterNode(node Node, nameMethod names.NameMethod) (pubName string, changed bool, exist bool, err error) {
+type Lookup func(name string, pubName string) types.Object
+
+func (p *Package) RegisterNode(node Node, nameMethod names.NameMethod, lookup Lookup) (pubName string, changed bool, exist bool, err error) {
 	pubName, changed = p.nameMapper.GetUniqueGoName(node.name, nameMethod)
 	exist = p.symbols.Lookup(node)
 	if exist {
 		return pubName, changed, exist, nil
 	}
-	obj := p.Lookup(node.name)
+	obj := lookup(node.name, pubName)
 	if obj != nil {
 		return "", false, exist, errs.NewTypeDefinedError(pubName, node.name)
 	}
 	p.symbols.Register(node)
 	return pubName, changed, exist, nil
+}
+
+func (p *Package) lookup(name string, pubName string) types.Object {
+	return p.Lookup(name)
 }
 
 func (p *Package) declName(name string) string {
