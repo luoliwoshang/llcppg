@@ -228,7 +228,7 @@ func (p *Package) bodyStart(decl *gogen.Func, ret ast.Expr) error {
 
 func (p *Package) handleFuncDecl(fnSpec *GoFuncSpec, sig *types.Signature, funcDecl *ast.FuncDecl) error {
 	var decl *gogen.Func
-	var fnPubName string
+	fnPubName := fnSpec.GoSymbName
 	if fnSpec.IsMethod {
 		decl = p.p.NewFuncDecl(token.NoPos, fnSpec.FnName, sig)
 		err := p.bodyStart(decl, funcDecl.Type.Ret)
@@ -239,8 +239,7 @@ func (p *Package) handleFuncDecl(fnSpec *GoFuncSpec, sig *types.Signature, funcD
 		// both for value receiver and pointer receiver
 		fnPubName = pubMethodName(sig.Recv().Type(), fnSpec)
 	} else {
-		fnPubName = fnSpec.FnName
-		decl = p.p.NewFuncDecl(token.NoPos, fnSpec.FnName, sig)
+		decl = p.p.NewFuncDecl(token.NoPos, fnPubName, sig)
 	}
 
 	doc := CommentGroup(funcDecl.Doc)
@@ -310,6 +309,7 @@ func (p *Package) NewFuncDecl(funcDecl *ast.FuncDecl) error {
 
 	recv, exist, err := p.funcIsDefined(fnSpec, funcDecl)
 	if err != nil {
+		log.Panicf("NewFuncDecl: %s fail : %s", funcDecl.Name.Name, err.Error())
 		return err
 	}
 	if exist {
@@ -383,7 +383,7 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 
 	cname := typeDecl.Name.Name
 	isForward := p.cvt.inComplete(typeDecl.Type)
-	name, changed, exist, err := p.RegisterNode(Node{name: cname, kind: TypeDecl}, p.declName, p.lookup)
+	name, changed, exist, err := p.RegisterNode(Node{name: cname, kind: TypeDecl}, p.declName)
 	if err != nil {
 		// todo(zzy):panic when register error
 		return err
@@ -487,7 +487,7 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 	}
 
 	node := Node{name: typedefDecl.Name.Name, kind: TypedefDecl}
-	name, changed, exist, err := p.RegisterNode(node, p.declName, p.lookup)
+	name, changed, exist, err := p.RegisterNode(node, p.declName)
 	if err != nil {
 		return err
 	}
@@ -609,7 +609,7 @@ func (p *Package) createEnumType(enumName *ast.Ident) (types.Type, bool, error) 
 	var t *gogen.TypeDecl
 	if enumName != nil {
 		node := Node{name: enumName.Name, kind: EnumTypeDecl}
-		name, changed, exist, err = p.RegisterNode(node, p.declName, p.lookup)
+		name, changed, exist, err = p.RegisterNode(node, p.declName)
 		if err != nil {
 			return nil, false, errs.NewTypeDefinedError(name, enumName.Name)
 		}
@@ -632,12 +632,11 @@ func (p *Package) createEnumType(enumName *ast.Ident) (types.Type, bool, error) 
 func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type) error {
 	defs := p.NewConstGroup()
 	for _, item := range items {
-		name, changed, exist, err := p.RegisterNode(Node{name: item.Name.Name, kind: EnumItem}, p.declName, p.lookup)
+		name, changed, exist, err := p.RegisterNode(Node{name: item.Name.Name, kind: EnumItem}, p.declName)
 		if err != nil {
 			return errs.NewTypeDefinedError(name, item.Name.Name)
 		}
 		if exist {
-			// maybe not appear
 			if dbg.GetDebugLog() {
 				log.Printf("NewEnumTypeDecl: %v is processed\n", item.Name.Name)
 			}
@@ -667,7 +666,7 @@ func (p *Package) NewMacro(macro *ast.Macro) error {
 		value := macro.Tokens[1].Lit
 		defs := p.NewConstGroup()
 		node := Node{name: macro.Name, kind: Macro}
-		name, _, exist, err := p.RegisterNode(node, p.macroName, p.lookup)
+		name, _, exist, err := p.RegisterNode(node, p.macroName)
 		if err != nil {
 			return err
 		}
@@ -824,24 +823,18 @@ func (p *Package) WritePubFile() error {
 	return config.WritePubFile(filepath.Join(p.GetOutputDir(), llcppg.LLCPPG_PUB), p.Pubs)
 }
 
-type Lookup func(name string, pubName string) types.Object
-
-func (p *Package) RegisterNode(node Node, nameMethod names.NameMethod, lookup Lookup) (pubName string, changed bool, exist bool, err error) {
+func (p *Package) RegisterNode(node Node, nameMethod names.NameMethod) (pubName string, changed bool, exist bool, err error) {
 	pubName, changed = p.nameMapper.GetUniqueGoName(node.name, nameMethod)
 	exist = p.symbols.Lookup(node)
 	if exist {
 		return pubName, changed, exist, nil
 	}
-	obj := lookup(node.name, pubName)
+	obj := p.Lookup(node.name)
 	if obj != nil {
 		return "", false, exist, errs.NewTypeDefinedError(pubName, node.name)
 	}
 	p.symbols.Register(node)
 	return pubName, changed, exist, nil
-}
-
-func (p *Package) lookup(name string, pubName string) types.Object {
-	return p.Lookup(name)
 }
 
 func (p *Package) declName(name string) string {

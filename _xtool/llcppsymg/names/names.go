@@ -56,10 +56,6 @@ func (m *NameMapper) SetMapping(originName, newName string) {
 	m.mapping[originName] = value
 }
 
-func (m *NameMapper) Lookup(name string) int {
-	return m.count[name]
-}
-
 func GoName(name string, trimPrefixes []string, inCurPkg bool) string {
 	if inCurPkg {
 		name = RemovePrefixedName(name, trimPrefixes)
