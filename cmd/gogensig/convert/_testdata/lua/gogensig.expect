@@ -684,6 +684,9 @@ func Utf8(L *State) c.Int
 //go:linkname Math C.luaopen_math
 func Math(L *State) c.Int
 
+//go:linkname Debug__1 C.luaopen_debug
+func Debug__1(L *State) c.Int
+
 //go:linkname Package C.luaopen_package
 func Package(L *State) c.Int
 

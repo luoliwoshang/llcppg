@@ -1239,8 +1239,8 @@ func TestRedef(t *testing.T) {
 			Fields: flds,
 		},
 	})
-	if err == nil {
-		t.Fatal("Expect a redefine err")
+	if err != nil {
+		t.Fatal("unexpect redefine err")
 	}
 
 	pkg.NewTypedefDecl(&ast.TypedefDecl{
@@ -1266,8 +1266,8 @@ func TestRedef(t *testing.T) {
 		MangledName: "Bar",
 		Type:        &ast.FuncType{},
 	})
-	if err == nil {
-		t.Fatal("Expect a redefine err")
+	if err != nil {
+		t.Fatal("unexpect redefine err")
 	}
 
 	err = pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
