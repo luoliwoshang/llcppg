@@ -15,6 +15,7 @@ import (
 	"github.com/goplus/llcppg/cmd/gogensig/convert"
 	"github.com/goplus/llcppg/cmd/gogensig/dbg"
 	"github.com/goplus/llcppg/llcppg"
+	"github.com/goplus/llcppg/token"
 	"github.com/goplus/mod/gopmod"
 )
 
@@ -1243,11 +1244,6 @@ func TestRedef(t *testing.T) {
 		t.Fatal("unexpect redefine err")
 	}
 
-	pkg.NewTypedefDecl(&ast.TypedefDecl{
-		Name: &ast.Ident{Name: "Foo"},
-		Type: &ast.Ident{Name: "Foo"},
-	})
-
 	err = pkg.NewFuncDecl(&ast.FuncDecl{
 		Name:        &ast.Ident{Name: "Bar"},
 		MangledName: "Bar",
@@ -1292,6 +1288,35 @@ func TestRedef(t *testing.T) {
 		t.Fatal("Expect a redefine err")
 	}
 
+	err = pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
+		Name: &ast.Ident{Name: "EnumFoo"},
+		Type: &ast.EnumType{
+			Items: []*ast.EnumItem{
+				{Name: &ast.Ident{Name: "ItemBar"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
+				{Name: &ast.Ident{Name: "ItemBar"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "1"}},
+			},
+		},
+	})
+
+	if err != nil {
+		t.Fatal("unexpect err")
+	}
+
+	macro := &ast.Macro{
+		Loc:    &ast.Location{File: tempFile.File},
+		Name:   "MACRO_FOO",
+		Tokens: []*ast.Token{{Token: token.IDENT, Lit: "MACRO_FOO"}, {Token: token.LITERAL, Lit: "1"}},
+	}
+	err = pkg.NewMacro(macro)
+	if err != nil {
+		t.Fatal("unexpect redefine err")
+	}
+
+	err = pkg.NewMacro(macro)
+	if err != nil {
+		t.Fatal("unexpect redefine err")
+	}
+
 	var buf bytes.Buffer
 	err = pkg.GetGenPackage().WriteTo(&buf)
 	if err != nil {
@@ -1311,8 +1336,44 @@ type Foo struct {
 }
 //go:linkname Bar C.Bar
 func Bar()
+
+type EnumFoo c.Int
+const ItemBar EnumFoo = 0
+const MACRO_FOO = 1
 `
 	comparePackageOutput(t, pkg, expect)
+}
+
+func TestRedefineFunc(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatalf("expected Panic")
+		}
+	}()
+	pkg := createTestPkg(t, &convert.PackageConfig{
+		SymbolTable: config.CreateSymbolTable(
+			[]config.SymbolEntry{
+				{CppName: "Foo", MangleName: "Foo", GoName: "Foo"},
+			},
+		),
+	})
+	pkg.SetCurFile(tempFile)
+
+	err := pkg.NewTypeDecl(&ast.TypeDecl{
+		Name: &ast.Ident{Name: "Foo"},
+		Type: &ast.RecordType{
+			Tag:    ast.Struct,
+			Fields: &ast.FieldList{},
+		},
+	})
+	if err != nil {
+		t.Fatal("NewTypeDecl failed", err)
+	}
+	pkg.NewFuncDecl(&ast.FuncDecl{
+		Name:        &ast.Ident{Name: "Foo"},
+		MangledName: "Foo",
+		Type:        &ast.FuncType{},
+	})
 }
 
 func TestTypedef(t *testing.T) {

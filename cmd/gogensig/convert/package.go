@@ -342,9 +342,8 @@ func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (rec
 		recv = p.newReceiver(funcDecl.Type)
 		var namedType = getNamedType(recv.Type())
 		methodName := fnSpec.FnName
-		// todo(zzy): check if the method name is already processed
 		for i := 0; i < namedType.NumMethods(); i++ {
-			if namedType.Method(i).Name() == methodName {
+			if namedType.Method(i).Name() == methodName { // unreachable,because if have the same method name,will return in p.symbols.Lookup(node)
 				return nil, true, errs.NewFuncAlreadyDefinedError(fnSpec.GoSymbName)
 			}
 		}
@@ -385,7 +384,6 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 	isForward := p.cvt.inComplete(typeDecl.Type)
 	name, changed, exist, err := p.RegisterNode(Node{name: cname, kind: TypeDecl}, p.declName)
 	if err != nil {
-		// todo(zzy):panic when register error
 		return err
 	}
 
