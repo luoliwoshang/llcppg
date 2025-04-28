@@ -1278,7 +1278,6 @@ func TestRedef(t *testing.T) {
 		Type: &ast.EnumType{},
 	})
 
-	// todo(zzy):unexpect redefine error!
 	if err == nil {
 		t.Fatal("Expect a redefine err")
 	}
@@ -1292,7 +1291,6 @@ func TestRedef(t *testing.T) {
 		},
 	})
 
-	// todo(zzy):unexpect redefine error!
 	if err == nil {
 		t.Fatal("Expect a redefine err")
 	}
