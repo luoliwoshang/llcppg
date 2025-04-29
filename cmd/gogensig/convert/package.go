@@ -384,6 +384,7 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 	isForward := p.cvt.inComplete(typeDecl.Type)
 	name, changed, exist, err := p.RegisterNode(Node{name: cname, kind: TypeDecl}, p.declName)
 	if err != nil {
+		log.Panicf("NewTypeDecl: %s fail : %s", typeDecl.Name.Name, err.Error())
 		return err
 	}
 
@@ -487,6 +488,7 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 	node := Node{name: typedefDecl.Name.Name, kind: TypedefDecl}
 	name, changed, exist, err := p.RegisterNode(node, p.declName)
 	if err != nil {
+		log.Panicf("NewTypedefDecl: %s fail : %s", typedefDecl.Name.Name, err.Error())
 		return err
 	}
 	if exist {
@@ -582,6 +584,7 @@ func (p *Package) NewEnumTypeDecl(enumTypeDecl *ast.EnumTypeDecl) error {
 	}
 	enumType, exist, err := p.createEnumType(enumTypeDecl.Name)
 	if err != nil {
+		log.Panicf("NewEnumTypeDecl: %s fail : %s", enumTypeDecl.Name, err.Error())
 		return err
 	}
 	if exist {
@@ -593,6 +596,7 @@ func (p *Package) NewEnumTypeDecl(enumTypeDecl *ast.EnumTypeDecl) error {
 	if len(enumTypeDecl.Type.Items) > 0 {
 		err = p.createEnumItems(enumTypeDecl.Type.Items, enumType)
 		if err != nil {
+			log.Panicf("NewEnumTypeDecl: %s fail : %s", enumTypeDecl.Name, err.Error())
 			return err
 		}
 	}
@@ -666,6 +670,7 @@ func (p *Package) NewMacro(macro *ast.Macro) error {
 		node := Node{name: macro.Name, kind: Macro}
 		name, _, exist, err := p.RegisterNode(node, p.macroName)
 		if err != nil {
+			log.Panicf("NewMacro: %s fail : %s", macro.Name, err.Error())
 			return err
 		}
 		if exist {
