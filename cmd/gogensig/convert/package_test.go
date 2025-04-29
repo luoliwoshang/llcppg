@@ -1257,6 +1257,14 @@ func TestRedef(t *testing.T) {
 		t.Fatal("NewFuncDecl failed", err)
 	}
 
+	err = pkg.NewTypedefDecl(&ast.TypedefDecl{
+		Name: &ast.Ident{Name: "Bar"},
+		Type: &ast.Ident{Name: "Bar"},
+	})
+	if err == nil {
+		t.Fatal("expect a redefine err")
+	}
+
 	err = pkg.NewFuncDecl(&ast.FuncDecl{
 		Name:        &ast.Ident{Name: "Bar"},
 		MangledName: "Bar",
