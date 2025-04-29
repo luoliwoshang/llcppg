@@ -437,9 +437,10 @@ func (ct *Converter) ProcessUnderlyingType(cursor clang.Cursor) ast.Expr {
 		return ct.ProcessType(underlyingTyp)
 	}
 
-	referTypeCursor := underlyingTyp.TypeDeclaration()
 	defName := toStr(cursor.String())
-	underName := toStr(referTypeCursor.String())
+	// Using getActualTypeCursor to recursively find the actual declaration of the underlying type,
+	// handles cases with multi-level typedef chains
+	underName := toStr(ct.getActualTypeCursor(underlyingTyp.TypeDeclaration()).String())
 	ct.logln("ProcessUnderlyingType: defName:", defName, "underName:", underName)
 
 	// For a typedef like "typedef struct xxx xxx;", the underlying type declaration
@@ -449,6 +450,9 @@ func (ct *Converter) ProcessUnderlyingType(cursor clang.Cursor) ast.Expr {
 	// in the source file
 	// Therefore, we shouldn't use declaration location to determine whether to remove
 	// extra typedef nodes
+	//
+	// Note: This handles both direct self-references (e.g., typedef struct Foo Foo;) and
+	// multi-level typedef chains that refer back to the original declaration (e.g., typedef enum algorithm {...} algorithm_t; typedef algorithm_t algorithm;)
 	if defName == underName {
 		ct.logln("ProcessUnderlyingType: is self reference")
 		return nil
@@ -486,6 +490,25 @@ func (ct *Converter) getActualType(t clang.Type) clang.Type {
 		return ct.getActualType(t.TypeDeclaration().TypedefDeclUnderlyingType())
 	default:
 		return t
+	}
+}
+
+// getActualTypeCursor recursively gets the actual underlying cursor of a type declaration.
+// For multi-level nested typedef chains, it continues recursion until finding the original non-typedef type.
+// Example:
+// - typedef enum Foo {...} Foo_t;
+// - typedef Foo_t Foo;
+// When processing Foo, it recursively finds the declaration cursor of enum Foo
+func (ct *Converter) getActualTypeCursor(cursor clang.Cursor) clang.Cursor {
+	ct.incIndent()
+	defer ct.decIndent()
+	typName, typKind := getCursorDesc(cursor)
+	ct.logln("getActualTypeCursor: TypeName:", typName, "TypeKind:", typKind)
+	switch cursor.Kind {
+	case clang.CursorTypedefDecl:
+		return ct.getActualTypeCursor(cursor.TypedefDeclUnderlyingType().TypeDeclaration())
+	default:
+		return cursor
 	}
 }
 
