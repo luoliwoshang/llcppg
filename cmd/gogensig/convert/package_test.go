@@ -1281,28 +1281,6 @@ func TestRedef(t *testing.T) {
 	}
 
 	err = pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
-		Name: &ast.Ident{Name: "Foo"},
-		Type: &ast.EnumType{},
-	})
-
-	if err == nil {
-		t.Fatal("Expect a redefine err")
-	}
-
-	err = pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
-		Name: nil,
-		Type: &ast.EnumType{
-			Items: []*ast.EnumItem{
-				{Name: &ast.Ident{Name: "Foo"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
-			},
-		},
-	})
-
-	if err == nil {
-		t.Fatal("Expect a redefine err")
-	}
-
-	err = pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
 		Name: &ast.Ident{Name: "EnumFoo"},
 		Type: &ast.EnumType{
 			Items: []*ast.EnumItem{
@@ -1357,6 +1335,54 @@ const ItemBar EnumFoo = 0
 const MACRO_FOO = 1
 `
 	comparePackageOutput(t, pkg, expect)
+}
+
+func TestRedefEnum(t *testing.T) {
+	pkg := createTestPkg(t, &convert.PackageConfig{})
+	pkg.SetCurFile(tempFile)
+
+	flds := &ast.FieldList{
+		List: []*ast.Field{
+			{
+				Type: &ast.BuiltinType{Kind: ast.Int},
+			},
+		},
+	}
+	pkg.NewTypeDecl(&ast.TypeDecl{
+		Name: &ast.Ident{Name: "Foo"},
+		Type: &ast.RecordType{
+			Tag:    ast.Struct,
+			Fields: flds,
+		},
+	})
+
+	t.Run("redefine enum type", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Fatalf("expected Panic")
+			}
+		}()
+		pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
+			Name: &ast.Ident{Name: "Foo"},
+			Type: &ast.EnumType{},
+		})
+	})
+
+	t.Run("redefine enum item", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Fatalf("expected Panic")
+			}
+		}()
+		pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
+			Name: nil,
+			Type: &ast.EnumType{
+				Items: []*ast.EnumItem{
+					{Name: &ast.Ident{Name: "Foo"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
+				},
+			},
+		})
+	})
 }
 
 func TestRedefineFunc(t *testing.T) {

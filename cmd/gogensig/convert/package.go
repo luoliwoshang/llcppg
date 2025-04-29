@@ -584,7 +584,7 @@ func (p *Package) NewEnumTypeDecl(enumTypeDecl *ast.EnumTypeDecl) error {
 	}
 	enumType, exist, err := p.createEnumType(enumTypeDecl.Name)
 	if err != nil {
-		log.Panicf("NewEnumTypeDecl: %s fail : %s", enumTypeDecl.Name, err.Error())
+		log.Panicf("NewEnumTypeDecl: %s fail : %s", enumTypeDecl.Name.Name, err.Error())
 		return err
 	}
 	if exist {
