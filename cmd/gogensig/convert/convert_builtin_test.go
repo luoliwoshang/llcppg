@@ -94,6 +94,9 @@ func TestPkgFail(t *testing.T) {
 }
 
 func TestProcessWithError(t *testing.T) {
+	defer func() {
+		checkPanic(t, recover(), "NewTypedefDecl: Foo fail")
+	}()
 	converter := emptyConverter()
 	converter.GenPkg.conf.SymbolTable = config.CreateSymbolTable([]config.SymbolEntry{
 		{

@@ -1263,14 +1263,6 @@ func TestRedef(t *testing.T) {
 		t.Fatal("NewFuncDecl failed", err)
 	}
 
-	err = pkg.NewTypedefDecl(&ast.TypedefDecl{
-		Name: &ast.Ident{Name: "Bar"},
-		Type: &ast.Ident{Name: "Bar"},
-	})
-	if err == nil {
-		t.Fatal("expect a redefine err")
-	}
-
 	err = pkg.NewFuncDecl(&ast.FuncDecl{
 		Name:        &ast.Ident{Name: "Bar"},
 		MangledName: "Bar",
@@ -1382,6 +1374,37 @@ func TestRedefEnum(t *testing.T) {
 				},
 			},
 		})
+	})
+}
+
+func TestRedefTypedef(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatalf("expected Panic")
+		}
+	}()
+	pkg := createTestPkg(t, &convert.PackageConfig{
+		SymbolTable: config.CreateSymbolTable(
+			[]config.SymbolEntry{
+				{CppName: "Foo", MangleName: "Foo", GoName: "Foo"},
+			},
+		),
+	})
+	pkg.SetCurFile(tempFile)
+
+	err := pkg.NewTypeDecl(&ast.TypeDecl{
+		Name: &ast.Ident{Name: "Foo"},
+		Type: &ast.RecordType{
+			Tag:    ast.Struct,
+			Fields: &ast.FieldList{},
+		},
+	})
+	if err != nil {
+		t.Fatal("NewTypeDecl failed", err)
+	}
+	pkg.NewTypedefDecl(&ast.TypedefDecl{
+		Name: &ast.Ident{Name: "Bar"},
+		Type: &ast.Ident{Name: "Bar"},
 	})
 }
 
