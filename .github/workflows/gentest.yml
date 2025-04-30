@@ -50,6 +50,7 @@ jobs:
         llcppgtest -demo ./_llcppgtest/cjson -conf conf/linux
         llcppgtest -demo ./_llcppgtest/gmp -conf conf/linux
         llcppgtest -demo ./_llcppgtest/gpgerror -conf conf/linux
+        llcppgtest -demo ./_llcppgtest/isl
         llcppgtest -demo ./_llcppgtest/lua -conf conf/linux
         llcppgtest -demo ./_llcppgtest/sqlite -conf conf/linux
         llcppgtest -demo ./_llcppgtest/z3 -conf conf/linux
