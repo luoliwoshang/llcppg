@@ -353,7 +353,13 @@ func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (rec
 }
 
 func (p *Package) lookupOrigin(name string, pubName string) types.Object {
-	return p.Lookup(name)
+	if name == pubName {
+		return p.Lookup(name)
+	}
+	if obj := p.Lookup(name); obj != nil {
+		return obj
+	}
+	return p.Lookup(pubName)
 }
 
 func (p *Package) lookupPub(name string, pubName string) types.Object {

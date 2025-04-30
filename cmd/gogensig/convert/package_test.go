@@ -1330,30 +1330,26 @@ const MACRO_FOO = 1
 }
 
 func TestRedefEnum(t *testing.T) {
-	pkg := createTestPkg(t, &convert.PackageConfig{})
-	pkg.SetCurFile(tempFile)
-
-	flds := &ast.FieldList{
-		List: []*ast.Field{
-			{
-				Type: &ast.BuiltinType{Kind: ast.Int},
+	typDecl := &ast.TypeDecl{
+		Name: &ast.Ident{Name: "Foo"},
+		Type: &ast.RecordType{
+			Tag: ast.Struct,
+			Fields: &ast.FieldList{
+				List: []*ast.Field{
+					{Type: &ast.BuiltinType{Kind: ast.Int}},
+				},
 			},
 		},
 	}
-	pkg.NewTypeDecl(&ast.TypeDecl{
-		Name: &ast.Ident{Name: "Foo"},
-		Type: &ast.RecordType{
-			Tag:    ast.Struct,
-			Fields: flds,
-		},
-	})
-
 	t.Run("redefine enum type", func(t *testing.T) {
 		defer func() {
 			if r := recover(); r == nil {
 				t.Fatalf("expected Panic")
 			}
 		}()
+		pkg := createTestPkg(t, &convert.PackageConfig{})
+		pkg.SetCurFile(tempFile)
+		pkg.NewTypeDecl(typDecl)
 		pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
 			Name: &ast.Ident{Name: "Foo"},
 			Type: &ast.EnumType{},
@@ -1361,11 +1357,9 @@ func TestRedefEnum(t *testing.T) {
 	})
 
 	t.Run("redefine enum item", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Fatalf("expected Panic")
-			}
-		}()
+		pkg := createTestPkg(t, &convert.PackageConfig{})
+		pkg.SetCurFile(tempFile)
+		pkg.NewTypeDecl(typDecl)
 		pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
 			Name: nil,
 			Type: &ast.EnumType{
@@ -1374,6 +1368,20 @@ func TestRedefEnum(t *testing.T) {
 				},
 			},
 		})
+		comparePackageOutput(t, pkg, `
+package testpkg
+
+import (
+	"github.com/goplus/lib/c"
+	_ "unsafe"
+)
+
+type Foo struct {
+	 c.Int
+}
+
+const Foo__1 c.Int = 0
+`)
 	})
 }
 
