@@ -10,7 +10,6 @@ import (
 	"github.com/goplus/gogen"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/names"
 	"github.com/goplus/llcppg/ast"
-	"github.com/goplus/llcppg/cmd/gogensig/cmp"
 	"github.com/goplus/llcppg/cmd/gogensig/config"
 	"github.com/goplus/llcppg/cmd/gogensig/convert"
 	"github.com/goplus/llcppg/cmd/gogensig/dbg"
@@ -86,7 +85,9 @@ func TestUnionDecl(t *testing.T) {
 					},
 				},
 			},
-			expected: `package testpkg
+			expected: `
+package testpkg
+
 import (
 	"github.com/goplus/lib/c"
 	_ "unsafe"
@@ -94,7 +95,8 @@ import (
 
 type U struct {
 	B c.Long
-}`,
+}
+`,
 		},
 	}
 	for _, tc := range testCases {
@@ -234,8 +236,9 @@ func TestNewPackage(t *testing.T) {
 	pkg := createTestPkg(t, &convert.PackageConfig{})
 	pkg.SetCurFile(tempFile)
 	comparePackageOutput(t, pkg, `
-	package testpkg
-	import _ "unsafe"
+package testpkg
+
+import _ "unsafe"
 	`)
 }
 
@@ -353,9 +356,11 @@ func TestFuncDecl(t *testing.T) {
 			},
 			expected: `
 package testpkg
+
 import _ "unsafe"
 //go:linkname Foo C.foo
-func Foo()`,
+func Foo()
+`,
 		},
 		{
 			name: "variadic func",
@@ -380,9 +385,11 @@ func Foo()`,
 			},
 			expected: `
 package testpkg
+
 import _ "unsafe"
 //go:linkname Foo C.foo
-func Foo(__llgo_va_list ...interface{})`,
+func Foo(__llgo_va_list ...interface{})
+`,
 		},
 		{
 			name: "func not in symbol table",
@@ -441,9 +448,11 @@ func Foo(__llgo_va_list ...interface{})`,
 			},
 			expected: `
 package testpkg
+
 import _ "unsafe"
 //go:linkname Foo C.foo
-func Foo()`,
+func Foo()
+`,
 		},
 		{
 			name: "builtin type",
@@ -487,12 +496,14 @@ func Foo()`,
 			},
 			expected: `
 package testpkg
+
 import (
 	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
 //go:linkname Foo C.foo
-func Foo(a uint16, b bool) c.Double`,
+func Foo(a uint16, b bool) c.Double
+`,
 		},
 		{
 			name: "c builtin type",
@@ -529,7 +540,6 @@ import (
 	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
-
 //go:linkname Foo C.foo
 func Foo(a c.Uint, b c.Long) c.Ulong
 `,
@@ -569,7 +579,6 @@ import (
 	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
-
 //go:linkname Foo C.foo
 func Foo(a c.Uint, b c.Long) c.Ulong
 `,
@@ -618,7 +627,6 @@ import (
 	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
-
 //go:linkname Foo C.foo
 func Foo(a *c.Uint, b *c.Long) *c.Double
 `,
@@ -658,10 +666,9 @@ import (
 	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
-
 //go:linkname Foo C.foo
 func Foo(a c.Pointer) c.Pointer
-			`,
+`,
 		},
 		{
 			name: "array",
@@ -718,10 +725,9 @@ import (
 	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
-
 //go:linkname Foo C.foo
 func Foo(a *c.Uint, b *c.Double) **c.Char
-			`,
+`,
 		},
 		{
 			name: "error array param",
@@ -1194,9 +1200,9 @@ import (
 	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
-
 // llgo:type C
-type Foo func(a c.Int, b c.Int) c.Int`,
+type Foo func(a c.Int, b c.Int) c.Int
+`,
 		},
 	}
 	for _, tc := range testCases {
@@ -1340,12 +1346,13 @@ import (
 )
 
 type Foo struct {
-	c.Int
+	 c.Int
 }
 //go:linkname Bar C.Bar
 func Bar()
 
 type EnumFoo c.Int
+
 const ItemBar EnumFoo = 0
 const MACRO_FOO = 1
 `
@@ -1496,11 +1503,14 @@ type Ctx c.Pointer`,
 			},
 			expected: `
 package testpkg
+
 import (
 	"github.com/goplus/lib/c"
 	_ "unsafe"
 )
-type Name *c.Char`,
+
+type Name *c.Char
+`,
 		},
 		{
 			name: "typedef invalid pointer",
@@ -1547,11 +1557,13 @@ import (
 )
 
 type Color c.Int
+
 const (
 	Red   Color = 0
 	Green Color = 1
 	Blue  Color = 2
-)`,
+)
+`,
 		},
 		{
 			name: "anonymous enum",
@@ -1707,17 +1719,21 @@ func TestIdentRefer(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		comparePackageOutput(t, pkg, `
-		package testpkg
-		import (
-			"github.com/goplus/lib/c"
-			_ "unsafe"
-		)
-		type TypInt8T c.Char
-		type Foo struct {
-			A TypInt8T
-		}
-		`)
+		expect := `
+package testpkg
+
+import (
+	"github.com/goplus/lib/c"
+	_ "unsafe"
+)
+
+type TypInt8T c.Char
+
+type Foo struct {
+	A TypInt8T
+}
+`
+		comparePackageOutput(t, pkg, expect)
 	})
 }
 
@@ -1893,9 +1909,10 @@ func comparePackageOutput(t *testing.T, pkg *convert.Package, expect string) {
 	if err != nil {
 		t.Fatalf("WriteTo failed: %v", err)
 	}
-	eq, diff := cmp.EqualStringIgnoreSpace(buf.String(), expect)
-	if !eq {
-		t.Error(diff)
+	expectedStr := strings.TrimSpace(expect)
+	actualStr := strings.TrimSpace(buf.String())
+	if expectedStr != actualStr {
+		t.Errorf("does not match expected.\nExpected:\n%s\nGot:\n%s", expectedStr, actualStr)
 	}
 }
 

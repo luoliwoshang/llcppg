@@ -3,7 +3,6 @@ module github.com/goplus/llcppg
 go 1.23.0
 
 require (
-	github.com/google/go-cmp v0.7.0
 	github.com/goplus/gogen v1.17.3
 	github.com/goplus/lib v0.2.0
 	github.com/goplus/llgo v0.10.0

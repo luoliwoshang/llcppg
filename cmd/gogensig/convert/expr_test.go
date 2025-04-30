@@ -1,9 +1,9 @@
 package convert_test
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cmd/gogensig/convert"
 )
@@ -124,7 +124,9 @@ func checkResult(t *testing.T, result any, err error, want any) {
 	if err != nil {
 		t.Error(err)
 	}
-	if !cmp.Equal(result, want) {
-		t.Error(cmp.Diff(result, want))
+	resultStr := fmt.Sprintf("%v", result)
+	wantStr := fmt.Sprintf("%v", want)
+	if resultStr != wantStr {
+		t.Errorf("result does not match want\nresult: %s\nwant: %s", resultStr, wantStr)
 	}
 }
