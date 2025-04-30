@@ -833,7 +833,16 @@ func (p *Package) RegisterNode(node Node, nameMethod NameMethod) (pubName string
 	return pubName, changed, exist, nil
 }
 
-// if havent process,return
+// GetUniqueName generates a unique public name for a given node using the provided name transformation method.
+// It ensures the generated name doesn't conflict with existing names by adding a numeric suffix if needed.
+//
+// Parameters:
+//   - node: The node containing the original name to be transformed
+//   - nameMethod: Function used to transform the original name (e.g., declName, macroName)
+//
+// Returns:
+//   - pubName: The generated unique public name
+//   - changed: Whether the generated name differs from the original name
 func (p *Package) GetUniqueName(node Node, nameMethod NameMethod) (pubName string, changed bool) {
 	pubName = nameMethod(node.name)
 	uniquePubName := p.symbols.Register(node, pubName)
@@ -852,18 +861,30 @@ func (p *Package) definedName(name string) (string, bool) {
 	return name, false
 }
 
-func (p *Package) declName(name string) string {
+// transformName handles identifier name conversion following these rules:
+// 1. First checks if the name exists in predefined mapping (in typeMap of llcppg.cfg)
+// 2. If not in predefined mapping, applies the transform function
+// 3. Before applying the transform function, removes specified prefixes (obtained via trimPrefixes)
+//
+// Parameters:
+//   - name: Original C/C++ identifier name
+//   - transform: Name transformation function (like names.PubName or names.ExportName)
+//
+// Returns:
+//   - Transformed identifier name
+func (p *Package) transformName(name string, transform func(string) string) string {
 	if definedName, ok := p.definedName(name); ok {
 		return definedName
 	}
-	return names.PubName(names.RemovePrefixedName(name, p.trimPrefixes()))
+	return transform(names.RemovePrefixedName(name, p.trimPrefixes()))
+}
+
+func (p *Package) declName(name string) string {
+	return p.transformName(name, names.PubName)
 }
 
 func (p *Package) macroName(name string) string {
-	if definedName, ok := p.definedName(name); ok {
-		return definedName
-	}
-	return names.ExportName(names.RemovePrefixedName(name, p.trimPrefixes()))
+	return p.transformName(name, names.ExportName)
 }
 
 func (p *Package) trimPrefixes() []string {
