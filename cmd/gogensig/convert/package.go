@@ -50,8 +50,7 @@ type Package struct {
 	// type definitions are available.
 	incompleteTypes *IncompleteTypes
 
-	nameMapper *names.NameMapper // handles name mapping and uniqueness
-	symbols    *ProcessSymbol    // record the processed node
+	symbols *ProcessSymbol // record the processed node
 }
 
 type PackageConfig struct {
@@ -75,7 +74,6 @@ func NewPackage(config *PackageConfig) *Package {
 		conf:            config,
 		incompleteTypes: NewIncompleteTypes(),
 		locMap:          NewThirdTypeLoc(),
-		nameMapper:      names.NewNameMapper(),
 		symbols:         NewProcessSymbol(),
 	}
 
@@ -97,9 +95,6 @@ func NewPackage(config *PackageConfig) *Package {
 	}
 
 	p.PkgInfo = NewPkgInfo(config.PkgPath, config.OutputDir, config.CppgConf, config.Pubs)
-	for name, goName := range config.Pubs {
-		p.nameMapper.SetMapping(name, goName)
-	}
 
 	pkgManager := NewPkgDepLoader(mod, p.p)
 	err = pkgManager.InitDeps(p.PkgInfo)
@@ -332,7 +327,7 @@ func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (rec
 		kind: FuncDecl,
 	}
 	// if already processed,return
-	exist = p.symbols.Lookup(node)
+	_, exist = p.symbols.Lookup(node)
 	if exist {
 		return nil, true, nil
 	}
@@ -353,7 +348,7 @@ func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (rec
 		}
 	}
 	// register the function
-	p.symbols.Register(node)
+	p.symbols.Register(node, fnSpec.FnName)
 	return
 }
 
@@ -451,7 +446,10 @@ func (p *Package) handleImplicitForwardDecl(name string) *gogen.TypeDecl {
 		return decl.decl
 	}
 
-	pubName, _ := p.nameMapper.GetUniqueGoName(name, p.declName)
+	// Using TypeDecl as the node kind here because forward declarations in C/C++ typically
+	// only occur with struct, class, and enum type declarations, not with typedefs or other declarations.
+	// The TypeDecl node kind ensures these forward declarations are properly tracked and later completed.
+	pubName, _, _, _ := p.RegisterNode(Node{name: name, kind: TypeDecl}, p.declName)
 	decl := p.emptyTypeDecl(pubName, nil)
 	inc := &Incomplete{
 		cname: name,
@@ -462,7 +460,6 @@ func (p *Package) handleImplicitForwardDecl(name string) *gogen.TypeDecl {
 		},
 	}
 	p.incompleteTypes.Add(inc)
-	p.nameMapper.SetMapping(name, pubName)
 	return decl
 }
 
@@ -821,25 +818,51 @@ func (p *Package) WritePubFile() error {
 	return config.WritePubFile(filepath.Join(p.GetOutputDir(), llcppg.LLCPPG_PUB), p.Pubs)
 }
 
-func (p *Package) RegisterNode(node Node, nameMethod names.NameMethod) (pubName string, changed bool, exist bool, err error) {
-	pubName, changed = p.nameMapper.GetUniqueGoName(node.name, nameMethod)
-	exist = p.symbols.Lookup(node)
+type NameMethod func(name string) string
+
+func (p *Package) RegisterNode(node Node, nameMethod NameMethod) (pubName string, changed bool, exist bool, err error) {
+	pubName, exist = p.symbols.Lookup(node)
 	if exist {
-		return pubName, changed, exist, nil
+		return pubName, pubName != node.name, exist, nil
 	}
+	pubName, changed = p.GetUniqueName(node, nameMethod)
 	obj := p.Lookup(node.name)
 	if obj != nil {
 		return "", false, exist, errs.NewTypeDefinedError(pubName, node.name)
 	}
-	p.symbols.Register(node)
 	return pubName, changed, exist, nil
 }
 
+// if havent process,return
+func (p *Package) GetUniqueName(node Node, nameMethod NameMethod) (pubName string, changed bool) {
+	pubName = nameMethod(node.name)
+	uniquePubName := p.symbols.Register(node, pubName)
+	return uniquePubName, uniquePubName != node.name
+}
+
+// which is define in llcppg.cfg/typeMap
+func (p *Package) definedName(name string) (string, bool) {
+	definedName, ok := p.Pubs[name]
+	if ok {
+		if definedName == "" {
+			return name, true
+		}
+		return definedName, true
+	}
+	return name, false
+}
+
 func (p *Package) declName(name string) string {
+	if definedName, ok := p.definedName(name); ok {
+		return definedName
+	}
 	return names.PubName(names.RemovePrefixedName(name, p.trimPrefixes()))
 }
 
 func (p *Package) macroName(name string) string {
+	if definedName, ok := p.definedName(name); ok {
+		return definedName
+	}
 	return names.ExportName(names.RemovePrefixedName(name, p.trimPrefixes()))
 }
 
@@ -873,7 +896,6 @@ func (p *Package) CollectNameMapping(originName, newName string) {
 	if originName != newName {
 		value = newName
 	}
-	p.nameMapper.SetMapping(originName, value)
 	if p.curFile.InCurPkg() {
 		if !p.conf.CppgConf.KeepUnderScore && rune(originName[0]) == '_' {
 			return
@@ -970,20 +992,26 @@ type Node struct {
 
 type ProcessSymbol struct {
 	// not same node can have same name,so use the Node as key
-	info map[Node]struct{}
+	info  map[Node]string
+	count map[string]int
 }
 
 func NewProcessSymbol() *ProcessSymbol {
 	return &ProcessSymbol{
-		info: make(map[Node]struct{}),
+		info:  make(map[Node]string),
+		count: make(map[string]int),
 	}
 }
 
-func (p *ProcessSymbol) Lookup(node Node) bool {
-	_, ok := p.info[node]
-	return ok
+func (p *ProcessSymbol) Lookup(node Node) (string, bool) {
+	pubName, ok := p.info[node]
+	return pubName, ok
 }
 
-func (p *ProcessSymbol) Register(node Node) {
-	p.info[node] = struct{}{}
+func (p *ProcessSymbol) Register(node Node, pubName string) string {
+	p.count[pubName]++
+	count := p.count[pubName]
+	pubName = names.SuffixCount(pubName, count)
+	p.info[node] = pubName
+	return pubName
 }
