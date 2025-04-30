@@ -1,7 +1,7 @@
 package convert_test
 
 import (
-	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/goplus/llcppg/ast"
@@ -124,9 +124,7 @@ func checkResult(t *testing.T, result any, err error, want any) {
 	if err != nil {
 		t.Error(err)
 	}
-	resultStr := fmt.Sprintf("%v", result)
-	wantStr := fmt.Sprintf("%v", want)
-	if resultStr != wantStr {
-		t.Errorf("result does not match want\nresult: %s\nwant: %s", resultStr, wantStr)
+	if !reflect.DeepEqual(result, want) {
+		t.Errorf("result does not match want\nresult: %#v\nwant: %#v", result, want)
 	}
 }
