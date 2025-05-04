@@ -15,8 +15,6 @@ type dbgFlags = int
 
 var debugLog bool
 
-var flags dbgFlags
-
 const (
 	DbgLog     dbgFlags = 1 << iota
 	DbgFlagAll          = DbgLog
