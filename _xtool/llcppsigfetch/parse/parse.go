@@ -74,7 +74,7 @@ func Do(cfg *ParseConfig) (*Converter, error) {
 	}
 	libclangFlags = append(libclangFlags, strings.Fields(cfg.Conf.CFlags)...)
 	converter, err := NewConverter(
-		&Config{
+		&ConverterConfig{
 			HfileInfo: pkgHfiles,
 			Cfg: &clangutils.Config{
 				File:  cfg.PreprocessedFile,

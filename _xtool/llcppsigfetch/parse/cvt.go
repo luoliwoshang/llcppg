@@ -45,12 +45,12 @@ var tagMap = map[string]ast.Tag{
 	"class":  ast.Class,
 }
 
-type Config struct {
+type ConverterConfig struct {
 	HfileInfo *config.PkgHfilesInfo
 	Cfg       *clangutils.Config
 }
 
-func NewConverter(config *Config) (*Converter, error) {
+func NewConverter(config *ConverterConfig) (*Converter, error) {
 	if debugParse {
 		fmt.Fprintln(os.Stderr, "NewConverter: config")
 		fmt.Fprintln(os.Stderr, "config.File", config.Cfg.File)
@@ -79,7 +79,7 @@ func NewConverter(config *Config) (*Converter, error) {
 }
 
 // combine file
-func initFileMap(cfg *Config) (map[string]*llcppg.FileInfo, error) {
+func initFileMap(cfg *ConverterConfig) (map[string]*llcppg.FileInfo, error) {
 	fileMap := make(map[string]*llcppg.FileInfo)
 	fileTypes := []struct {
 		files []string
