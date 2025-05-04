@@ -10,6 +10,7 @@ import (
 	"unsafe"
 
 	"github.com/goplus/lib/c"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/config"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/config/cfgparse"
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/goplus/llgo/xtool/nm"
@@ -32,6 +33,41 @@ const (
 func SetDebug(flags dbgFlags) {
 	dbgSymbol = (flags & DbgSymbol) != 0
 	dbgParseIsMethod = (flags & DbgParseIsMethod) != 0
+}
+
+type Config struct {
+	Conf *llcppg.Config
+}
+
+func Do(conf *Config) error {
+	symbols, err := ParseDylibSymbols(conf.Conf.Libs)
+	if err != nil {
+		return err
+	}
+
+	pkgHfiles := config.PkgHfileInfo(conf.Conf, []string{})
+	if dbgSymbol {
+		fmt.Println("interfaces", pkgHfiles.Inters)
+		fmt.Println("implements", pkgHfiles.Impls)
+		fmt.Println("thirdhfile", pkgHfiles.Thirds)
+	}
+
+	headerInfos, err := ParseHeaderFile(pkgHfiles.CurPkgFiles(), conf.Conf.TrimPrefixes, strings.Fields(conf.Conf.CFlags), conf.Conf.SymMap, conf.Conf.Cplusplus, false)
+	if err != nil {
+		return err
+	}
+
+	symbolData, err := GenerateSymTable(symbols, headerInfos)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(llcppg.LLCPPG_SYMB, symbolData, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ParseDylibSymbols parses symbols from dynamic libraries specified in the lib string.
