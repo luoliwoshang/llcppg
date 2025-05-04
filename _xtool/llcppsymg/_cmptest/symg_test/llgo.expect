@@ -43,6 +43,10 @@ Symbol Map GoName: InitWindow, ProtoName In HeaderFile: InitWindow(int, int, con
 Parsed Symbols:
 Symbol Map GoName: X__mpzSetUiSafe, ProtoName In HeaderFile: __mpz_set_ui_safe(mpz_ptr, unsigned long), MangledName: __mpz_set_ui_safe
 
+=== TestLdOutput ===
+[/usr/local/lib/aarch64-linux-gnu /lib/aarch64-linux-gnu /usr/lib/aarch64-linux-gnu /usr/local/lib /lib /usr/lib /usr/aarch64-linux-gnu/lib]
+=== TestClangIncOutput ===
+[/usr/lib/llvm-18/lib/clang/18/include /usr/local/include /usr/include/aarch64-linux-gnu /usr/include]
 === Test Case: c ===
 [{
 		"mangle":	"Foo_Bar",

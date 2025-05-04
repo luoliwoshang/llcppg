@@ -12,7 +12,6 @@ import (
 	"github.com/goplus/lib/c"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/config/cfgparse"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/dbg"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/syspath"
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/goplus/llgo/xtool/nm"
 	"github.com/goplus/llpkg/cjson"
@@ -28,7 +27,7 @@ func ParseDylibSymbols(lib string) ([]*nm.Symbol, error) {
 	if dbg.GetDebugSymbol() {
 		fmt.Println("ParseDylibSymbols:from", lib)
 	}
-	sysPaths := syspath.GetLibPaths()
+	sysPaths := GetLibPaths()
 	if dbg.GetDebugSymbol() {
 		fmt.Println("ParseDylibSymbols:sysPaths", sysPaths)
 	}
