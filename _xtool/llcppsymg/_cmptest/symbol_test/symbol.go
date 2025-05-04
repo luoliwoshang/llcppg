@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/goplus/llcppg/_xtool/llcppsymg/parse"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/symbol"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/symg"
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/goplus/llgo/xtool/nm"
 )
@@ -24,11 +24,11 @@ func TestGetCommonSymbols() {
 		{
 			name: "Lua symbols",
 			dylibSymbols: []*nm.Symbol{
-				{Name: symbol.AddSymbolPrefixUnder("lua_absindex", false)},
-				{Name: symbol.AddSymbolPrefixUnder("lua_arith", false)},
-				{Name: symbol.AddSymbolPrefixUnder("lua_atpanic", false)},
-				{Name: symbol.AddSymbolPrefixUnder("lua_callk", false)},
-				{Name: symbol.AddSymbolPrefixUnder("lua_lib_nonexistent", false)},
+				{Name: symg.AddSymbolPrefixUnder("lua_absindex", false)},
+				{Name: symg.AddSymbolPrefixUnder("lua_arith", false)},
+				{Name: symg.AddSymbolPrefixUnder("lua_atpanic", false)},
+				{Name: symg.AddSymbolPrefixUnder("lua_callk", false)},
+				{Name: symg.AddSymbolPrefixUnder("lua_lib_nonexistent", false)},
 			},
 			headerSymbols: map[string]*parse.SymbolInfo{
 				"lua_absindex":           {ProtoName: "lua_absindex(lua_State *, int)", GoName: "Absindex"},
@@ -41,9 +41,9 @@ func TestGetCommonSymbols() {
 		{
 			name: "INIReader and Std library symbols",
 			dylibSymbols: []*nm.Symbol{
-				{Name: symbol.AddSymbolPrefixUnder("ZNK9INIReader12GetInteger64ERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_x", true)},
-				{Name: symbol.AddSymbolPrefixUnder("ZNK9INIReader7GetRealERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_d", true)},
-				{Name: symbol.AddSymbolPrefixUnder("ZNK9INIReader10ParseErrorEv", true)},
+				{Name: symg.AddSymbolPrefixUnder("ZNK9INIReader12GetInteger64ERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_x", true)},
+				{Name: symg.AddSymbolPrefixUnder("ZNK9INIReader7GetRealERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_d", true)},
+				{Name: symg.AddSymbolPrefixUnder("ZNK9INIReader10ParseErrorEv", true)},
 			},
 			headerSymbols: map[string]*parse.SymbolInfo{
 				"_ZNK9INIReader12GetInteger64ERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_x":  {GoName: "(*Reader).GetInteger64", ProtoName: "INIReader::GetInteger64(const std::string &, const std::string &, int64_t)"},
@@ -57,7 +57,7 @@ func TestGetCommonSymbols() {
 
 	for _, tc := range testCases {
 		fmt.Printf("\nTest Case: %s\n", tc.name)
-		commonSymbols := symbol.GetCommonSymbols(tc.dylibSymbols, tc.headerSymbols)
+		commonSymbols := symg.GetCommonSymbols(tc.dylibSymbols, tc.headerSymbols)
 		fmt.Printf("Common Symbols (%d):\n", len(commonSymbols))
 		for _, sym := range commonSymbols {
 			fmt.Printf("Mangle: %s, CPP: %s, Go: %s\n", sym.Mangle, sym.CPP, sym.Go)
@@ -76,7 +76,7 @@ func TestGenSymbolTableData() {
 		{Mangle: "lua_callk", CPP: "lua_callk(lua_State *, int, int, lua_KContext, lua_KFunction)", Go: "Callk"},
 	}
 
-	data, err := symbol.GenSymbolTableData(commonSymbols)
+	data, err := symg.GenSymbolTableData(commonSymbols)
 	if err != nil {
 		fmt.Printf("Error generating symbol table data: %v\n", err)
 		return

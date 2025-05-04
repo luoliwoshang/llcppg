@@ -8,7 +8,7 @@ import (
 
 	"github.com/goplus/llcppg/_xtool/llcppsymg/config"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/parse"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/symbol"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/symg"
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/goplus/llgo/xtool/nm"
 )
@@ -138,9 +138,9 @@ func TestParseHeaderFile() {
 		// trim to nm symbols
 		var dylibsymbs []*nm.Symbol
 		for _, symb := range tc.dylibSymbols {
-			dylibsymbs = append(dylibsymbs, &nm.Symbol{Name: symbol.AddSymbolPrefixUnder(symb, cfg.Cplusplus)})
+			dylibsymbs = append(dylibsymbs, &nm.Symbol{Name: symg.AddSymbolPrefixUnder(symb, cfg.Cplusplus)})
 		}
-		symbolData, err := symbol.GenerateSymTable(dylibsymbs, headerSymbolMap)
+		symbolData, err := symg.GenerateSymTable(dylibsymbs, headerSymbolMap)
 		if err != nil {
 			fmt.Println("Error:", err)
 		}
