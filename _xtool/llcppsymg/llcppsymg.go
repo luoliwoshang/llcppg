@@ -25,7 +25,6 @@ import (
 	"github.com/goplus/llcppg/_xtool/llcppsymg/args"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/config"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/dbg"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/parse"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/symg"
 	llcppg "github.com/goplus/llcppg/config"
 )
@@ -83,7 +82,7 @@ func main() {
 		fmt.Println("implements", pkgHfiles.Impls)
 		fmt.Println("thirdhfile", pkgHfiles.Thirds)
 	}
-	headerInfos, err := parse.ParseHeaderFile(pkgHfiles.CurPkgFiles(), conf.TrimPrefixes, strings.Fields(conf.CFlags), conf.SymMap, conf.Cplusplus, false)
+	headerInfos, err := symg.ParseHeaderFile(pkgHfiles.CurPkgFiles(), conf.TrimPrefixes, strings.Fields(conf.CFlags), conf.SymMap, conf.Cplusplus, false)
 	check(err)
 
 	symbolData, err := symg.GenerateSymTable(symbols, headerInfos)

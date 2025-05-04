@@ -12,7 +12,6 @@ import (
 	"github.com/goplus/lib/c"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/config/cfgparse"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/dbg"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/parse"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/syspath"
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/goplus/llgo/xtool/nm"
@@ -96,7 +95,7 @@ func ParseDylibSymbols(lib string) ([]*nm.Symbol, error) {
 
 // finds the intersection of symbols from the dynamic library's symbol table and the symbols parsed from header files.
 // It returns a list of symbols that can be externally linked.
-func GetCommonSymbols(dylibSymbols []*nm.Symbol, headerSymbols map[string]*parse.SymbolInfo) []*llcppg.SymbolInfo {
+func GetCommonSymbols(dylibSymbols []*nm.Symbol, headerSymbols map[string]*SymbolInfo) []*llcppg.SymbolInfo {
 	var commonSymbols []*llcppg.SymbolInfo
 	processedSymbols := make(map[string]bool)
 
@@ -154,7 +153,7 @@ func GenSymbolTableData(commonSymbols []*llcppg.SymbolInfo) ([]byte, error) {
 	return result, nil
 }
 
-func GenerateSymTable(symbols []*nm.Symbol, headerInfos map[string]*parse.SymbolInfo) ([]byte, error) {
+func GenerateSymTable(symbols []*nm.Symbol, headerInfos map[string]*SymbolInfo) ([]byte, error) {
 	commonSymbols := GetCommonSymbols(symbols, headerInfos)
 	if dbg.GetDebugSymbol() {
 		fmt.Println("GenerateSymTable:", len(commonSymbols), "common symbols")

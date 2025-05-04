@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/goplus/llcppg/_xtool/llcppsymg/parse"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/symg"
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/goplus/llgo/xtool/nm"
@@ -19,7 +18,7 @@ func TestGetCommonSymbols() {
 	testCases := []struct {
 		name          string
 		dylibSymbols  []*nm.Symbol
-		headerSymbols map[string]*parse.SymbolInfo
+		headerSymbols map[string]*symg.SymbolInfo
 	}{
 		{
 			name: "Lua symbols",
@@ -30,7 +29,7 @@ func TestGetCommonSymbols() {
 				{Name: symg.AddSymbolPrefixUnder("lua_callk", false)},
 				{Name: symg.AddSymbolPrefixUnder("lua_lib_nonexistent", false)},
 			},
-			headerSymbols: map[string]*parse.SymbolInfo{
+			headerSymbols: map[string]*symg.SymbolInfo{
 				"lua_absindex":           {ProtoName: "lua_absindex(lua_State *, int)", GoName: "Absindex"},
 				"lua_arith":              {ProtoName: "lua_arith(lua_State *, int)", GoName: "Arith"},
 				"lua_atpanic":            {ProtoName: "lua_atpanic(lua_State *, lua_CFunction)", GoName: "Atpanic"},
@@ -45,7 +44,7 @@ func TestGetCommonSymbols() {
 				{Name: symg.AddSymbolPrefixUnder("ZNK9INIReader7GetRealERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_d", true)},
 				{Name: symg.AddSymbolPrefixUnder("ZNK9INIReader10ParseErrorEv", true)},
 			},
-			headerSymbols: map[string]*parse.SymbolInfo{
+			headerSymbols: map[string]*symg.SymbolInfo{
 				"_ZNK9INIReader12GetInteger64ERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_x":  {GoName: "(*Reader).GetInteger64", ProtoName: "INIReader::GetInteger64(const std::string &, const std::string &, int64_t)"},
 				"_ZNK9INIReader13GetUnsigned64ERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_y": {GoName: "(*Reader).GetUnsigned64", ProtoName: "INIReader::GetUnsigned64(const std::string &, const std::string &, uint64_t)"},
 				"_ZNK9INIReader7GetRealERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_d":        {GoName: "(*Reader).GetReal", ProtoName: "INIReader::GetReal(const std::string &, const std::string &, double)"},
