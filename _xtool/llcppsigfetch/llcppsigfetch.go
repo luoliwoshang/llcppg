@@ -22,15 +22,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"unsafe"
 
-	"github.com/goplus/lib/c"
 	"github.com/goplus/llcppg/_xtool/llcppsigfetch/parse"
 	args "github.com/goplus/llcppg/_xtool/llcppsymg/tool/arg"
 	clangutils "github.com/goplus/llcppg/_xtool/llcppsymg/tool/clang"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/config"
 	llcppg "github.com/goplus/llcppg/config"
-	"github.com/goplus/llpkg/cjson"
 )
 
 func main() {
@@ -83,24 +80,67 @@ func main() {
 		}
 	}
 
-	if extract {
-		if ags.Verbose {
-			fmt.Fprintln(os.Stderr, "runExtract: extractFile:", extractFile)
-			fmt.Fprintln(os.Stderr, "isTemp:", isTemp)
-			fmt.Fprintln(os.Stderr, "isCpp:", isCpp)
-			fmt.Fprintln(os.Stderr, "out:", out)
-			fmt.Fprintln(os.Stderr, "otherArgs:", otherArgs)
-		}
-		runExtract(extractFile, isTemp, isCpp, out, otherArgs, ags.Verbose)
-	} else {
-		if ags.Verbose {
-			fmt.Fprintln(os.Stderr, "runFromConfig: config file:", ags.CfgFile)
-			fmt.Fprintln(os.Stderr, "use stdin:", ags.UseStdin)
-			fmt.Fprintln(os.Stderr, "output to file:", out)
-		}
-		runFromConfig(ags.CfgFile, ags.UseStdin, out, ags.Verbose)
+	parseConfig := &parse.Config{
+		Out: out,
 	}
 
+	if extract {
+		conf, err := getExtractConfig(extractFile, isTemp, isCpp, otherArgs)
+		if err != nil {
+			panic(err)
+		}
+		parseConfig.Conf = conf
+	} else {
+		conf, err := getConfig(ags.UseStdin, ags.CfgFile)
+		if err != nil {
+			check(err)
+		}
+		defer conf.Delete()
+		parseConfig.Conf = conf.Config
+	}
+
+	err := parse.Do(parseConfig)
+	check(err)
+}
+
+func getConfig(useStdin bool, cfgFile string) (conf config.Conf, err error) {
+	var data []byte
+	if useStdin {
+		data, err = io.ReadAll(os.Stdin)
+	} else {
+		data, err = os.ReadFile(cfgFile)
+	}
+	if err != nil {
+		return
+	}
+	conf, err = config.GetConf(data)
+	if err != nil {
+		return
+	}
+	return conf, nil
+}
+
+func getExtractConfig(extractFile string, isTemp bool, isCpp bool, otherArgs []string) (conf *llcppg.Config, err error) {
+	var file string
+	cflags := otherArgs
+	if isTemp {
+		temp, err := os.Create(clangutils.TEMP_FILE)
+		if err != nil {
+			panic(err)
+		}
+		defer temp.Close()
+		defer os.Remove(file)
+		temp.Write([]byte(extractFile))
+		file = temp.Name()
+		cflags = append(cflags, "-I"+filepath.Dir(file))
+	} else {
+		file = extractFile
+	}
+	return &llcppg.Config{
+		Include:   []string{file},
+		CFlags:    strings.Join(cflags, ""),
+		Cplusplus: isCpp,
+	}, nil
 }
 
 func printUsage() {
@@ -131,93 +171,8 @@ func printUsage() {
 	fmt.Println("Note: The two usage modes are mutually exclusive. Use either [<config_file>] OR --extract, not both.")
 }
 
-func runFromConfig(cfgFile string, useStdin bool, outputToFile bool, verbose bool) {
-	var data []byte
-	var err error
-	if useStdin {
-		data, err = io.ReadAll(os.Stdin)
-	} else {
-		data, err = os.ReadFile(cfgFile)
-	}
-	if verbose {
-		if useStdin {
-			fmt.Fprintln(os.Stderr, "runFromConfig: read from stdin")
-		} else {
-			fmt.Fprintln(os.Stderr, "runFromConfig: read from file", cfgFile)
-		}
-	}
-	check(err)
-
-	conf, err := config.GetConf(data)
-	check(err)
-	defer conf.Delete()
-
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to parse config file:", cfgFile)
-		os.Exit(1)
-	}
-
-	converter, err := parse.Do(&parse.ParseConfig{
-		Conf: conf.Config,
-	})
-	check(err)
-	info := converter.Output()
-	str := info.Print()
-	defer cjson.FreeCStr(unsafe.Pointer(str))
-	defer info.Delete()
-	outputResult(str, outputToFile)
-}
-
-func runExtract(content string, isTemp bool, isCpp bool, outToFile bool, otherArgs []string, verbose bool) {
-	var file string
-	cflags := otherArgs
-	if isTemp {
-		temp, err := os.Create(clangutils.TEMP_FILE)
-		if err != nil {
-			panic(err)
-		}
-		defer temp.Close()
-		defer os.Remove(file)
-		temp.Write([]byte(content))
-		file = temp.Name()
-		cflags = append(cflags, "-I"+filepath.Dir(file))
-	} else {
-		file = content
-	}
-
-	converter, err := parse.Do(&parse.ParseConfig{
-		Conf: &llcppg.Config{
-			Include: []string{file},
-			CFlags:  strings.Join(cflags, ""),
-		},
-	})
-	check(err)
-	_, err = converter.Convert()
-	check(err)
-	result := converter.Output()
-	cstr := result.Print()
-	outputResult(cstr, outToFile)
-	cjson.FreeCStr(unsafe.Pointer(cstr))
-	result.Delete()
-	converter.Dispose()
-}
-
 func check(err error) {
 	if err != nil {
 		panic(err)
-	}
-}
-
-func outputResult(result *c.Char, outputToFile bool) {
-	if outputToFile {
-		outputFile := llcppg.LLCPPG_SIGFETCH
-		err := os.WriteFile(outputFile, []byte(c.GoString(result)), 0644)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error writing to output file: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Fprintf(os.Stderr, "Results saved to %s\n", outputFile)
-	} else {
-		c.Printf(c.Str("%s"), result)
 	}
 }

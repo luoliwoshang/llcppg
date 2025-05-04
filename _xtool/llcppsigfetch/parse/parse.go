@@ -5,15 +5,70 @@ import (
 	"os"
 	"path"
 	"strings"
+	"unsafe"
 
+	"github.com/goplus/lib/c"
 	clangutils "github.com/goplus/llcppg/_xtool/llcppsymg/tool/clang"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/config"
 	llcppg "github.com/goplus/llcppg/config"
+	"github.com/goplus/llpkg/cjson"
 )
 
 // temp to avoid call clang in llcppsigfetch,will cause hang
 var ClangSearchPath []string
 var ClangResourceDir string
+
+type Config struct {
+	Conf   *llcppg.Config
+	Out    bool     // if gen llcppg.sigfetch.json
+	Cflags []string // other cflags want to parse
+
+	ExtractMode bool
+	ExtractFile string
+	IsTemp      bool
+	IsCpp       bool
+}
+
+func Do(conf *Config) error {
+	if debugParse {
+		fmt.Fprintln(os.Stderr, "output to file:", conf.Out)
+		if conf.ExtractMode {
+			fmt.Fprintln(os.Stderr, "runExtract: extractFile:", conf.ExtractFile)
+			fmt.Fprintln(os.Stderr, "isTemp:", conf.IsTemp)
+			fmt.Fprintln(os.Stderr, "isCpp:", conf.IsCpp)
+			fmt.Fprintln(os.Stderr, "out:", conf.Out)
+			fmt.Fprintln(os.Stderr, "otherArgs:", conf.Cflags)
+		}
+	}
+
+	converter, err := Parse(&ParseConfig{
+		Conf: conf.Conf,
+	})
+	if err != nil {
+		return err
+	}
+	info := converter.Output()
+	str := info.Print()
+	defer cjson.FreeCStr(unsafe.Pointer(str))
+	defer info.Delete()
+	defer converter.Dispose()
+	outputResult(str, conf.Out)
+	return nil
+}
+
+func outputResult(result *c.Char, outputToFile bool) {
+	if outputToFile {
+		outputFile := llcppg.LLCPPG_SIGFETCH
+		err := os.WriteFile(outputFile, []byte(c.GoString(result)), 0644)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error writing to output file: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Fprintf(os.Stderr, "Results saved to %s\n", outputFile)
+	} else {
+		c.Printf(c.Str("%s"), result)
+	}
+}
 
 type ParseConfig struct {
 	Conf             *llcppg.Config
@@ -22,7 +77,7 @@ type ParseConfig struct {
 	OutputFile       bool
 }
 
-func Do(cfg *ParseConfig) (*Converter, error) {
+func Parse(cfg *ParseConfig) (*Converter, error) {
 	if err := createTempIfNoExist(&cfg.CombinedFile, cfg.Conf.Name+"*.h"); err != nil {
 		return nil, err
 	}
