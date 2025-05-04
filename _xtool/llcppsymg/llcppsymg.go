@@ -24,7 +24,6 @@ import (
 
 	"github.com/goplus/llcppg/_xtool/llcppsymg/args"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/config"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/dbg"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/symg"
 	llcppg "github.com/goplus/llcppg/config"
 )
@@ -51,11 +50,11 @@ func main() {
 	defer conf.Delete()
 
 	if ags.VerboseParseIsMethod {
-		dbg.SetDebugParseIsMethod()
+		symg.SetDebug(symg.DbgParseIsMethod)
 	}
 
 	if ags.Verbose {
-		dbg.SetDebugSymbol()
+		symg.SetDebug(symg.DbgSymbol)
 		if ags.UseStdin {
 			fmt.Println("Config From Stdin")
 		} else {
@@ -77,7 +76,7 @@ func main() {
 	check(err)
 
 	pkgHfiles := config.PkgHfileInfo(conf.Config, []string{})
-	if dbg.GetDebugSymbol() {
+	if ags.Verbose {
 		fmt.Println("interfaces", pkgHfiles.Inters)
 		fmt.Println("implements", pkgHfiles.Impls)
 		fmt.Println("thirdhfile", pkgHfiles.Thirds)
