@@ -15,7 +15,6 @@ import (
 	"github.com/goplus/llcppg/_xtool/llcppsymg/names"
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cmd/gogensig/config"
-	"github.com/goplus/llcppg/cmd/gogensig/dbg"
 	"github.com/goplus/llcppg/cmd/gogensig/errs"
 	llcppg "github.com/goplus/llcppg/config"
 	ctoken "github.com/goplus/llcppg/token"
@@ -153,7 +152,7 @@ func (p *Package) SetCurFile(hfile *HeaderFile) {
 	// for third hfile not register to gogen.Package
 	if curFile.FileType != llcppg.Third {
 		fileName := curFile.ToGoFileName(p.conf.Name)
-		if dbg.GetDebugLog() {
+		if debugLog {
 			log.Printf("SetCurFile: %s File in Current Package: %v\n", fileName, curFile.FileType)
 		}
 		p.p.SetCurFile(fileName, true)
@@ -285,12 +284,12 @@ func pubMethodName(recv types.Type, fnSpec *GoFuncSpec) string {
 func (p *Package) NewFuncDecl(funcDecl *ast.FuncDecl) error {
 	isThird, anony := p.handleType(funcDecl.Name, funcDecl.Loc)
 	if isThird {
-		if dbg.GetDebugLog() {
+		if debugLog {
 			log.Printf("NewFuncDecl: %v is a function of third header file\n", funcDecl.Name)
 		}
 		return nil
 	}
-	if dbg.GetDebugLog() {
+	if debugLog {
 		log.Printf("NewFuncDecl: %v\n", funcDecl.Name)
 	}
 	if anony {
@@ -313,7 +312,7 @@ func (p *Package) NewFuncDecl(funcDecl *ast.FuncDecl) error {
 		return err
 	}
 	if exist {
-		if dbg.GetDebugLog() {
+		if debugLog {
 			log.Printf("NewFuncDecl: %s is processed\n", funcDecl.Name.Name)
 		}
 		return nil
@@ -368,12 +367,12 @@ func (p *Package) Lookup(name string) types.Object {
 func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 	skip, anony := p.handleType(typeDecl.Name, typeDecl.Loc)
 	if skip {
-		if dbg.GetDebugLog() {
+		if debugLog {
 			log.Printf("NewTypeDecl: %s type of third header\n", typeDecl.Name)
 		}
 		return nil
 	}
-	if dbg.GetDebugLog() {
+	if debugLog {
 		log.Printf("NewTypeDecl: %v\n", typeDecl.Name)
 	}
 	if anony {
@@ -391,7 +390,7 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 	// but if the previous processed node is a forward declaration,we need to complete the type
 	_, isIncom := p.incompleteTypes.Lookup(typeDecl.Name.Name)
 	if exist && (isForward || !isIncom) {
-		if dbg.GetDebugLog() {
+		if debugLog {
 			log.Printf("NewTypeDecl: %s is processed\n", typeDecl.Name.Name)
 		}
 		return nil
@@ -475,12 +474,12 @@ func (p *Package) emptyTypeDecl(name string, doc *ast.CommentGroup) *gogen.TypeD
 func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 	skip, _ := p.handleType(typedefDecl.Name, typedefDecl.Loc)
 	if skip {
-		if dbg.GetDebugLog() {
+		if debugLog {
 			log.Printf("NewTypedefDecl: %v is a typedef of third header file\n", typedefDecl.Name)
 		}
 		return nil
 	}
-	if dbg.GetDebugLog() {
+	if debugLog {
 		log.Printf("NewTypedefDecl: %v\n", typedefDecl.Name)
 	}
 
@@ -505,7 +504,7 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 
 	deferInit := p.handleTyperefIncomplete(typedefDecl.Type, typeSpecdecl, typedefDecl.Name.Name)
 	if deferInit {
-		if dbg.GetDebugLog() {
+		if debugLog {
 			log.Printf("NewTypedefDecl: %s defer init\n", name)
 		}
 		return nil
@@ -572,12 +571,12 @@ func (p *Package) NewTypedefs(name string, typ types.Type) *gogen.TypeDecl {
 func (p *Package) NewEnumTypeDecl(enumTypeDecl *ast.EnumTypeDecl) error {
 	skip, _ := p.handleType(enumTypeDecl.Name, enumTypeDecl.Loc)
 	if skip {
-		if dbg.GetDebugLog() {
+		if debugLog {
 			log.Printf("NewEnumTypeDecl: %v is a enum type of system header file\n", enumTypeDecl.Name)
 		}
 		return nil
 	}
-	if dbg.GetDebugLog() {
+	if debugLog {
 		log.Printf("NewEnumTypeDecl: %v\n", enumTypeDecl.Name)
 	}
 	enumType, exist, err := p.createEnumType(enumTypeDecl.Name)
@@ -585,7 +584,7 @@ func (p *Package) NewEnumTypeDecl(enumTypeDecl *ast.EnumTypeDecl) error {
 		return err
 	}
 	if exist {
-		if dbg.GetDebugLog() {
+		if debugLog {
 			log.Printf("NewEnumTypeDecl: %v is processed\n", enumTypeDecl.Name)
 		}
 		return nil
@@ -635,7 +634,7 @@ func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type) er
 			return errs.NewTypeDefinedError(name, item.Name.Name)
 		}
 		if exist {
-			if dbg.GetDebugLog() {
+			if debugLog {
 				log.Printf("NewEnumTypeDecl: %v is processed\n", item.Name.Name)
 			}
 			continue
@@ -669,12 +668,12 @@ func (p *Package) NewMacro(macro *ast.Macro) error {
 			return err
 		}
 		if exist {
-			if dbg.GetDebugLog() {
+			if debugLog {
 				log.Printf("NewMacro: %s is processed\n", macro.Name)
 			}
 			return nil
 		}
-		if dbg.GetDebugLog() {
+		if debugLog {
 			log.Printf("NewMacro: %s = %s\n", name, value)
 		}
 		if str, err := litToString(value); err == nil {
@@ -744,7 +743,7 @@ func (p *Package) WritePkgFiles() error {
 func (p *Package) Write(headerFile string) error {
 	fileName := names.HeaderFileToGo(headerFile)
 	filePath := filepath.Join(p.GetOutputDir(), fileName)
-	if dbg.GetDebugLog() {
+	if debugLog {
 		log.Printf("Write HeaderFile [%s] from  gogen:[%s] to [%s]\n", headerFile, fileName, filePath)
 	}
 	return p.writeToFile(fileName, filePath)
@@ -770,7 +769,7 @@ func (p *Package) WriteLinkFile() (string, error) {
 		return "", fmt.Errorf("failed to set current file: %w", err)
 	}
 	err = p.linkLib(p.conf.CppgConf.Libs)
-	if dbg.GetDebugLog() {
+	if debugLog {
 		log.Printf("Write LinkFile [%s] from  gogen:[%s] to [%s]\n", fileName, fileName, filePath)
 	}
 	if err != nil {

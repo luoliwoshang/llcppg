@@ -11,14 +11,13 @@ import (
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cmd/gogensig/config"
 	"github.com/goplus/llcppg/cmd/gogensig/convert"
-	"github.com/goplus/llcppg/cmd/gogensig/dbg"
 	"github.com/goplus/llcppg/cmd/gogensig/unmarshal"
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/goplus/llgo/xtool/env"
 )
 
 func init() {
-	dbg.SetDebugAll()
+	convert.SetDebug(convert.DbgFlagAll)
 }
 
 func TestFromTestdata(t *testing.T) {
