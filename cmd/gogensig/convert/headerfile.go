@@ -1,7 +1,7 @@
 package convert
 
 import (
-	"github.com/goplus/llcppg/_xtool/llcppsymg/names"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/names"
 	llcppg "github.com/goplus/llcppg/config"
 )
 

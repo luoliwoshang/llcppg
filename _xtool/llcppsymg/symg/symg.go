@@ -10,7 +10,7 @@ import (
 	"unsafe"
 
 	"github.com/goplus/lib/c"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/config/cfgparse"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/config/cfgparse"
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/goplus/llgo/xtool/nm"
 	"github.com/goplus/llpkg/cjson"

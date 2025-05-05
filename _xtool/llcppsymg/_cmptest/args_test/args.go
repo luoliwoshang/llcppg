@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/goplus/llcppg/_xtool/llcppsymg/args"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/args"
 	llcppg "github.com/goplus/llcppg/config"
 )
 

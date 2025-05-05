@@ -13,7 +13,7 @@ import (
 	"unsafe"
 
 	"github.com/goplus/gogen"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/names"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/names"
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cmd/gogensig/errs"
 )

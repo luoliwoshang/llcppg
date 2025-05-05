@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/goplus/llcppg/_xtool/llcppsymg/config"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/names"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/symg"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/config"
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/goplus/llgo/xtool/nm"
 )

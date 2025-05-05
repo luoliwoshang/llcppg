@@ -22,9 +22,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/goplus/llcppg/_xtool/llcppsymg/args"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/config"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/symg"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/args"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/config"
 	llcppg "github.com/goplus/llcppg/config"
 )
 

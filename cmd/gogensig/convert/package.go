@@ -12,7 +12,7 @@ import (
 	goast "go/ast"
 
 	"github.com/goplus/gogen"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/names"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/names"
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cmd/gogensig/config"
 	"github.com/goplus/llcppg/cmd/gogensig/errs"

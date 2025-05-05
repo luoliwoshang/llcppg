@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/goplus/lib/c/clang"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/clangutils"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/names"
+	clangutils "github.com/goplus/llcppg/_xtool/llcppsymg/tool/clang"
 )
 
 type SymbolInfo struct {
