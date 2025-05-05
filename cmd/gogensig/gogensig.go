@@ -22,7 +22,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/args"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/arg"
 	"github.com/goplus/llcppg/cmd/gogensig/config"
 	"github.com/goplus/llcppg/cmd/gogensig/convert"
 	"github.com/goplus/llcppg/cmd/gogensig/unmarshal"
@@ -31,26 +31,26 @@ import (
 
 func main() {
 
-	ags, remainArgs := args.ParseArgs(os.Args[1:], "-", nil)
+	args, remainArgs := arg.ParseArgs(os.Args[1:], "-", nil)
 
-	if ags.Help {
+	if args.Help {
 		printUsage()
 		return
 	}
 
-	if ags.Verbose {
+	if args.Verbose {
 		convert.SetDebug(convert.DbgFlagAll)
 	}
 
 	var cfgFile string
 	var modulePath string
 	for i := 0; i < len(remainArgs); i++ {
-		arg := remainArgs[i]
-		if strings.HasPrefix(arg, "-cfg=") {
-			cfgFile = args.StringArg(arg, llcppg.LLCPPG_CFG)
+		oarg := remainArgs[i]
+		if strings.HasPrefix(oarg, "-cfg=") {
+			cfgFile = arg.StringArg(oarg, llcppg.LLCPPG_CFG)
 		}
-		if strings.HasPrefix(arg, "-mod=") {
-			modulePath = args.StringArg(arg, "")
+		if strings.HasPrefix(oarg, "-mod=") {
+			modulePath = arg.StringArg(oarg, "")
 		}
 	}
 	if cfgFile == "" {
@@ -65,7 +65,7 @@ func main() {
 	err = prepareEnv(wd, conf.Name, conf.Deps, modulePath)
 	check(err)
 
-	data, err := config.ReadSigfetchFile(filepath.Join(wd, ags.CfgFile))
+	data, err := config.ReadSigfetchFile(filepath.Join(wd, args.CfgFile))
 	check(err)
 
 	convertPkg, err := unmarshal.Pkg(data)
