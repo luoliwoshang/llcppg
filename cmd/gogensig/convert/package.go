@@ -12,7 +12,7 @@ import (
 	goast "go/ast"
 
 	"github.com/goplus/gogen"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/names"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/name"
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cmd/gogensig/config"
 	"github.com/goplus/llcppg/cmd/gogensig/errs"
@@ -49,8 +49,8 @@ type Package struct {
 	// type definitions are available.
 	incompleteTypes *IncompleteTypes
 
-	nameMapper *names.NameMapper // handles name mapping and uniqueness
-	symbols    *ProcessSymbol    // record the processed node
+	nameMapper *name.NameMapper // handles name mapping and uniqueness
+	symbols    *ProcessSymbol   // record the processed node
 }
 
 type PackageConfig struct {
@@ -74,7 +74,7 @@ func NewPackage(config *PackageConfig) *Package {
 		conf:            config,
 		incompleteTypes: NewIncompleteTypes(),
 		locMap:          NewThirdTypeLoc(),
-		nameMapper:      names.NewNameMapper(),
+		nameMapper:      name.NewNameMapper(),
 		symbols:         NewProcessSymbol(),
 	}
 
@@ -741,7 +741,7 @@ func (p *Package) WritePkgFiles() error {
 //
 // Files that are already processed in dependent packages will not be output.
 func (p *Package) Write(headerFile string) error {
-	fileName := names.HeaderFileToGo(headerFile)
+	fileName := name.HeaderFileToGo(headerFile)
 	filePath := filepath.Join(p.GetOutputDir(), fileName)
 	if debugLog {
 		log.Printf("Write HeaderFile [%s] from  gogen:[%s] to [%s]\n", headerFile, fileName, filePath)
@@ -820,7 +820,7 @@ func (p *Package) WritePubFile() error {
 	return config.WritePubFile(filepath.Join(p.GetOutputDir(), llcppg.LLCPPG_PUB), p.Pubs)
 }
 
-func (p *Package) RegisterNode(node Node, nameMethod names.NameMethod) (pubName string, changed bool, exist bool, err error) {
+func (p *Package) RegisterNode(node Node, nameMethod name.NameMethod) (pubName string, changed bool, exist bool, err error) {
 	pubName, changed = p.nameMapper.GetUniqueGoName(node.name, nameMethod)
 	exist = p.symbols.Lookup(node)
 	if exist {
@@ -834,12 +834,12 @@ func (p *Package) RegisterNode(node Node, nameMethod names.NameMethod) (pubName 
 	return pubName, changed, exist, nil
 }
 
-func (p *Package) declName(name string) string {
-	return names.PubName(names.RemovePrefixedName(name, p.trimPrefixes()))
+func (p *Package) declName(cname string) string {
+	return name.PubName(name.RemovePrefixedName(cname, p.trimPrefixes()))
 }
 
-func (p *Package) macroName(name string) string {
-	return names.ExportName(names.RemovePrefixedName(name, p.trimPrefixes()))
+func (p *Package) macroName(cname string) string {
+	return name.ExportName(name.RemovePrefixedName(cname, p.trimPrefixes()))
 }
 
 func (p *Package) trimPrefixes() []string {

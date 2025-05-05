@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/goplus/llcppg/_xtool/llcppsymg/names"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/symg"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/name"
 )
 
 func main() {
@@ -35,7 +35,7 @@ func TestToGoName() {
 	}
 
 	for _, tc := range testCases {
-		result := names.GoName(tc.input, tc.processor.Prefixes, true)
+		result := name.GoName(tc.input, tc.processor.Prefixes, true)
 		fmt.Printf("Before: %s After: %s\n", tc.input, result)
 	}
 	fmt.Println()
@@ -44,22 +44,22 @@ func TestToGoName() {
 func TestNameMapper() {
 	fmt.Println("=== Test NameMapper ===")
 
-	toCamel := func(trimprefix []string) names.NameMethod {
-		return func(name string) string {
-			return names.PubName(names.RemovePrefixedName(name, trimprefix))
+	toCamel := func(trimprefix []string) name.NameMethod {
+		return func(cname string) string {
+			return name.PubName(name.RemovePrefixedName(cname, trimprefix))
 		}
 	}
-	toExport := func(trimprefix []string) names.NameMethod {
-		return func(name string) string {
-			return names.ExportName(names.RemovePrefixedName(name, trimprefix))
+	toExport := func(trimprefix []string) name.NameMethod {
+		return func(cname string) string {
+			return name.ExportName(name.RemovePrefixedName(cname, trimprefix))
 		}
 	}
 
-	mapper := names.NewNameMapper()
+	mapper := name.NewNameMapper()
 	testCases := []struct {
 		name         string
 		trimPrefixes []string
-		nameMethod   func(trimprefix []string) names.NameMethod
+		nameMethod   func(trimprefix []string) name.NameMethod
 		expected     string
 		expectChange bool
 	}{
@@ -108,7 +108,7 @@ func TestPubName() {
 	}
 
 	for _, tc := range testCases {
-		result := names.PubName(tc.input)
+		result := name.PubName(tc.input)
 		if result != tc.expected {
 			fmt.Printf("Input: %s, Expected: %s, Got: %s\n", tc.input, tc.expected, result)
 		} else {
@@ -141,7 +141,7 @@ func TestExportName() {
 	}
 
 	for _, tc := range testCases {
-		result := names.ExportName(tc.input)
+		result := name.ExportName(tc.input)
 		if result != tc.expected {
 			fmt.Printf("Input: %s, Expected: %s, Got: %s\n", tc.input, tc.expected, result)
 		} else {
@@ -163,7 +163,7 @@ func TestHeaderFileToGo() {
 	}
 
 	for _, tc := range testCases {
-		result := names.HeaderFileToGo(tc.input)
+		result := name.HeaderFileToGo(tc.input)
 		if result != tc.expected {
 			fmt.Printf("Input: %s, Expected: %s, Got: %s\n", tc.input, tc.expected, result)
 		} else {
