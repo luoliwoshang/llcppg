@@ -18,7 +18,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/goplus/llcppg/_xtool/llcppsymg/symg"
@@ -35,16 +34,7 @@ func main() {
 		return
 	}
 
-	var data []byte
-	var err error
-	if ags.UseStdin {
-		data, err = io.ReadAll(os.Stdin)
-	} else {
-		data, err = os.ReadFile(ags.CfgFile)
-	}
-
-	check(err)
-	conf, err := config.GetConf(data)
+	conf, err := config.GetConf(ags.UseStdin, ags.CfgFile)
 	check(err)
 	defer conf.Delete()
 

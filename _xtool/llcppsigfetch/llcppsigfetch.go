@@ -18,7 +18,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -91,7 +90,7 @@ func main() {
 		}
 		parseConfig.Conf = conf
 	} else {
-		conf, err := getConfig(ags.UseStdin, ags.CfgFile)
+		conf, err := config.GetConf(ags.UseStdin, ags.CfgFile)
 		if err != nil {
 			check(err)
 		}
@@ -101,23 +100,6 @@ func main() {
 
 	err := parse.Do(parseConfig)
 	check(err)
-}
-
-func getConfig(useStdin bool, cfgFile string) (conf config.Conf, err error) {
-	var data []byte
-	if useStdin {
-		data, err = io.ReadAll(os.Stdin)
-	} else {
-		data, err = os.ReadFile(cfgFile)
-	}
-	if err != nil {
-		return
-	}
-	conf, err = config.GetConf(data)
-	if err != nil {
-		return
-	}
-	return conf, nil
 }
 
 func getExtractConfig(extractFile string, isTemp bool, isCpp bool, otherArgs []string) (conf *llcppg.Config, err error) {

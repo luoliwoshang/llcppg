@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	TestGetConf()
+	TestGetConfByByte()
 	TestParseLibs()
 	TestGenDylibPaths()
 	TestParseCFlags()
@@ -21,7 +21,7 @@ func main() {
 	TestPkgHfileInfo()
 }
 
-func TestGetConf() {
+func TestGetConfByByte() {
 	testCases := []struct {
 		name  string
 		input string
@@ -59,7 +59,7 @@ func TestGetConf() {
 
 	for _, tc := range testCases {
 		fmt.Printf("=== Test case: %s ===\n", tc.name)
-		result, err := config.GetConf([]byte(tc.input))
+		result, err := config.GetConfByByte([]byte(tc.input))
 
 		if err != nil {
 			fmt.Println("Error:", err.Error())

@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,7 +21,24 @@ type Conf struct {
 	*llcppg.Config
 }
 
-func GetConf(data []byte) (Conf, error) {
+func GetConf(useStdin bool, cfgFile string) (conf Conf, err error) {
+	var data []byte
+	if useStdin {
+		data, err = io.ReadAll(os.Stdin)
+	} else {
+		data, err = os.ReadFile(cfgFile)
+	}
+	if err != nil {
+		return
+	}
+	conf, err = GetConfByByte(data)
+	if err != nil {
+		return
+	}
+	return conf, nil
+}
+
+func GetConfByByte(data []byte) (Conf, error) {
 	parsedConf := ParseBytes(data)
 	if parsedConf == nil {
 		return Conf{}, errors.New("failed to parse config")

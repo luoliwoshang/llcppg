@@ -371,7 +371,7 @@ func TestGen() {
 		if err != nil {
 			fmt.Println("Read Cfg File Error:", err)
 		}
-		cfg, err := config.GetConf(cfgdata)
+		cfg, err := config.GetConfByByte(cfgdata)
 		if err != nil {
 			fmt.Println("Get Conf Error:", err)
 		}
