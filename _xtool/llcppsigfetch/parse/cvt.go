@@ -9,7 +9,6 @@ import (
 
 	"github.com/goplus/lib/c"
 	"github.com/goplus/lib/c/clang"
-	"github.com/goplus/llcppg/_xtool/llcppsigfetch/dbg"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/clangutils"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/config"
 	"github.com/goplus/llcppg/ast"
@@ -17,6 +16,19 @@ import (
 	"github.com/goplus/llcppg/token"
 	"github.com/goplus/llpkg/cjson"
 )
+
+type dbgFlags = int
+
+var debugParse bool
+
+const (
+	DbgParse   dbgFlags = 1 << iota
+	DbgFlagAll          = DbgParse
+)
+
+func SetDebug(dbgFlags dbgFlags) {
+	debugParse = (dbgFlags & DbgParse) != 0
+}
 
 type Converter struct {
 	Pkg   *llcppg.Pkg
@@ -39,7 +51,7 @@ type Config struct {
 }
 
 func NewConverter(config *Config) (*Converter, error) {
-	if dbg.GetDebugParse() {
+	if debugParse {
 		fmt.Fprintln(os.Stderr, "NewConverter: config")
 		fmt.Fprintln(os.Stderr, "config.File", config.Cfg.File)
 		fmt.Fprintln(os.Stderr, "config.Args", config.Cfg.Args)
@@ -135,12 +147,12 @@ func (ct *Converter) decIndent() {
 }
 
 func (ct *Converter) logf(format string, args ...interface{}) {
-	if dbg.GetDebugParse() {
+	if debugParse {
 		fmt.Fprintf(os.Stderr, ct.logBase()+format, args...)
 	}
 }
 func (ct *Converter) logln(args ...interface{}) {
-	if dbg.GetDebugParse() {
+	if debugParse {
 		if len(args) > 0 {
 			firstArg := fmt.Sprintf("%s%v", ct.logBase(), args[0])
 			fmt.Fprintln(os.Stderr, append([]interface{}{firstArg}, args[1:]...)...)

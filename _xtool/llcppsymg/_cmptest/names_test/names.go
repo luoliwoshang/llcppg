@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/goplus/llcppg/_xtool/llcppsymg/names"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/parse"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/symg"
 )
 
 func main() {
@@ -16,12 +16,12 @@ func main() {
 
 func TestToGoName() {
 	fmt.Println("=== Test ToGoName ===")
-	process1 := parse.NewSymbolProcessor([]string{}, []string{"lua_", "luaL_"}, nil)
-	process2 := parse.NewSymbolProcessor([]string{}, []string{"sqlite3_", "sqlite3_"}, nil)
-	process3 := parse.NewSymbolProcessor([]string{}, []string{"INI"}, nil)
+	process1 := symg.NewSymbolProcessor([]string{}, []string{"lua_", "luaL_"}, nil)
+	process2 := symg.NewSymbolProcessor([]string{}, []string{"sqlite3_", "sqlite3_"}, nil)
+	process3 := symg.NewSymbolProcessor([]string{}, []string{"INI"}, nil)
 
 	testCases := []struct {
-		processor *parse.SymbolProcessor
+		processor *symg.SymbolProcessor
 		input     string
 	}{
 		{process1, "lua_closethread"},
