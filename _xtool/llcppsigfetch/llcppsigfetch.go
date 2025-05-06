@@ -26,7 +26,7 @@ import (
 
 	"github.com/goplus/lib/c"
 	"github.com/goplus/llcppg/_xtool/llcppsigfetch/parse"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/arg"
+	args "github.com/goplus/llcppg/_xtool/llcppsymg/tool/arg"
 	clangutils "github.com/goplus/llcppg/_xtool/llcppsymg/tool/clang"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/config"
 	llcppg "github.com/goplus/llcppg/config"
@@ -34,15 +34,15 @@ import (
 )
 
 func main() {
-	args, remainArgs := arg.ParseArgs(os.Args[1:], llcppg.LLCPPG_CFG, map[string]bool{
+	ags, remainArgs := args.ParseArgs(os.Args[1:], llcppg.LLCPPG_CFG, map[string]bool{
 		"--extract": true,
 	})
 
-	if args.Help {
+	if ags.Help {
 		printUsage()
 		return
 	}
-	if args.Verbose {
+	if ags.Verbose {
 		parse.SetDebug(parse.DbgFlagAll)
 	}
 	extract := false
@@ -54,9 +54,9 @@ func main() {
 	otherArgs := []string{}
 
 	for i := 0; i < len(remainArgs); i++ {
-		oarg := remainArgs[i]
+		arg := remainArgs[i]
 		switch {
-		case oarg == "--extract":
+		case arg == "--extract":
 			extract = true
 			if i+1 < len(remainArgs) && !strings.HasPrefix(remainArgs[i+1], "-") {
 				extractFile = remainArgs[i+1]
@@ -66,39 +66,39 @@ func main() {
 				printUsage()
 				os.Exit(1)
 			}
-		case strings.HasPrefix(oarg, "-out="):
-			out = arg.BoolArg(oarg, false)
-		case strings.HasPrefix(oarg, "-temp="):
-			isTemp = arg.BoolArg(oarg, false)
-		case strings.HasPrefix(oarg, "-cpp="):
-			isCpp = arg.BoolArg(oarg, true)
-		case strings.HasPrefix(oarg, "-ClangResourceDir="):
+		case strings.HasPrefix(arg, "-out="):
+			out = args.BoolArg(arg, false)
+		case strings.HasPrefix(arg, "-temp="):
+			isTemp = args.BoolArg(arg, false)
+		case strings.HasPrefix(arg, "-cpp="):
+			isCpp = args.BoolArg(arg, true)
+		case strings.HasPrefix(arg, "-ClangResourceDir="):
 			// temp to avoid call clang  in llcppsigfetch,will cause hang
-			parse.ClangResourceDir = arg.StringArg(oarg, "")
-		case strings.HasPrefix(oarg, "-ClangSearchPath="):
+			parse.ClangResourceDir = args.StringArg(arg, "")
+		case strings.HasPrefix(arg, "-ClangSearchPath="):
 			// temp to avoid call clang  in llcppsigfetch,will cause hang
-			parse.ClangSearchPath = strings.Split(arg.StringArg(oarg, ""), ",")
+			parse.ClangSearchPath = strings.Split(args.StringArg(arg, ""), ",")
 		default:
-			otherArgs = append(otherArgs, oarg)
+			otherArgs = append(otherArgs, arg)
 		}
 	}
 
 	if extract {
-		if args.Verbose {
+		if ags.Verbose {
 			fmt.Fprintln(os.Stderr, "runExtract: extractFile:", extractFile)
 			fmt.Fprintln(os.Stderr, "isTemp:", isTemp)
 			fmt.Fprintln(os.Stderr, "isCpp:", isCpp)
 			fmt.Fprintln(os.Stderr, "out:", out)
 			fmt.Fprintln(os.Stderr, "otherArgs:", otherArgs)
 		}
-		runExtract(extractFile, isTemp, isCpp, out, otherArgs, args.Verbose)
+		runExtract(extractFile, isTemp, isCpp, out, otherArgs, ags.Verbose)
 	} else {
-		if args.Verbose {
-			fmt.Fprintln(os.Stderr, "runFromConfig: config file:", args.CfgFile)
-			fmt.Fprintln(os.Stderr, "use stdin:", args.UseStdin)
+		if ags.Verbose {
+			fmt.Fprintln(os.Stderr, "runFromConfig: config file:", ags.CfgFile)
+			fmt.Fprintln(os.Stderr, "use stdin:", ags.UseStdin)
 			fmt.Fprintln(os.Stderr, "output to file:", out)
 		}
-		runFromConfig(args.CfgFile, args.UseStdin, out, args.Verbose)
+		runFromConfig(ags.CfgFile, ags.UseStdin, out, ags.Verbose)
 	}
 
 }
