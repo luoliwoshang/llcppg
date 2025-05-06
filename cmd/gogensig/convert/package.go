@@ -872,7 +872,7 @@ func (p *Package) definedName(name string) (string, bool) {
 //
 // Returns:
 //   - Transformed identifier name
-func (p *Package) transformName(name string, transform func(string) string) string {
+func (p *Package) transformName(name string, transform NameMethod) string {
 	if definedName, ok := p.definedName(name); ok {
 		return definedName
 	}
