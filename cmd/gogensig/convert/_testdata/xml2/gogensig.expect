@@ -9,41 +9,41 @@ import (
 type ElementType c.Int
 
 const (
-	ELEMENTNODE      ElementType = 1
-	ATTRIBUTENODE    ElementType = 2
-	TEXTNODE         ElementType = 3
-	CDATASECTIONNODE ElementType = 4
-	ENTITYREFNODE    ElementType = 5
-	ENTITYNODE       ElementType = 6
-	PINODE           ElementType = 7
-	COMMENTNODE      ElementType = 8
-	DOCUMENTNODE     ElementType = 9
-	DOCUMENTTYPENODE ElementType = 10
-	DOCUMENTFRAGNODE ElementType = 11
-	NOTATIONNODE     ElementType = 12
-	HTMLDOCUMENTNODE ElementType = 13
-	DTDNODE          ElementType = 14
-	ELEMENTDECL      ElementType = 15
-	ATTRIBUTEDECL    ElementType = 16
-	ENTITYDECL       ElementType = 17
-	NAMESPACEDECL    ElementType = 18
-	XINCLUDESTART    ElementType = 19
-	XINCLUDEEND      ElementType = 20
+	ELEMENT_NODE       ElementType = 1
+	ATTRIBUTE_NODE     ElementType = 2
+	TEXT_NODE          ElementType = 3
+	CDATA_SECTION_NODE ElementType = 4
+	ENTITY_REF_NODE    ElementType = 5
+	ENTITY_NODE        ElementType = 6
+	PI_NODE            ElementType = 7
+	COMMENT_NODE       ElementType = 8
+	DOCUMENT_NODE      ElementType = 9
+	DOCUMENT_TYPE_NODE ElementType = 10
+	DOCUMENT_FRAG_NODE ElementType = 11
+	NOTATION_NODE      ElementType = 12
+	HTML_DOCUMENT_NODE ElementType = 13
+	DTD_NODE           ElementType = 14
+	ELEMENT_DECL       ElementType = 15
+	ATTRIBUTE_DECL     ElementType = 16
+	ENTITY_DECL        ElementType = 17
+	NAMESPACE_DECL     ElementType = 18
+	XINCLUDE_START     ElementType = 19
+	XINCLUDE_END       ElementType = 20
 )
 
 type AttributeType c.Int
 
 const (
-	ATTRIBUTECDATA       AttributeType = 1
-	ATTRIBUTEID          AttributeType = 2
-	ATTRIBUTEIDREF       AttributeType = 3
-	ATTRIBUTEIDREFS      AttributeType = 4
-	ATTRIBUTEENTITY      AttributeType = 5
-	ATTRIBUTEENTITIES    AttributeType = 6
-	ATTRIBUTENMTOKEN     AttributeType = 7
-	ATTRIBUTENMTOKENS    AttributeType = 8
-	ATTRIBUTEENUMERATION AttributeType = 9
-	ATTRIBUTENOTATION    AttributeType = 10
+	ATTRIBUTE_CDATA       AttributeType = 1
+	ATTRIBUTE_ID          AttributeType = 2
+	ATTRIBUTE_IDREF       AttributeType = 3
+	ATTRIBUTE_IDREFS      AttributeType = 4
+	ATTRIBUTE_ENTITY      AttributeType = 5
+	ATTRIBUTE_ENTITIES    AttributeType = 6
+	ATTRIBUTE_NMTOKEN     AttributeType = 7
+	ATTRIBUTE_NMTOKENS    AttributeType = 8
+	ATTRIBUTE_ENUMERATION AttributeType = 9
+	ATTRIBUTE_NOTATION    AttributeType = 10
 )
 
 type NsType ElementType

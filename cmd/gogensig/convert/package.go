@@ -659,7 +659,7 @@ func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type) er
 		// The 'changed' parameter is intentionally ignored here because enum items are used as constant values, not type identifiers.
 		// In C/C++ code, there are no type references to enum items, so there's no need to establish a cname->pubName mapping in the scope.
 		// This is similar to how macro constants (Macro) are handled, as both are value-level symbols rather than type-level.
-		name, _, exist, err := p.RegisterNode(Node{name: item.Name.Name, kind: EnumItem}, p.declName, p.lookupPub)
+		name, _, exist, err := p.RegisterNode(Node{name: item.Name.Name, kind: EnumItem}, p.constName, p.lookupPub)
 		if err != nil {
 			return err
 		}
@@ -688,7 +688,7 @@ func (p *Package) NewMacro(macro *ast.Macro) error {
 		value := macro.Tokens[1].Lit
 		defs := p.NewConstGroup()
 		node := Node{name: macro.Name, kind: Macro}
-		name, _, exist, err := p.RegisterNode(node, p.macroName, p.lookupPub)
+		name, _, exist, err := p.RegisterNode(node, p.constName, p.lookupPub)
 		if err != nil {
 			return fmt.Errorf("NewMacro: %s fail: %w", macro.Name, err)
 		}
@@ -865,7 +865,7 @@ func (p *Package) RegisterNode(node Node, nameMethod NameMethod, lookup func(nam
 //
 // Parameters:
 //   - node: The node containing the original name to be transformed
-//   - nameMethod: Function used to transform the original name (e.g., declName, macroName)
+//   - nameMethod: Function used to transform the original name (e.g., declName, constName)
 //
 // Returns:
 //   - pubName: The generated unique public name
@@ -910,7 +910,7 @@ func (p *Package) declName(cname string) string {
 	return p.transformName(cname, name.PubName)
 }
 
-func (p *Package) macroName(cname string) string {
+func (p *Package) constName(cname string) string {
 	return p.transformName(cname, name.ExportName)
 }
 

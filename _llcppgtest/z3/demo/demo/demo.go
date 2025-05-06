@@ -21,7 +21,7 @@ func main() {
 
 	z3.SolverAssert(ctx, solver, constraint)
 
-	if z3.SolverCheck(ctx, solver) == z3.LTRUE {
+	if z3.SolverCheck(ctx, solver) == z3.L_TRUE {
 		model := z3.SolverGetModel(ctx, solver)
 		z3.ModelIncRef(ctx, model)
 

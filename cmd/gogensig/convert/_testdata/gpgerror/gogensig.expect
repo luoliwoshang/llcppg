@@ -37,10 +37,10 @@ func (recv_ ErrorT) Strsource() *c.Char {
 type CodeT c.Int
 
 const (
-	NOERROR       CodeT = 0
-	GENERAL       CodeT = 1
-	UNKNOWNPACKET CodeT = 2
-	CODEDIM       CodeT = 65536
+	NO_ERROR       CodeT = 0
+	GENERAL        CodeT = 1
+	UNKNOWN_PACKET CodeT = 2
+	CODE_DIM       CodeT = 65536
 )
 
 type GpgrtLockT struct {
