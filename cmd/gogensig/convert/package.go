@@ -365,7 +365,7 @@ func (p *Package) lookupOrigin(name string, pubName string) types.Object {
 	return nil
 }
 
-func (p *Package) lookupPub(name string, pubName string) types.Object {
+func (p *Package) lookupPub(_ string, pubName string) types.Object {
 	return p.Lookup(pubName)
 }
 
