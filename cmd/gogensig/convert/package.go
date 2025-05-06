@@ -355,6 +355,20 @@ func (p *Package) Lookup(name string) types.Object {
 	return gogen.Lookup(p.p.Types.Scope(), name)
 }
 
+func (p *Package) lookupOrigin(name string, pubName string) types.Object {
+	if obj := p.Lookup(name); obj != nil {
+		return obj
+	}
+	if name != pubName {
+		return p.Lookup(pubName)
+	}
+	return nil
+}
+
+func (p *Package) lookupPub(name string, pubName string) types.Object {
+	return p.Lookup(pubName)
+}
+
 // NewTypeDecl converts C/C++ type declarations to Go.
 // Besides regular type declarations, it also supports:
 // - Forward declarations: Pre-registers incomplete types for later definition
@@ -376,7 +390,7 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 
 	cname := typeDecl.Name.Name
 	isForward := p.cvt.inComplete(typeDecl.Type)
-	name, changed, exist, err := p.RegisterNode(Node{name: cname, kind: TypeDecl}, p.declName)
+	name, changed, exist, err := p.RegisterNode(Node{name: cname, kind: TypeDecl}, p.declName, p.lookupOrigin)
 	if err != nil {
 		return err
 	}
@@ -448,7 +462,7 @@ func (p *Package) handleImplicitForwardDecl(name string) *gogen.TypeDecl {
 	// Using TypeDecl as the node kind here because forward declarations in C/C++ typically
 	// only occur with struct, class, and enum type declarations, not with typedefs or other declarations.
 	// The TypeDecl node kind ensures these forward declarations are properly tracked and later completed.
-	pubName, _, _, _ := p.RegisterNode(Node{name: name, kind: TypeDecl}, p.declName)
+	pubName, _, _, _ := p.RegisterNode(Node{name: name, kind: TypeDecl}, p.declName, p.lookupOrigin)
 	decl := p.emptyTypeDecl(pubName, nil)
 	inc := &Incomplete{
 		cname: name,
@@ -481,7 +495,7 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 	}
 
 	node := Node{name: typedefDecl.Name.Name, kind: TypedefDecl}
-	name, changed, exist, err := p.RegisterNode(node, p.declName)
+	name, changed, exist, err := p.RegisterNode(node, p.declName, p.lookupOrigin)
 	if err != nil {
 		return err
 	}
@@ -603,7 +617,7 @@ func (p *Package) createEnumType(enumName *ast.Ident) (types.Type, bool, error) 
 	var t *gogen.TypeDecl
 	if enumName != nil {
 		node := Node{name: enumName.Name, kind: EnumTypeDecl}
-		name, changed, exist, err = p.RegisterNode(node, p.declName)
+		name, changed, exist, err = p.RegisterNode(node, p.declName, p.lookupOrigin)
 		if err != nil {
 			return nil, false, errs.NewTypeDefinedError(name, enumName.Name)
 		}
@@ -626,7 +640,7 @@ func (p *Package) createEnumType(enumName *ast.Ident) (types.Type, bool, error) 
 func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type) error {
 	defs := p.NewConstGroup()
 	for _, item := range items {
-		name, changed, exist, err := p.RegisterNode(Node{name: item.Name.Name, kind: EnumItem}, p.declName)
+		name, _, exist, err := p.RegisterNode(Node{name: item.Name.Name, kind: EnumItem}, p.declName, p.lookupPub)
 		if err != nil {
 			return errs.NewTypeDefinedError(name, item.Name.Name)
 		}
@@ -641,11 +655,6 @@ func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type) er
 			log.Panicf("createEnumItems:fail to convert %T to int:%s", item.Value, err.Error())
 		}
 		defs.New(val, enumType, name)
-		if changed {
-			if obj := p.Lookup(name); obj != nil {
-				substObj(p.p.Types, p.p.Types.Scope(), item.Name.Name, obj)
-			}
-		}
 	}
 	return nil
 }
@@ -660,7 +669,7 @@ func (p *Package) NewMacro(macro *ast.Macro) error {
 		value := macro.Tokens[1].Lit
 		defs := p.NewConstGroup()
 		node := Node{name: macro.Name, kind: Macro}
-		name, _, exist, err := p.RegisterNode(node, p.macroName)
+		name, _, exist, err := p.RegisterNode(node, p.macroName, p.lookupPub)
 		if err != nil {
 			return err
 		}
@@ -819,13 +828,13 @@ func (p *Package) WritePubFile() error {
 
 type NameMethod func(name string) string
 
-func (p *Package) RegisterNode(node Node, nameMethod NameMethod) (pubName string, changed bool, exist bool, err error) {
+func (p *Package) RegisterNode(node Node, nameMethod NameMethod, lookup func(name string, pubName string) types.Object) (pubName string, changed bool, exist bool, err error) {
 	pubName, exist = p.symbols.Lookup(node)
 	if exist {
 		return pubName, pubName != node.name, exist, nil
 	}
 	pubName, changed = p.GetUniqueName(node, nameMethod)
-	obj := p.Lookup(node.name)
+	obj := lookup(node.name, pubName)
 	if obj != nil {
 		return "", false, exist, errs.NewTypeDefinedError(pubName, node.name)
 	}

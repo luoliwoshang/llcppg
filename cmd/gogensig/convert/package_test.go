@@ -1279,42 +1279,6 @@ func TestRedef(t *testing.T) {
 		t.Fatal("unexpect redefine err")
 	}
 
-	err = pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
-		Name: &ast.Ident{Name: "Foo"},
-		Type: &ast.EnumType{},
-	})
-
-	if err == nil {
-		t.Fatal("Expect a redefine err")
-	}
-
-	err = pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
-		Name: nil,
-		Type: &ast.EnumType{
-			Items: []*ast.EnumItem{
-				{Name: &ast.Ident{Name: "Foo"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
-			},
-		},
-	})
-
-	if err == nil {
-		t.Fatal("Expect a redefine err")
-	}
-
-	err = pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
-		Name: &ast.Ident{Name: "EnumFoo"},
-		Type: &ast.EnumType{
-			Items: []*ast.EnumItem{
-				{Name: &ast.Ident{Name: "ItemBar"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
-				{Name: &ast.Ident{Name: "ItemBar"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "1"}},
-			},
-		},
-	})
-
-	if err != nil {
-		t.Fatal("unexpect err")
-	}
-
 	macro := &ast.Macro{
 		Loc:    &ast.Location{File: tempFile.File},
 		Name:   "MACRO_FOO",
@@ -1350,12 +1314,63 @@ type Foo struct {
 //go:linkname Bar C.Bar
 func Bar()
 
-type EnumFoo c.Int
-
-const ItemBar EnumFoo = 0
 const MACRO_FOO = 1
 `
 	comparePackageOutput(t, pkg, expect)
+}
+
+func TestRedefEnum(t *testing.T) {
+	typDecl := &ast.TypeDecl{
+		Name: &ast.Ident{Name: "Foo"},
+		Type: &ast.RecordType{
+			Tag: ast.Struct,
+			Fields: &ast.FieldList{
+				List: []*ast.Field{
+					{Type: &ast.BuiltinType{Kind: ast.Int}},
+				},
+			},
+		},
+	}
+	t.Run("redefine enum type", func(t *testing.T) {
+		pkg := createTestPkg(t, &convert.PackageConfig{})
+		pkg.SetCurFile(tempFile)
+		pkg.NewTypeDecl(typDecl)
+		err := pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
+			Name: &ast.Ident{Name: "Foo"},
+			Type: &ast.EnumType{},
+		})
+		if err == nil {
+			t.Fatal("expect a redefine err")
+		}
+	})
+
+	t.Run("redefine enum item", func(t *testing.T) {
+		pkg := createTestPkg(t, &convert.PackageConfig{})
+		pkg.SetCurFile(tempFile)
+		pkg.NewTypeDecl(typDecl)
+		pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
+			Name: nil,
+			Type: &ast.EnumType{
+				Items: []*ast.EnumItem{
+					{Name: &ast.Ident{Name: "Foo"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
+				},
+			},
+		})
+		comparePackageOutput(t, pkg, `
+package testpkg
+
+import (
+	"github.com/goplus/lib/c"
+	_ "unsafe"
+)
+
+type Foo struct {
+	 c.Int
+}
+
+const Foo__1 c.Int = 0
+`)
+	})
 }
 
 func TestRedefineFunc(t *testing.T) {
