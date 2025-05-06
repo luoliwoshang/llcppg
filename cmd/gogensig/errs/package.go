@@ -21,19 +21,3 @@ func (p *ModNotFoundError) Error() string {
 func NewModNotFoundError() *ModNotFoundError {
 	return &ModNotFoundError{}
 }
-
-type TypeDefinedError struct {
-	Name       string
-	OriginName string
-}
-
-func (p *TypeDefinedError) Error() string {
-	return "type " + p.Name + " already defined,original name is " + p.OriginName
-}
-
-func NewTypeDefinedError(name, originName string) *TypeDefinedError {
-	return &TypeDefinedError{
-		Name:       name,
-		OriginName: originName,
-	}
-}

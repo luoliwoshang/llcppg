@@ -92,28 +92,36 @@ func TestRedefPubName(t *testing.T) {
 	// mock a function name which is not register in processsymbol
 	pkg.p.NewFuncDecl(token.NoPos, "Foo", types.NewSignatureType(nil, nil, nil, types.NewTuple(), types.NewTuple(), false))
 	pkg.p.NewFuncDecl(token.NoPos, "Bar", types.NewSignatureType(nil, nil, nil, types.NewTuple(), types.NewTuple(), false))
-	err := pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
-		DeclBase: ast.DeclBase{
-			Loc: &ast.Location{File: "temp.h"},
-		},
-		Name: nil,
-		Type: &ast.EnumType{
-			Items: []*ast.EnumItem{
-				{Name: &ast.Ident{Name: "Foo"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
+	t.Run("enum type redefine pubname", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Fatal("Expected panic, got nil")
+			}
+		}()
+		pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
+			DeclBase: ast.DeclBase{
+				Loc: &ast.Location{File: "temp.h"},
 			},
-		},
+			Name: nil,
+			Type: &ast.EnumType{
+				Items: []*ast.EnumItem{
+					{Name: &ast.Ident{Name: "Foo"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
+				},
+			},
+		})
 	})
-	if err == nil {
-		t.Fatal("Expect a redefine err")
-	}
-	err = pkg.NewMacro(&ast.Macro{
-		Loc:    &ast.Location{File: "temp.h"},
-		Name:   "Bar",
-		Tokens: []*ast.Token{{Token: ctoken.IDENT, Lit: "Bar"}, {Token: ctoken.LITERAL, Lit: "1"}},
+	t.Run("macro redefine pubname", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Fatal("Expected panic, got nil")
+			}
+		}()
+		pkg.NewMacro(&ast.Macro{
+			Loc:    &ast.Location{File: "temp.h"},
+			Name:   "Bar",
+			Tokens: []*ast.Token{{Token: ctoken.IDENT, Lit: "Bar"}, {Token: ctoken.LITERAL, Lit: "1"}},
+		})
 	})
-	if err == nil {
-		t.Fatal("Expect a redefine err")
-	}
 }
 
 func TestPubMethodName(t *testing.T) {

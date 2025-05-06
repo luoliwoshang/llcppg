@@ -242,6 +242,22 @@ func (p *Package) handleFuncDecl(fnSpec *GoFuncSpec, sig *types.Signature, funcD
 	return nil
 }
 
+type TypeDefinedError struct {
+	Name       string
+	OriginName string
+}
+
+func (p *TypeDefinedError) Error() string {
+	return "type " + p.Name + " already defined,original name is " + p.OriginName
+}
+
+func NewTypeDefinedError(name, originName string) *TypeDefinedError {
+	return &TypeDefinedError{
+		Name:       name,
+		OriginName: originName,
+	}
+}
+
 func getNamedType(recvType types.Type) *types.Named {
 	switch t := recvType.(type) {
 	case *types.Named:
@@ -349,20 +365,6 @@ func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (rec
 	// register the function
 	p.symbols.Register(node, fnSpec.FnName)
 	return
-}
-
-func (p *Package) lookupOrigin(name string, pubName string) types.Object {
-	if name == pubName {
-		return p.Lookup(name)
-	}
-	if obj := p.Lookup(name); obj != nil {
-		return obj
-	}
-	return p.Lookup(pubName)
-}
-
-func (p *Package) lookupPub(name string, pubName string) types.Object {
-	return p.Lookup(pubName)
 }
 
 func (p *Package) Lookup(name string) types.Object {
@@ -608,7 +610,7 @@ func (p *Package) NewEnumTypeDecl(enumTypeDecl *ast.EnumTypeDecl) error {
 	}
 	enumType, exist, err := p.createEnumType(enumTypeDecl.Name)
 	if err != nil {
-		log.Panicf("NewEnumTypeDecl: %s fail : %s", enumTypeDecl.Name.Name, err.Error())
+		log.Panicf("NewEnumTypeDecl: %v fail : %s", enumTypeDecl.Name, err.Error())
 		return err
 	}
 	if exist {
@@ -620,7 +622,7 @@ func (p *Package) NewEnumTypeDecl(enumTypeDecl *ast.EnumTypeDecl) error {
 	if len(enumTypeDecl.Type.Items) > 0 {
 		err = p.createEnumItems(enumTypeDecl.Type.Items, enumType)
 		if err != nil {
-			log.Panicf("NewEnumTypeDecl: %s fail : %s", enumTypeDecl.Name, err.Error())
+			log.Panicf("NewEnumTypeDecl: %#v fail : %s", enumTypeDecl.Name, err.Error())
 			return err
 		}
 	}
@@ -637,7 +639,7 @@ func (p *Package) createEnumType(enumName *ast.Ident) (types.Type, bool, error) 
 		node := Node{name: enumName.Name, kind: EnumTypeDecl}
 		name, changed, exist, err = p.RegisterNode(node, p.declName, p.lookupOrigin)
 		if err != nil {
-			return nil, false, errs.NewTypeDefinedError(name, enumName.Name)
+			return nil, false, err
 		}
 		if exist {
 			return nil, true, nil
@@ -663,7 +665,7 @@ func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type) er
 		// This is similar to how macro constants (Macro) are handled, as both are value-level symbols rather than type-level.
 		name, _, exist, err := p.RegisterNode(Node{name: item.Name.Name, kind: EnumItem}, p.declName, p.lookupPub)
 		if err != nil {
-			return errs.NewTypeDefinedError(name, item.Name.Name)
+			return err
 		}
 		if exist {
 			if debugLog {
@@ -858,7 +860,7 @@ func (p *Package) RegisterNode(node Node, nameMethod NameMethod, lookup func(nam
 	pubName, changed = p.GetUniqueName(node, nameMethod)
 	obj := lookup(node.name, pubName)
 	if obj != nil {
-		return "", false, exist, errs.NewTypeDefinedError(pubName, node.name)
+		return "", false, exist, NewTypeDefinedError(pubName, node.name)
 	}
 	return pubName, changed, exist, nil
 }

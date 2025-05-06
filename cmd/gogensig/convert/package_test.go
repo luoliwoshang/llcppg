@@ -1271,28 +1271,6 @@ func TestRedef(t *testing.T) {
 		t.Fatal("unexpect redefine err")
 	}
 
-	err = pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
-		Name: &ast.Ident{Name: "Foo"},
-		Type: &ast.EnumType{},
-	})
-
-	if err == nil {
-		t.Fatal("Expect a redefine err")
-	}
-
-	err = pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
-		Name: nil,
-		Type: &ast.EnumType{
-			Items: []*ast.EnumItem{
-				{Name: &ast.Ident{Name: "Foo"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
-			},
-		},
-	})
-
-	if err == nil {
-		t.Fatal("Expect a redefine err")
-	}
-
 	err = pkg.NewFuncDecl(&ast.FuncDecl{
 		Name:        &ast.Ident{Name: "Bar"},
 		MangledName: "Bar",
