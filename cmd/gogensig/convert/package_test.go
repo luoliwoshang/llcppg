@@ -1270,6 +1270,18 @@ func TestRedef(t *testing.T) {
 		t.Fatal("expect a redefine err")
 	}
 
+	err = pkg.NewTypeDecl(&ast.TypeDecl{
+		Name: &ast.Ident{Name: "Bar"},
+		Type: &ast.RecordType{
+			Tag:    ast.Struct,
+			Fields: flds,
+		},
+	})
+
+	if err == nil {
+		t.Fatal("expect a redefine err")
+	}
+
 	err = pkg.NewFuncDecl(&ast.FuncDecl{
 		Name:        &ast.Ident{Name: "Bar"},
 		MangledName: "Bar",
@@ -1353,6 +1365,8 @@ func TestRedefEnum(t *testing.T) {
 			Type: &ast.EnumType{
 				Items: []*ast.EnumItem{
 					{Name: &ast.Ident{Name: "Foo"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
+					// check if skip same name
+					{Name: &ast.Ident{Name: "Foo"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
 				},
 			},
 		})
@@ -1371,6 +1385,7 @@ type Foo struct {
 const Foo__1 c.Int = 0
 `)
 	})
+
 }
 
 func TestRedefineFunc(t *testing.T) {

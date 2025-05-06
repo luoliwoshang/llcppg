@@ -2,6 +2,7 @@ package convert
 
 import (
 	"errors"
+	"go/token"
 	"go/types"
 	"testing"
 
@@ -10,10 +11,11 @@ import (
 	"github.com/goplus/llcppg/ast"
 	cfg "github.com/goplus/llcppg/cmd/gogensig/config"
 	llcppg "github.com/goplus/llcppg/config"
+	ctoken "github.com/goplus/llcppg/token"
 )
 
-func TestTypeRefIncompleteFail(t *testing.T) {
-	pkg := NewPackage(&PackageConfig{
+func emptyPkg() *Package {
+	return NewPackage(&PackageConfig{
 		PkgBase: PkgBase{
 			PkgPath:  ".",
 			CppgConf: &llcppg.Config{},
@@ -24,6 +26,10 @@ func TestTypeRefIncompleteFail(t *testing.T) {
 		OutputDir:   "",
 		SymbolTable: cfg.CreateSymbolTable([]cfg.SymbolEntry{}),
 	})
+}
+
+func TestTypeRefIncompleteFail(t *testing.T) {
+	pkg := emptyPkg()
 	tempFile := &HeaderFile{
 		File:     "temp.h",
 		FileType: llcppg.Inter,
@@ -74,6 +80,40 @@ func TestTypeRefIncompleteFail(t *testing.T) {
 			},
 		}, nil, "NewBar")
 	})
+}
+
+func TestRedefPubName(t *testing.T) {
+	pkg := emptyPkg()
+	tempFile := &HeaderFile{
+		File:     "temp.h",
+		FileType: llcppg.Inter,
+	}
+	pkg.SetCurFile(tempFile)
+	// mock a function name which is not register in processsymbol
+	pkg.p.NewFuncDecl(token.NoPos, "Foo", types.NewSignatureType(nil, nil, nil, types.NewTuple(), types.NewTuple(), false))
+	pkg.p.NewFuncDecl(token.NoPos, "Bar", types.NewSignatureType(nil, nil, nil, types.NewTuple(), types.NewTuple(), false))
+	err := pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
+		DeclBase: ast.DeclBase{
+			Loc: &ast.Location{File: "temp.h"},
+		},
+		Name: nil,
+		Type: &ast.EnumType{
+			Items: []*ast.EnumItem{
+				{Name: &ast.Ident{Name: "Foo"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
+			},
+		},
+	})
+	if err == nil {
+		t.Fatal("Expect a redefine err")
+	}
+	err = pkg.NewMacro(&ast.Macro{
+		Loc:    &ast.Location{File: "temp.h"},
+		Name:   "Bar",
+		Tokens: []*ast.Token{{Token: ctoken.IDENT, Lit: "Bar"}, {Token: ctoken.LITERAL, Lit: "1"}},
+	})
+	if err == nil {
+		t.Fatal("Expect a redefine err")
+	}
 }
 
 func TestPubMethodName(t *testing.T) {
