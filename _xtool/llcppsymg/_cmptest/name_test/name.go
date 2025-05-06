@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/goplus/llcppg/_xtool/llcppsymg/names"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/symg"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/name"
 )
 
 func main() {
@@ -34,7 +34,7 @@ func TestToGoName() {
 	}
 
 	for _, tc := range testCases {
-		result := names.GoName(tc.input, tc.processor.Prefixes, true)
+		result := name.GoName(tc.input, tc.processor.Prefixes, true)
 		fmt.Printf("Before: %s After: %s\n", tc.input, result)
 	}
 	fmt.Println()
@@ -64,7 +64,7 @@ func TestPubName() {
 	}
 
 	for _, tc := range testCases {
-		result := names.PubName(tc.input)
+		result := name.PubName(tc.input)
 		if result != tc.expected {
 			fmt.Printf("Input: %s, Expected: %s, Got: %s\n", tc.input, tc.expected, result)
 		} else {
@@ -97,7 +97,7 @@ func TestExportName() {
 	}
 
 	for _, tc := range testCases {
-		result := names.ExportName(tc.input)
+		result := name.ExportName(tc.input)
 		if result != tc.expected {
 			fmt.Printf("Input: %s, Expected: %s, Got: %s\n", tc.input, tc.expected, result)
 		} else {
@@ -119,7 +119,7 @@ func TestHeaderFileToGo() {
 	}
 
 	for _, tc := range testCases {
-		result := names.HeaderFileToGo(tc.input)
+		result := name.HeaderFileToGo(tc.input)
 		if result != tc.expected {
 			fmt.Printf("Input: %s, Expected: %s, Got: %s\n", tc.input, tc.expected, result)
 		} else {

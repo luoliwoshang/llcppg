@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/goplus/gogen"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/names"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/name"
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cmd/gogensig/config"
 	"github.com/goplus/llcppg/cmd/gogensig/convert"
@@ -261,7 +261,7 @@ func TestPackageWrite(t *testing.T) {
 
 	incPath := "mock_header.h"
 	filePath := filepath.Join("/path", "to", incPath)
-	genPath := names.HeaderFileToGo(filePath)
+	genPath := name.HeaderFileToGo(filePath)
 
 	headerFile := convert.NewHeaderFile(filePath, llcppg.Inter)
 
@@ -1272,17 +1272,34 @@ func TestRedef(t *testing.T) {
 	}
 
 	err = pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
-		Name: &ast.Ident{Name: "EnumFoo"},
+		Name: &ast.Ident{Name: "Foo"},
+		Type: &ast.EnumType{},
+	})
+
+	if err == nil {
+		t.Fatal("Expect a redefine err")
+	}
+
+	err = pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
+		Name: nil,
 		Type: &ast.EnumType{
 			Items: []*ast.EnumItem{
-				{Name: &ast.Ident{Name: "ItemBar"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
-				{Name: &ast.Ident{Name: "ItemBar"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "1"}},
+				{Name: &ast.Ident{Name: "Foo"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
 			},
 		},
 	})
 
+	if err == nil {
+		t.Fatal("Expect a redefine err")
+	}
+
+	err = pkg.NewFuncDecl(&ast.FuncDecl{
+		Name:        &ast.Ident{Name: "Bar"},
+		MangledName: "Bar",
+		Type:        &ast.FuncType{},
+	})
 	if err != nil {
-		t.Fatal("unexpect err")
+		t.Fatal("unexpect redefine err")
 	}
 
 	macro := &ast.Macro{
@@ -1320,9 +1337,6 @@ type Foo struct {
 //go:linkname Bar C.Bar
 func Bar()
 
-type EnumFoo c.Int
-
-const ItemBar EnumFoo = 0
 const MACRO_FOO = 1
 `
 	comparePackageOutput(t, pkg, expect)
@@ -1363,6 +1377,8 @@ func TestRedefEnum(t *testing.T) {
 			Name: nil,
 			Type: &ast.EnumType{
 				Items: []*ast.EnumItem{
+					{Name: &ast.Ident{Name: "Foo"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
+					// check if skip same name
 					{Name: &ast.Ident{Name: "Foo"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
 				},
 			},
@@ -2033,7 +2049,7 @@ func TestTypeClean(t *testing.T) {
 		})
 		tc.addType()
 
-		goFileName := names.HeaderFileToGo(tc.headerFile)
+		goFileName := name.HeaderFileToGo(tc.headerFile)
 		buf, err := pkg.WriteToBuffer(goFileName)
 		if err != nil {
 			t.Fatal(err)
@@ -2077,7 +2093,7 @@ func TestHeaderFileToGo(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result := names.HeaderFileToGo(tc.input)
+			result := name.HeaderFileToGo(tc.input)
 			if result != tc.expected {
 				t.Errorf("Expected %s, but got %s", tc.expected, result)
 			}

@@ -12,7 +12,7 @@ import (
 	goast "go/ast"
 
 	"github.com/goplus/gogen"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/names"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/name"
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cmd/gogensig/config"
 	"github.com/goplus/llcppg/cmd/gogensig/errs"
@@ -367,6 +367,20 @@ func (p *Package) lookupPub(name string, pubName string) types.Object {
 
 func (p *Package) Lookup(name string) types.Object {
 	return gogen.Lookup(p.p.Types.Scope(), name)
+}
+
+func (p *Package) lookupOrigin(name string, pubName string) types.Object {
+	if obj := p.Lookup(name); obj != nil {
+		return obj
+	}
+	if name != pubName {
+		return p.Lookup(pubName)
+	}
+	return nil
+}
+
+func (p *Package) lookupPub(_ string, pubName string) types.Object {
+	return p.Lookup(pubName)
 }
 
 // NewTypeDecl converts C/C++ type declarations to Go.
@@ -755,7 +769,7 @@ func (p *Package) WritePkgFiles() error {
 //
 // Files that are already processed in dependent packages will not be output.
 func (p *Package) Write(headerFile string) error {
-	fileName := names.HeaderFileToGo(headerFile)
+	fileName := name.HeaderFileToGo(headerFile)
 	filePath := filepath.Join(p.GetOutputDir(), fileName)
 	if debugLog {
 		log.Printf("Write HeaderFile [%s] from  gogen:[%s] to [%s]\n", headerFile, fileName, filePath)
@@ -888,19 +902,19 @@ func (p *Package) definedName(name string) (string, bool) {
 //
 // Returns:
 //   - Transformed identifier name
-func (p *Package) transformName(name string, transform NameMethod) string {
-	if definedName, ok := p.definedName(name); ok {
+func (p *Package) transformName(cname string, transform NameMethod) string {
+	if definedName, ok := p.definedName(cname); ok {
 		return definedName
 	}
-	return transform(names.RemovePrefixedName(name, p.trimPrefixes()))
+	return transform(name.RemovePrefixedName(cname, p.trimPrefixes()))
 }
 
-func (p *Package) declName(name string) string {
-	return p.transformName(name, names.PubName)
+func (p *Package) declName(cname string) string {
+	return p.transformName(cname, name.PubName)
 }
 
-func (p *Package) macroName(name string) string {
-	return p.transformName(name, names.ExportName)
+func (p *Package) macroName(cname string) string {
+	return p.transformName(cname, name.ExportName)
 }
 
 func (p *Package) trimPrefixes() []string {
@@ -1048,7 +1062,7 @@ func (p *ProcessSymbol) Lookup(node Node) (string, bool) {
 func (p *ProcessSymbol) Register(node Node, pubName string) string {
 	p.count[pubName]++
 	count := p.count[pubName]
-	pubName = names.SuffixCount(pubName, count)
+	pubName = name.SuffixCount(pubName, count)
 	p.info[node] = pubName
 	return pubName
 }
