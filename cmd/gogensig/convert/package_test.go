@@ -2092,14 +2092,6 @@ func TestHeaderFileToGo(t *testing.T) {
 }
 
 func TestImport(t *testing.T) {
-	t.Run("invalid mod", func(t *testing.T) {
-		loader := convert.PkgDepLoader{}
-		_, err := loader.Import("pkg")
-		if err == nil {
-			t.Fatal("expected error")
-		}
-	})
-
 	t.Run("invalid include path", func(t *testing.T) {
 		p := &convert.Package{}
 		genPkg := gogen.NewPackage(".", "include", nil)

@@ -52,11 +52,6 @@ func TestLookupSymbolError(t *testing.T) {
 			t.Error("expect error")
 		}
 	}
-	nilTable, _ := config.NewSymbolTable("")
-	_, err = nilTable.LookupSymbol("_ZNK9INIReader10GetBooleanERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_bXXX")
-	if err == nil {
-		t.Error("expect error")
-	}
 }
 
 func TestSigfetch(t *testing.T) {

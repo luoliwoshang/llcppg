@@ -5,8 +5,20 @@ import (
 	"strconv"
 
 	"github.com/goplus/llcppg/ast"
-	"github.com/goplus/llcppg/cmd/gogensig/errs"
 )
+
+type LitParseError struct {
+	from any
+	to   string
+}
+
+func (p *LitParseError) Error() string {
+	return fmt.Sprintf("%v can't convert to %s", p.from, p.to)
+}
+
+func NewLitParseError(from any, to string) *LitParseError {
+	return &LitParseError{from: from, to: to}
+}
 
 type ExprWrap struct {
 	e ast.Expr
@@ -25,7 +37,7 @@ func (p *ExprWrap) ToInt() (int, error) {
 		}
 		return int(v), nil
 	}
-	return 0, errs.NewCantConvertError(p.e, "int")
+	return 0, NewLitParseError(p.e, "int")
 }
 
 func (p *ExprWrap) ToFloat(bitSize int) (float64, error) {
@@ -33,7 +45,7 @@ func (p *ExprWrap) ToFloat(bitSize int) (float64, error) {
 	if ok && v.Kind == ast.FloatLit {
 		return litToFloat(v.Value, bitSize)
 	}
-	return 0, errs.NewCantConvertError(v, "float")
+	return 0, NewLitParseError(v, "float")
 }
 
 func (p *ExprWrap) ToString() (string, error) {
@@ -41,7 +53,7 @@ func (p *ExprWrap) ToString() (string, error) {
 	if ok && v.Kind == ast.StringLit {
 		return litToString(v.Value)
 	}
-	return "", errs.NewCantConvertError(v, "string")
+	return "", NewLitParseError(v, "string")
 }
 
 func (p *ExprWrap) ToChar() (int8, error) {
@@ -53,7 +65,7 @@ func (p *ExprWrap) ToChar() (int8, error) {
 			return iV, nil
 		}
 	}
-	return 0, errs.NewCantConvertError(p.e, "char")
+	return 0, NewLitParseError(p.e, "char")
 }
 
 func (p *ExprWrap) IsVoid() bool {

@@ -15,7 +15,6 @@ import (
 	"github.com/goplus/gogen"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/name"
 	"github.com/goplus/llcppg/ast"
-	"github.com/goplus/llcppg/cmd/gogensig/errs"
 )
 
 type TypeContext int
@@ -190,7 +189,7 @@ func (p *TypeConv) handleIdentRefer(t ast.Expr) (types.Type, error) {
 		}
 		// todo(zzy):scoping expr
 	}
-	return nil, errs.NewUnsupportedReferError(t)
+	return nil, fmt.Errorf("unsupported refer type %T", t)
 }
 
 func (p *TypeConv) ToSignature(funcType *ast.FuncType, recv *types.Var) (*types.Signature, error) {

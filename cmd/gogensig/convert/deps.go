@@ -11,7 +11,6 @@ import (
 
 	"github.com/goplus/gogen"
 	cfg "github.com/goplus/llcppg/cmd/gogensig/config"
-	"github.com/goplus/llcppg/cmd/gogensig/errs"
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/goplus/mod/gopmod"
 )
@@ -79,10 +78,6 @@ func (pm *PkgDepLoader) Imports(pkgPaths []string) (pkgs []*PkgInfo, err error) 
 }
 
 func (pm *PkgDepLoader) Import(pkgPath string) (*PkgInfo, error) {
-	if pm.module == nil {
-		return nil, errs.NewModNotFoundError()
-	}
-
 	// standard C library paths
 	pkgPath, isStd := IsDepStd(pkgPath)
 	pkgPath, _ = splitPkgPath(pkgPath)
