@@ -20,7 +20,7 @@ func TestIdentRef(t *testing.T) {
 }
 
 func TestSubstObj(t *testing.T) {
-	pkg := NewPackage(&PackageConfig{
+	pkg, err := NewPackage(&PackageConfig{
 		PkgBase: PkgBase{
 			PkgPath:  ".",
 			CppgConf: &llcppg.Config{},
@@ -30,7 +30,7 @@ func TestSubstObj(t *testing.T) {
 		OutputDir:   "",
 		SymbolTable: &config.SymbolTable{},
 	})
-	if pkg == nil {
+	if err != nil {
 		t.Fatal("NewPackage failed")
 	}
 

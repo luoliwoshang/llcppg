@@ -1,7 +1,6 @@
 package convert
 
 import (
-	"errors"
 	"log"
 	"strings"
 
@@ -68,9 +67,6 @@ type Converter struct {
 }
 
 func NewConverter(config *Config) (*Converter, error) {
-	if config == nil {
-		return nil, errors.New("config is nil")
-	}
 	symbTable, err := cfg.NewSymbolTable(config.SymbFile)
 	if err != nil {
 		if debugLog {
@@ -87,7 +83,7 @@ func NewConverter(config *Config) (*Converter, error) {
 		conf = llconfig.NewDefault()
 	}
 
-	pkg := NewPackage(&PackageConfig{
+	pkg, err := NewPackage(&PackageConfig{
 		PkgBase: PkgBase{
 			PkgPath:  ".",
 			CppgConf: conf,
@@ -97,6 +93,9 @@ func NewConverter(config *Config) (*Converter, error) {
 		OutputDir:   config.OutputDir,
 		SymbolTable: symbTable,
 	})
+	if err != nil {
+		return nil, err
+	}
 	return &Converter{
 		GenPkg: pkg,
 		Pkg:    config.Pkg,

@@ -276,7 +276,6 @@ func testFrom(t *testing.T, dir string, gen bool, validateFunc func(t *testing.T
 	}
 }
 
-// ===========================error
 func TestNewConvert(t *testing.T) {
 	_, err := convert.NewConverter(&convert.Config{
 		PkgName:  "test",
@@ -285,13 +284,6 @@ func TestNewConvert(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatal("NewAstConvert Fail")
-	}
-}
-
-func TestNewConvertFail(t *testing.T) {
-	_, err := convert.NewConverter(nil)
-	if err == nil {
-		t.Fatal("no error")
 	}
 }
 

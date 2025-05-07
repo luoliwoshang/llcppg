@@ -15,7 +15,7 @@ import (
 )
 
 func emptyPkg() *Package {
-	return NewPackage(&PackageConfig{
+	pkg, err := NewPackage(&PackageConfig{
 		PkgBase: PkgBase{
 			PkgPath:  ".",
 			CppgConf: &llcppg.Config{},
@@ -26,6 +26,10 @@ func emptyPkg() *Package {
 		OutputDir:   "",
 		SymbolTable: cfg.CreateSymbolTable([]cfg.SymbolEntry{}),
 	})
+	if err != nil {
+		panic(err)
+	}
+	return pkg
 }
 
 func TestTypeRefIncompleteFail(t *testing.T) {
@@ -162,7 +166,7 @@ func TestGetNameType(t *testing.T) {
 }
 
 func TestTrimPrefixes(t *testing.T) {
-	pkg := NewPackage(&PackageConfig{
+	pkg, err := NewPackage(&PackageConfig{
 		PkgBase: PkgBase{
 			PkgPath: ".",
 			CppgConf: &llcppg.Config{
@@ -175,6 +179,9 @@ func TestTrimPrefixes(t *testing.T) {
 		OutputDir:   "",
 		SymbolTable: &cfg.SymbolTable{},
 	})
+	if err != nil {
+		t.Fatal("NewPackage failed:", err)
+	}
 
 	pkg.curFile = &HeaderFile{
 		FileType: llcppg.Inter,
@@ -199,13 +206,16 @@ func TestMarkUseFail(t *testing.T) {
 			t.Fatal("Expected panic, got nil")
 		}
 	}()
-	pkg := NewPackage(&PackageConfig{
+	pkg, err := NewPackage(&PackageConfig{
 		PkgBase: PkgBase{
 			PkgPath:  ".",
 			CppgConf: &llcppg.Config{},
 			Pubs:     make(map[string]string),
 		},
 	})
+	if err != nil {
+		t.Fatal("NewPackage failed:", err)
+	}
 	pkg.markUseDeps(&PkgDepLoader{})
 }
 
