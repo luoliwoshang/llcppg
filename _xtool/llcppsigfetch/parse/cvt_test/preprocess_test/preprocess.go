@@ -28,52 +28,57 @@ func TestDefine() {
 
 func TestInclusionMap() {
 	fmt.Println("=== TestInclusionMap ===")
-	cvt, err := parse.Parse(&parse.ParseConfig{
+	checkFileMap := func(conf *parse.Config, cvt *parse.Converter) {
+		found := false
+		for path, info := range cvt.Pkg.FileMap {
+			if strings.HasSuffix(path, "sys/types.h") && info.FileType == llcppg.Third {
+				found = true
+			}
+		}
+		if !found {
+			panic("sys/types.h not found")
+		} else {
+			fmt.Println("sys/types.h include path found")
+		}
+	}
+	err := parse.Do(&parse.Config{
 		Conf: &llcppg.Config{
 			Include: []string{"sys.h"},
 			CFlags:  "-I./testdata/sysinc",
 		},
+		Exec: checkFileMap,
 	})
 	if err != nil {
 		panic(err)
 	}
-	found := false
-	for path, info := range cvt.Pkg.FileMap {
-		if strings.HasSuffix(path, "sys/types.h") && info.FileType == llcppg.Third {
-			found = true
-		}
-	}
-	if !found {
-		panic("sys/types.h not found")
-	} else {
-		fmt.Println("sys/types.h include path found")
-	}
+
 }
 
 func TestSystemHeader() {
 	fmt.Println("=== TestSystemHeader ===")
-	cvt, err := parse.Parse(&parse.ParseConfig{
+	checkFileMap := func(conf *parse.Config, cvt *parse.Converter) {
+		for path, info := range cvt.Pkg.FileMap {
+			if path != "./testdata/sysinc/inc.h" && info.FileType != llcppg.Third {
+				panic(fmt.Errorf("include file is not third header: %s", path))
+			}
+		}
+		fmt.Println("include files are all system headers")
+	}
+	err := parse.Do(&parse.Config{
 		Conf: &llcppg.Config{
 			Include: []string{"inc.h"},
 			CFlags:  "-I./testdata/sysinc",
 		},
+		Exec: checkFileMap,
 	})
 	if err != nil {
 		panic(err)
 	}
-
-	for path, info := range cvt.Pkg.FileMap {
-		if path != "./testdata/sysinc/inc.h" && info.FileType != llcppg.Third {
-			panic(fmt.Errorf("include file is not third header: %s", path))
-		}
-	}
-
-	fmt.Println("include files are all system headers")
 }
 
 func TestMacroExpansionOtherFile() {
 	c.Printf(c.Str("=== TestMacroExpansionOtherFile ===\n"))
-	test.RunTestWithConfig(&parse.ParseConfig{
+	test.RunTestWithConfig(&parse.Config{
 		Conf: &llcppg.Config{
 			Include: []string{"ref.h"},
 			CFlags:  "-I./testdata/macroexpan",

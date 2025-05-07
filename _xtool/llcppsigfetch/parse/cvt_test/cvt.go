@@ -23,7 +23,7 @@ func RunTest(testName string, testCases []string) {
 		include := []string{tempIncFile}
 		cflags := "-I./"
 		c.Printf(c.Str("%s Case %d:\n"), c.AllocaCStr(testName), c.Int(i+1))
-		RunTestWithConfig(&parse.ParseConfig{
+		RunTestWithConfig(&parse.Config{
 			Conf: &llcppg.Config{
 				Cplusplus: true,
 				Include:   include,
@@ -34,16 +34,18 @@ func RunTest(testName string, testCases []string) {
 	}
 }
 
-func RunTestWithConfig(config *parse.ParseConfig) {
-	cvt, err := parse.Parse(config)
+func RunTestWithConfig(config *parse.Config) {
+	config.Exec = func(conf *parse.Config, cvt *parse.Converter) {
+		result := MarshalPkg(cvt.Pkg)
+		str := result.Print()
+		c.Printf(c.Str("%s\n\n"), str)
+		cjson.FreeCStr(unsafe.Pointer(str))
+		result.Delete()
+	}
+	err := parse.Do(config)
 	if err != nil {
 		panic(err)
 	}
-	result := MarshalPkg(cvt.Pkg)
-	str := result.Print()
-	c.Printf(c.Str("%s\n\n"), str)
-	cjson.FreeCStr(unsafe.Pointer(str))
-	result.Delete()
 }
 
 // for test order map

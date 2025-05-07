@@ -80,11 +80,12 @@ func main() {
 	}
 
 	parseConfig := &parse.Config{
-		Out: out,
+		Exec: parse.OutputPkg,
+		Out:  out,
 	}
 
 	if extract {
-		conf, err := getExtractConfig(extractFile, isTemp, isCpp, otherArgs)
+		conf, err := buildExtractConfig(extractFile, isTemp, isCpp, otherArgs)
 		if err != nil {
 			panic(err)
 		}
@@ -102,7 +103,7 @@ func main() {
 	check(err)
 }
 
-func getExtractConfig(extractFile string, isTemp bool, isCpp bool, otherArgs []string) (conf *llcppg.Config, err error) {
+func buildExtractConfig(extractFile string, isTemp bool, isCpp bool, otherArgs []string) (conf *llcppg.Config, err error) {
 	var file string
 	cflags := otherArgs
 	if isTemp {

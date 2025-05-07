@@ -28,7 +28,7 @@ func TestPreprocess() {
 	defer preprocessedFile.Close()
 	defer os.Remove(preprocessedFile.Name())
 
-	test.RunTestWithConfig(&parse.ParseConfig{
+	test.RunTestWithConfig(&parse.Config{
 		Conf: &llcppg.Config{
 			Include: []string{
 				"main.h",
@@ -38,6 +38,5 @@ func TestPreprocess() {
 		},
 		CombinedFile:     combinedFile.Name(),
 		PreprocessedFile: preprocessedFile.Name(),
-		OutputFile:       false,
 	})
 }

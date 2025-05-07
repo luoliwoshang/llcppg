@@ -27,6 +27,10 @@ type Config struct {
 	ExtractFile string
 	IsTemp      bool
 	IsCpp       bool
+
+	CombinedFile     string
+	PreprocessedFile string
+	Exec             func(conf *Config, converter *Converter)
 }
 
 func Do(conf *Config) error {
@@ -41,19 +45,100 @@ func Do(conf *Config) error {
 		}
 	}
 
-	converter, err := Parse(&ParseConfig{
-		Conf: conf.Conf,
+	var isCpp bool
+	if conf.IsCpp {
+		isCpp = true
+	} else {
+		isCpp = conf.Conf.Cplusplus
+	}
+	if err := createTempIfNoExist(&conf.CombinedFile, conf.Conf.Name+"*.h"); err != nil {
+		return err
+	}
+	if err := createTempIfNoExist(&conf.PreprocessedFile, conf.Conf.Name+"*.i"); err != nil {
+		return err
+	}
+
+	if debugParse {
+		fmt.Fprintln(os.Stderr, "Do: combinedFile", conf.CombinedFile)
+		fmt.Fprintln(os.Stderr, "Do: preprocessedFile", conf.PreprocessedFile)
+	}
+
+	// compose includes to a combined file
+	err := clangutils.ComposeIncludes(conf.Conf.Include, conf.CombinedFile)
+	if err != nil {
+		return err
+	}
+
+	// prepare clang flags to preprocess the combined file
+	clangFlags := strings.Fields(conf.Conf.CFlags)
+	clangFlags = append(clangFlags, "-C")  // keep comment
+	clangFlags = append(clangFlags, "-dD") // keep macro
+	clangFlags = append(clangFlags, "-fparse-all-comments")
+
+	err = clangutils.Preprocess(&clangutils.PreprocessConfig{
+		File:    conf.CombinedFile,
+		IsCpp:   isCpp,
+		Args:    clangFlags,
+		OutFile: conf.PreprocessedFile,
 	})
 	if err != nil {
 		return err
 	}
-	info := converter.Output()
+
+	// https://github.com/goplus/llgo/issues/603
+	// we need exec.Command("clang", "-print-resource-dir").Output() in llcppsigfetch to obtain the resource directory
+	// to ensure consistency between clang preprocessing and libclang-extracted header filelink cflags.
+	// Currently, directly calling exec.Command in the main flow of llcppsigfetch will cause hang and fail to execute correctly.
+	// As a solution, the resource directory is externally provided by llcppg.
+	libclangFlags := []string{"-fparse-all-comments"}
+	if ClangResourceDir != "" {
+		libclangFlags = append(libclangFlags, "-resource-dir="+ClangResourceDir, "-I"+path.Join(ClangResourceDir, "include"))
+	}
+	pkgHfiles := config.PkgHfileInfo(conf.Conf, libclangFlags)
+	if debugParse {
+		fmt.Fprintln(os.Stderr, "interfaces", pkgHfiles.Inters)
+		fmt.Fprintln(os.Stderr, "implements", pkgHfiles.Impls)
+		fmt.Fprintln(os.Stderr, "thirdhfile", pkgHfiles.Thirds)
+	}
+	libclangFlags = append(libclangFlags, strings.Fields(conf.Conf.CFlags)...)
+	converter, err := NewConverter(
+		&ConverterConfig{
+			HfileInfo: pkgHfiles,
+			Cfg: &clangutils.Config{
+				File:  conf.PreprocessedFile,
+				IsCpp: isCpp,
+				Args:  libclangFlags,
+			},
+		})
+	defer converter.Dispose()
+	if err != nil {
+		return err
+	}
+	pkg, err := converter.Convert()
+	if err != nil {
+		return err
+	}
+	if debugParse {
+		fmt.Fprintln(os.Stderr, "Have %d Macros", len(pkg.File.Macros))
+		for _, macro := range pkg.File.Macros {
+			fmt.Fprintf(os.Stderr, "Macro %s", macro.Name)
+		}
+		fmt.Fprintln(os.Stderr)
+	}
+
+	if conf.Exec != nil {
+		conf.Exec(conf, converter)
+	}
+
+	return nil
+}
+
+func OutputPkg(conf *Config, cvt *Converter) {
+	info := MarshalPkg(cvt.Pkg)
 	str := info.Print()
 	defer cjson.FreeCStr(unsafe.Pointer(str))
 	defer info.Delete()
-	defer converter.Dispose()
 	outputResult(str, conf.Out)
-	return nil
 }
 
 func outputResult(result *c.Char, outputToFile bool) {
@@ -68,90 +153,6 @@ func outputResult(result *c.Char, outputToFile bool) {
 	} else {
 		c.Printf(c.Str("%s"), result)
 	}
-}
-
-type ParseConfig struct {
-	Conf             *llcppg.Config
-	CombinedFile     string
-	PreprocessedFile string
-	OutputFile       bool
-}
-
-func Parse(cfg *ParseConfig) (*Converter, error) {
-	if err := createTempIfNoExist(&cfg.CombinedFile, cfg.Conf.Name+"*.h"); err != nil {
-		return nil, err
-	}
-	if err := createTempIfNoExist(&cfg.PreprocessedFile, cfg.Conf.Name+"*.i"); err != nil {
-		return nil, err
-	}
-
-	if debugParse {
-		fmt.Fprintln(os.Stderr, "Do: combinedFile", cfg.CombinedFile)
-		fmt.Fprintln(os.Stderr, "Do: preprocessedFile", cfg.PreprocessedFile)
-	}
-
-	// compose includes to a combined file
-	err := clangutils.ComposeIncludes(cfg.Conf.Include, cfg.CombinedFile)
-	if err != nil {
-		return nil, err
-	}
-
-	// prepare clang flags to preprocess the combined file
-	clangFlags := strings.Fields(cfg.Conf.CFlags)
-	clangFlags = append(clangFlags, "-C")  // keep comment
-	clangFlags = append(clangFlags, "-dD") // keep macro
-	clangFlags = append(clangFlags, "-fparse-all-comments")
-
-	err = clangutils.Preprocess(&clangutils.PreprocessConfig{
-		File:    cfg.CombinedFile,
-		IsCpp:   cfg.Conf.Cplusplus,
-		Args:    clangFlags,
-		OutFile: cfg.PreprocessedFile,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// https://github.com/goplus/llgo/issues/603
-	// we need exec.Command("clang", "-print-resource-dir").Output() in llcppsigfetch to obtain the resource directory
-	// to ensure consistency between clang preprocessing and libclang-extracted header filelink cflags.
-	// Currently, directly calling exec.Command in the main flow of llcppsigfetch will cause hang and fail to execute correctly.
-	// As a solution, the resource directory is externally provided by llcppg.
-	libclangFlags := []string{"-fparse-all-comments"}
-	if ClangResourceDir != "" {
-		libclangFlags = append(libclangFlags, "-resource-dir="+ClangResourceDir, "-I"+path.Join(ClangResourceDir, "include"))
-	}
-	pkgHfiles := config.PkgHfileInfo(cfg.Conf, libclangFlags)
-	if debugParse {
-		fmt.Fprintln(os.Stderr, "interfaces", pkgHfiles.Inters)
-		fmt.Fprintln(os.Stderr, "implements", pkgHfiles.Impls)
-		fmt.Fprintln(os.Stderr, "thirdhfile", pkgHfiles.Thirds)
-	}
-	libclangFlags = append(libclangFlags, strings.Fields(cfg.Conf.CFlags)...)
-	converter, err := NewConverter(
-		&ConverterConfig{
-			HfileInfo: pkgHfiles,
-			Cfg: &clangutils.Config{
-				File:  cfg.PreprocessedFile,
-				IsCpp: cfg.Conf.Cplusplus,
-				Args:  libclangFlags,
-			},
-		})
-	if err != nil {
-		return nil, err
-	}
-	pkg, err := converter.Convert()
-	if err != nil {
-		return nil, err
-	}
-	if debugParse {
-		fmt.Fprintln(os.Stderr, "Have %d Macros", len(pkg.File.Macros))
-		for _, macro := range pkg.File.Macros {
-			fmt.Fprintf(os.Stderr, "Macro %s", macro.Name)
-		}
-		fmt.Fprintln(os.Stderr)
-	}
-	return converter, nil
 }
 
 func createTempIfNoExist(filename *string, pattern string) error {

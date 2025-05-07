@@ -12,7 +12,7 @@ func main() {
 }
 
 func TestForwardDecl() {
-	test.RunTestWithConfig(&parse.ParseConfig{
+	test.RunTestWithConfig(&parse.Config{
 		Conf: &llcppg.Config{
 			Include: []string{"forwarddecl.h"},
 			CFlags:  "-I./hfile/",
@@ -21,7 +21,7 @@ func TestForwardDecl() {
 }
 
 func TestForwardDeclCrossFile() {
-	test.RunTestWithConfig(&parse.ParseConfig{
+	test.RunTestWithConfig(&parse.Config{
 		Conf: &llcppg.Config{
 			Include: []string{"def.h"},
 			CFlags:  "-I./hfile/",

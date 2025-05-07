@@ -14,7 +14,6 @@ import (
 	"github.com/goplus/llcppg/ast"
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/goplus/llcppg/token"
-	"github.com/goplus/llpkg/cjson"
 )
 
 type dbgFlags = int
@@ -975,10 +974,6 @@ func (ct *Converter) ProcessBuiltinType(t clang.Type) *ast.BuiltinType {
 func (ct *Converter) BuildScopingExpr(cursor clang.Cursor) ast.Expr {
 	parts := clangutils.BuildScopingParts(cursor)
 	return buildScopingFromParts(parts)
-}
-
-func (ct *Converter) Output() *cjson.JSON {
-	return MarshalPkg(ct.Pkg)
 }
 
 func IsExplicitSigned(t clang.Type) bool {
