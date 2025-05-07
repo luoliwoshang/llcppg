@@ -15,7 +15,6 @@ import (
 	"github.com/goplus/llcppg/_xtool/llcppsymg/tool/name"
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cmd/gogensig/config"
-	"github.com/goplus/llcppg/cmd/gogensig/errs"
 	llcppg "github.com/goplus/llcppg/config"
 	ctoken "github.com/goplus/llcppg/token"
 	"github.com/goplus/mod/gopmod"
@@ -119,9 +118,6 @@ func (p *Package) markUseDeps(pkgMgr *PkgDepLoader) {
 }
 
 func (p *Package) LookupSymbol(mangleName config.MangleNameType) (*GoFuncSpec, error) {
-	if p.conf == nil || p.conf.SymbolTable == nil {
-		return nil, fmt.Errorf("symbol table not initialized")
-	}
 	e, err := p.conf.SymbolTable.LookupSymbol(mangleName)
 	if err != nil {
 		return nil, err
@@ -173,13 +169,13 @@ func (p *Package) linkLib(lib string) error {
 	return nil
 }
 
-func (p *Package) newReceiver(typ *ast.FuncType) *types.Var {
+func (p *Package) newReceiver(typ *ast.FuncType) (*types.Var, error) {
 	recvField := typ.Params.List[0]
 	recvType, err := p.ToType(recvField.Type)
 	if err != nil {
-		log.Panicf("newReceiver:failed to convert type: %s", err.Error())
+		return nil, fmt.Errorf("newReceiver:failed to convert type: %w", err)
 	}
-	return p.p.NewParam(token.NoPos, "recv_", recvType)
+	return p.p.NewParam(token.NoPos, "recv_", recvType), nil
 }
 
 func (p *Package) ToSigSignature(recv *types.Var, funcDecl *ast.FuncDecl) (*types.Signature, error) {
@@ -293,7 +289,7 @@ func pubMethodName(recv types.Type, fnSpec *GoFuncSpec) string {
 }
 
 func (p *Package) NewFuncDecl(funcDecl *ast.FuncDecl) error {
-	isThird, anony := p.handleType(funcDecl.Name, funcDecl.Loc)
+	isThird, _ := p.handleType(funcDecl.Name, funcDecl.Loc)
 	if isThird {
 		if debugLog {
 			log.Printf("NewFuncDecl: %v is a function of third header file\n", funcDecl.Name)
@@ -303,14 +299,12 @@ func (p *Package) NewFuncDecl(funcDecl *ast.FuncDecl) error {
 	if debugLog {
 		log.Printf("NewFuncDecl: %v\n", funcDecl.Name)
 	}
-	if anony {
-		log.Panicln("NewFuncDecl: fail convert anonymous function") // Unreachable
-	}
 
 	fnSpec, err := p.LookupSymbol(funcDecl.MangledName)
 	if err != nil {
 		// not gen the function not in the symbolmap
-		return err
+		log.Printf("NewFuncDecl: %s not in the symbolmap: %s", funcDecl.Name.Name, err.Error())
+		return nil
 	}
 	if fnSpec.IsIgnore() {
 		log.Printf("NewFuncDecl: %v is ignored\n", funcDecl.Name)
@@ -319,8 +313,7 @@ func (p *Package) NewFuncDecl(funcDecl *ast.FuncDecl) error {
 
 	recv, exist, err := p.funcIsDefined(fnSpec, funcDecl)
 	if err != nil {
-		log.Panicf("NewFuncDecl: %s fail : %s", funcDecl.Name.Name, err.Error())
-		return err
+		return fmt.Errorf("NewFuncDecl: %s fail: %w", funcDecl.Name.Name, err)
 	}
 	if exist {
 		if debugLog {
@@ -331,7 +324,7 @@ func (p *Package) NewFuncDecl(funcDecl *ast.FuncDecl) error {
 
 	sig, err := p.ToSigSignature(recv, funcDecl)
 	if err != nil {
-		log.Panicf("NewFuncDecl: fail convert signature %s : %s\n", funcDecl.Name.Name, err.Error())
+		return fmt.Errorf("NewFuncDecl: fail convert signature %s: %w", funcDecl.Name.Name, err)
 	}
 	return p.handleFuncDecl(fnSpec, sig, funcDecl)
 }
@@ -349,17 +342,20 @@ func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (rec
 	if fnSpec.IsMethod &&
 		funcDecl.Type.Params.List != nil &&
 		len(funcDecl.Type.Params.List) > 0 {
-		recv = p.newReceiver(funcDecl.Type)
+		recv, err = p.newReceiver(funcDecl.Type)
+		if err != nil {
+			return nil, false, err
+		}
 		var namedType = getNamedType(recv.Type())
 		methodName := fnSpec.FnName
 		for i := 0; i < namedType.NumMethods(); i++ {
 			if namedType.Method(i).Name() == methodName { // unreachable,because if have the same method name,will return in p.symbols.Lookup(node)
-				return nil, true, errs.NewFuncAlreadyDefinedError(fnSpec.GoSymbName)
+				return nil, true, fmt.Errorf("NewFuncDecl: %s already defined", fnSpec.GoSymbName)
 			}
 		}
 	} else {
 		if obj := p.Lookup(fnSpec.FnName); obj != nil {
-			return nil, true, errs.NewFuncAlreadyDefinedError(fnSpec.GoSymbName)
+			return nil, true, fmt.Errorf("NewFuncDecl: %s already defined", fnSpec.GoSymbName)
 		}
 	}
 	// register the function
@@ -390,26 +386,23 @@ func (p *Package) lookupPub(_ string, pubName string) types.Object {
 // - Forward declarations: Pre-registers incomplete types for later definition
 // - Self-referential types: Handles types that reference themselves (like linked lists)
 func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
-	skip, anony := p.handleType(typeDecl.Name, typeDecl.Loc)
+	skip, _ := p.handleType(typeDecl.Name, typeDecl.Loc)
 	if skip {
 		if debugLog {
 			log.Printf("NewTypeDecl: %s type of third header\n", typeDecl.Name)
 		}
 		return nil
 	}
+
 	if debugLog {
-		log.Printf("NewTypeDecl: %v\n", typeDecl.Name)
-	}
-	if anony {
-		log.Panicln("NewFuncDecl: fail convert anonymous type") // Unreachable
+		log.Printf("NewTypeDecl: %s\n", typeDecl.Name.Name)
 	}
 
 	cname := typeDecl.Name.Name
 	isForward := p.cvt.inComplete(typeDecl.Type)
 	name, changed, exist, err := p.RegisterNode(Node{name: cname, kind: TypeDecl}, p.declName, p.lookupOrigin)
 	if err != nil {
-		log.Panicf("NewTypeDecl: %s fail : %s", typeDecl.Name.Name, err.Error())
-		return err
+		return fmt.Errorf("NewTypeDecl: %s fail: %w", typeDecl.Name.Name, err)
 	}
 
 	// if the type is already defined,we don't need to process again
@@ -430,7 +423,7 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 
 	if !isForward {
 		if err := p.handleCompleteType(incom, typeDecl.Type, cname); err != nil {
-			log.Panicf("NewTypeDecl: fail to complete type %s : %s\n", typeDecl.Name.Name, err.Error())
+			return fmt.Errorf("NewTypeDecl: fail to complete type %s: %w", typeDecl.Name.Name, err)
 		}
 	}
 	return nil
@@ -508,17 +501,18 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 		return nil
 	}
 	if debugLog {
-		log.Printf("NewTypedefDecl: %v\n", typedefDecl.Name)
+		log.Printf("NewTypedefDecl: %s\n", typedefDecl.Name.Name)
 	}
 
 	node := Node{name: typedefDecl.Name.Name, kind: TypedefDecl}
 	name, changed, exist, err := p.RegisterNode(node, p.declName, p.lookupOrigin)
 	if err != nil {
-		log.Panicf("NewTypedefDecl: %s fail : %s", typedefDecl.Name.Name, err.Error())
-		return err
+		return fmt.Errorf("NewTypedefDecl: %s fail: %w", typedefDecl.Name.Name, err)
 	}
 	if exist {
-		log.Printf("NewTypedefDecl: %s is processed\n", typedefDecl.Name.Name)
+		if debugLog {
+			log.Printf("NewTypedefDecl: %s is processed\n", typedefDecl.Name.Name)
+		}
 		return nil
 	}
 
@@ -541,7 +535,7 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 
 	typ, err := p.ToType(typedefDecl.Type)
 	if err != nil {
-		log.Panicf("NewTypedefDecl:fail to convert type %s : %s\n", typedefDecl.Name.Name, err.Error())
+		return fmt.Errorf("NewTypedefDecl:fail to convert type %v: %w", typedefDecl.Name.Name, err)
 	}
 
 	typeSpecdecl.InitType(p.p, typ)
@@ -610,8 +604,7 @@ func (p *Package) NewEnumTypeDecl(enumTypeDecl *ast.EnumTypeDecl) error {
 	}
 	enumType, exist, err := p.createEnumType(enumTypeDecl.Name)
 	if err != nil {
-		log.Panicf("NewEnumTypeDecl: %v fail : %s", enumTypeDecl.Name, err.Error())
-		return err
+		return fmt.Errorf("NewEnumTypeDecl: %v fail: %w", enumTypeDecl.Name, err)
 	}
 	if exist {
 		if debugLog {
@@ -622,8 +615,7 @@ func (p *Package) NewEnumTypeDecl(enumTypeDecl *ast.EnumTypeDecl) error {
 	if len(enumTypeDecl.Type.Items) > 0 {
 		err = p.createEnumItems(enumTypeDecl.Type.Items, enumType)
 		if err != nil {
-			log.Panicf("NewEnumTypeDecl: %#v fail : %s", enumTypeDecl.Name, err.Error())
-			return err
+			return fmt.Errorf("NewEnumTypeDecl: %v fail: %w", enumTypeDecl.Name, err)
 		}
 	}
 	return nil
@@ -675,7 +667,7 @@ func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type) er
 		}
 		val, err := Expr(item.Value).ToInt()
 		if err != nil {
-			log.Panicf("createEnumItems:fail to convert %T to int:%s", item.Value, err.Error())
+			return fmt.Errorf("createEnumItems:fail to convert %T to int: %w", item.Value, err)
 		}
 		defs.New(val, enumType, name)
 	}
@@ -694,8 +686,7 @@ func (p *Package) NewMacro(macro *ast.Macro) error {
 		node := Node{name: macro.Name, kind: Macro}
 		name, _, exist, err := p.RegisterNode(node, p.macroName, p.lookupPub)
 		if err != nil {
-			log.Panicf("NewMacro: %s fail : %s", macro.Name, err.Error())
-			return err
+			return fmt.Errorf("NewMacro: %s fail: %w", macro.Name, err)
 		}
 		if exist {
 			if debugLog {

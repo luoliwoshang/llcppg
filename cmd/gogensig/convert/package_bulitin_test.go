@@ -48,11 +48,6 @@ func TestTypeRefIncompleteFail(t *testing.T) {
 	})
 
 	t.Run("defer write third type not found", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Fatal("Expected panic, got nil")
-			}
-		}()
 		pkg.locMap.Add(&ast.Ident{Name: "Bar"}, &ast.Location{File: "Bar"})
 		pkg.incompleteTypes.Add(&Incomplete{cname: "Bar"})
 		err := pkg.NewTypedefDecl(&ast.TypedefDecl{
@@ -65,7 +60,10 @@ func TestTypeRefIncompleteFail(t *testing.T) {
 			t.Fatal("NewTypedefDecl failed:", err)
 		}
 		pkg.incompleteTypes.Complete("Bar")
-		pkg.WritePkgFiles()
+		err = pkg.WritePkgFiles()
+		if err == nil {
+			t.Fatal("expect a error")
+		}
 	})
 	t.Run("ref tag incomplete fail", func(t *testing.T) {
 		defer func() {
@@ -93,12 +91,7 @@ func TestRedefPubName(t *testing.T) {
 	pkg.p.NewFuncDecl(token.NoPos, "Foo", types.NewSignatureType(nil, nil, nil, types.NewTuple(), types.NewTuple(), false))
 	pkg.p.NewFuncDecl(token.NoPos, "Bar", types.NewSignatureType(nil, nil, nil, types.NewTuple(), types.NewTuple(), false))
 	t.Run("enum type redefine pubname", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Fatal("Expected panic, got nil")
-			}
-		}()
-		pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
+		err := pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
 			DeclBase: ast.DeclBase{
 				Loc: &ast.Location{File: "temp.h"},
 			},
@@ -109,18 +102,19 @@ func TestRedefPubName(t *testing.T) {
 				},
 			},
 		})
+		if err == nil {
+			t.Fatal("expect a error")
+		}
 	})
 	t.Run("macro redefine pubname", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Fatal("Expected panic, got nil")
-			}
-		}()
-		pkg.NewMacro(&ast.Macro{
+		err := pkg.NewMacro(&ast.Macro{
 			Loc:    &ast.Location{File: "temp.h"},
 			Name:   "Bar",
 			Tokens: []*ast.Token{{Token: ctoken.IDENT, Lit: "Bar"}, {Token: ctoken.LITERAL, Lit: "1"}},
 		})
+		if err == nil {
+			t.Fatal("expect a error")
+		}
 	})
 }
 

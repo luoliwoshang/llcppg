@@ -400,7 +400,11 @@ func Foo(__llgo_va_list ...interface{})
 					Ret:    nil,
 				},
 			},
-			expectedErr: "symbol not found",
+			expected: `
+package testpkg
+
+import _ "unsafe"
+			`,
 		},
 		{
 			name: "invalid function type",
@@ -426,7 +430,7 @@ func Foo(__llgo_va_list ...interface{})
 					GoName:     "InvalidFunc",
 				},
 			},
-			expectedPanic: "NewFuncDecl: fail convert signature invalidFunc : not found in type map",
+			expectedErr: "NewFuncDecl: fail convert signature invalidFunc: not found in type map",
 		},
 		{
 			name: "explict void return",
@@ -753,7 +757,7 @@ func Foo(a *c.Uint, b *c.Double) **c.Char
 					GoName:     "Foo",
 				},
 			},
-			expectedPanic: "NewFuncDecl: fail convert signature foo : error convert elem type: not found in type map",
+			expectedErr: "NewFuncDecl: fail convert signature foo: error convert elem type: not found in type map",
 		},
 		{
 			name: "error return type",
@@ -772,7 +776,7 @@ func Foo(a *c.Uint, b *c.Double) **c.Char
 					GoName:     "Foo",
 				},
 			},
-			expectedPanic: "NewFuncDecl: fail convert signature foo : error convert return type: not found in type map",
+			expectedErr: "NewFuncDecl: fail convert signature foo: error convert return type: not found in type map",
 		},
 		{
 			name: "error nil param",
@@ -795,7 +799,7 @@ func Foo(a *c.Uint, b *c.Double) **c.Char
 					GoName:     "Foo",
 				},
 			},
-			expectedPanic: "NewFuncDecl: fail convert signature foo : error convert type: unexpected nil field",
+			expectedErr: "NewFuncDecl: fail convert signature foo: error convert type: unexpected nil field",
 		},
 		{
 			name: "error receiver",
@@ -822,26 +826,7 @@ func Foo(a *c.Uint, b *c.Double) **c.Char
 					GoName:     "(*Foo).foo",
 				},
 			},
-			expectedPanic: "newReceiver:failed to convert type",
-		},
-		{
-			name: "anony func",
-			decl: &ast.FuncDecl{
-				Name:        nil,
-				MangledName: "foo",
-				Type: &ast.FuncType{
-					Params: nil,
-					Ret:    &ast.BuiltinType{Kind: ast.Void},
-				},
-			},
-			symbs: []config.SymbolEntry{
-				{
-					CppName:    "foo",
-					MangleName: "foo",
-					GoName:     "Foo",
-				},
-			},
-			expectedPanic: "NewFuncDecl: fail convert anonymous function",
+			expectedErr: "NewFuncDecl: foo fail: newReceiver:failed to convert type: not found in type map",
 		},
 	}
 	for _, tc := range testCases {
@@ -888,7 +873,7 @@ type Foo struct {
 					},
 				},
 			},
-			expectedPanic: "NewTypeDecl: fail to complete type InvalidStruct : not found in type map",
+			expectedErr: "NewTypeDecl: fail to complete type InvalidStruct: not found in type map",
 		},
 		// struct Foo { int a; double b; bool c; }
 		{
@@ -1095,17 +1080,6 @@ type Foo struct {
 	B [3][4]c.Int
 }`},
 		{
-			name: "anonymous struct",
-			decl: &ast.TypeDecl{
-				Name: nil,
-				Type: &ast.RecordType{
-					Tag:    ast.Struct,
-					Fields: &ast.FieldList{},
-				},
-			},
-			expectedPanic: "NewFuncDecl: fail convert anonymous type",
-		},
-		{
 			name: "struct array field without len",
 			decl: &ast.TypeDecl{
 				Name: &ast.Ident{Name: "Foo"},
@@ -1126,7 +1100,7 @@ type Foo struct {
 					},
 				},
 			},
-			expectedPanic: "NewTypeDecl: fail to complete type Foo : unsupport field with array without length",
+			expectedErr: "NewTypeDecl: fail to complete type Foo: unsupport field with array without length",
 		},
 		{
 			name: "struct array field without len",
@@ -1150,7 +1124,7 @@ type Foo struct {
 					},
 				},
 			},
-			expectedPanic: "NewTypeDecl: fail to complete type Foo : can't determine the array length",
+			expectedErr: "NewTypeDecl: fail to complete type Foo: can't determine the array length",
 		},
 	}
 
@@ -1333,18 +1307,16 @@ func TestRedefEnum(t *testing.T) {
 		},
 	}
 	t.Run("redefine enum type", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Fatalf("expected Panic")
-			}
-		}()
 		pkg := createTestPkg(t, &convert.PackageConfig{})
 		pkg.SetCurFile(tempFile)
 		pkg.NewTypeDecl(typDecl)
-		pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
+		err := pkg.NewEnumTypeDecl(&ast.EnumTypeDecl{
 			Name: &ast.Ident{Name: "Foo"},
 			Type: &ast.EnumType{},
 		})
+		if err == nil {
+			t.Fatalf("expect a redefine error")
+		}
 	})
 
 	t.Run("redefine enum item", func(t *testing.T) {
@@ -1379,11 +1351,6 @@ const Foo__1 c.Int = 0
 }
 
 func TestRedefTypedef(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Fatalf("expected Panic")
-		}
-	}()
 	pkg := createTestPkg(t, &convert.PackageConfig{
 		SymbolTable: config.CreateSymbolTable(
 			[]config.SymbolEntry{
@@ -1403,18 +1370,16 @@ func TestRedefTypedef(t *testing.T) {
 	if err != nil {
 		t.Fatal("NewTypeDecl failed", err)
 	}
-	pkg.NewTypedefDecl(&ast.TypedefDecl{
-		Name: &ast.Ident{Name: "Bar"},
-		Type: &ast.Ident{Name: "Bar"},
+	err = pkg.NewTypedefDecl(&ast.TypedefDecl{
+		Name: &ast.Ident{Name: "Foo"},
+		Type: &ast.Ident{Name: "Foo"},
 	})
+	if err == nil {
+		t.Fatal("expect a redefine error")
+	}
 }
 
 func TestRedefineFunc(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Fatalf("expected Panic")
-		}
-	}()
 	pkg := createTestPkg(t, &convert.PackageConfig{
 		SymbolTable: config.CreateSymbolTable(
 			[]config.SymbolEntry{
@@ -1434,11 +1399,14 @@ func TestRedefineFunc(t *testing.T) {
 	if err != nil {
 		t.Fatal("NewTypeDecl failed", err)
 	}
-	pkg.NewFuncDecl(&ast.FuncDecl{
+	err = pkg.NewFuncDecl(&ast.FuncDecl{
 		Name:        &ast.Ident{Name: "Foo"},
 		MangledName: "Foo",
 		Type:        &ast.FuncType{},
 	})
+	if err == nil {
+		t.Fatal("expect a redefine error")
+	}
 }
 
 func TestTypedef(t *testing.T) {
@@ -1473,7 +1441,7 @@ type DOUBLE c.Double`,
 					Flags: ast.Double,
 				},
 			},
-			expectedPanic: "NewTypedefDecl:fail to convert type INVALID : not found in type map",
+			expectedErr: "NewTypedefDecl:fail to convert type INVALID: not found in type map",
 		},
 		// typedef int INT;
 		{
@@ -1573,7 +1541,7 @@ type Name *c.Char
 					},
 				},
 			},
-			expectedPanic: "NewTypedefDecl:fail to convert type name : error convert baseType: not found in type map",
+			expectedErr: "NewTypedefDecl:fail to convert type name: error convert baseType: not found in type map",
 		},
 	}
 
@@ -1651,7 +1619,7 @@ const (
 					},
 				},
 			},
-			expectedPanic: "createEnumItems:fail to convert *ast.ArrayType to int",
+			expectedErr: "NewEnumTypeDecl: <nil> fail: createEnumItems:fail to convert *ast.ArrayType to int",
 		},
 	}
 	for _, tc := range testCases {
@@ -1682,12 +1650,7 @@ func TestIdentRefer(t *testing.T) {
 		FileType: llcppg.Inter,
 	})
 	t.Run("undef sys ident ref", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Fatalf("expected Panic")
-			}
-		}()
-		pkg.NewTypeDecl(&ast.TypeDecl{
+		err := pkg.NewTypeDecl(&ast.TypeDecl{
 			DeclBase: ast.DeclBase{
 				Loc: &ast.Location{File: "/path/to/notsys.h"},
 			},
@@ -1706,14 +1669,12 @@ func TestIdentRefer(t *testing.T) {
 				},
 			},
 		})
+		if err == nil {
+			t.Fatal("expect a error")
+		}
 	})
 	t.Run("undef tag ident ref", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Fatalf("expected Panic")
-			}
-		}()
-		pkg.NewTypeDecl(&ast.TypeDecl{
+		err := pkg.NewTypeDecl(&ast.TypeDecl{
 			Name: &ast.Ident{Name: "Bar"},
 			Type: &ast.RecordType{
 				Tag: ast.Struct,
@@ -1732,6 +1693,9 @@ func TestIdentRefer(t *testing.T) {
 				},
 			},
 		})
+		if err == nil {
+			t.Fatal("expect a error")
+		}
 	})
 	t.Run("type alias", func(t *testing.T) {
 		pkg := createTestPkg(t, &convert.PackageConfig{
@@ -1853,26 +1817,19 @@ type Foo struct {
 }
 
 type genDeclTestCase struct {
-	name          string
-	decl          ast.Decl
-	symbs         []config.SymbolEntry
-	cppgconf      *llcppg.Config
-	expected      string
-	expectedErr   string
-	expectedPanic string
+	name        string
+	decl        ast.Decl
+	symbs       []config.SymbolEntry
+	cppgconf    *llcppg.Config
+	expected    string
+	expectedErr string
 }
 
 func testGenDecl(t *testing.T, tc genDeclTestCase) {
 	t.Helper()
 	defer func() {
 		if r := recover(); r != nil {
-			if tc.expectedPanic != "" {
-				if !strings.HasPrefix(r.(string), tc.expectedPanic) {
-					t.Errorf("Expected panic %s, but got: %v", tc.expectedPanic, r)
-				}
-			} else {
-				t.Fatal("unexpect panic", r)
-			}
+			t.Fatal("unexpect panic", r)
 		}
 	}()
 	pkg := createTestPkg(t, &convert.PackageConfig{
@@ -2168,12 +2125,4 @@ func TestUnkownHfile(t *testing.T) {
 		}
 	}()
 	convert.NewHeaderFile("/path/to/foo.h", 0).ToGoFileName("Pkg")
-}
-
-func TestLookupSymbolError(t *testing.T) {
-	p := &convert.Package{}
-	_, err := p.LookupSymbol("")
-	if err == nil {
-		t.Fatal("Expect Error")
-	}
 }

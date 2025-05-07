@@ -112,21 +112,15 @@ func (p *Converter) Convert() {
 }
 
 func (p *Converter) Process() {
-	processDecl := func(file string, name *ast.Ident, declType string, process func() error) {
-		var declName string
-		if name != nil {
-			declName = name.Name
-		} else {
-			declName = "<anonymous>"
-		}
+	processDecl := func(file string, process func() error) {
 		p.setCurFile(file)
 		if err := process(); err != nil {
-			log.Printf("Convert%s %s Fail: %s", declType, declName, err.Error())
+			log.Panicln(err)
 		}
 	}
 
 	for _, macro := range p.Pkg.File.Macros {
-		processDecl(macro.Loc.File, &ast.Ident{Name: macro.Name}, "Macro", func() error {
+		processDecl(macro.Loc.File, func() error {
 			return p.GenPkg.NewMacro(macro)
 		})
 	}
@@ -134,19 +128,19 @@ func (p *Converter) Process() {
 	for _, decl := range p.Pkg.File.Decls {
 		switch decl := decl.(type) {
 		case *ast.TypeDecl:
-			processDecl(decl.DeclBase.Loc.File, decl.Name, "TypeDecl", func() error {
+			processDecl(decl.DeclBase.Loc.File, func() error {
 				return p.GenPkg.NewTypeDecl(decl)
 			})
 		case *ast.EnumTypeDecl:
-			processDecl(decl.DeclBase.Loc.File, decl.Name, "EnumTypeDecl", func() error {
+			processDecl(decl.DeclBase.Loc.File, func() error {
 				return p.GenPkg.NewEnumTypeDecl(decl)
 			})
 		case *ast.TypedefDecl:
-			processDecl(decl.DeclBase.Loc.File, decl.Name, "TypedefDecl", func() error {
+			processDecl(decl.DeclBase.Loc.File, func() error {
 				return p.GenPkg.NewTypedefDecl(decl)
 			})
 		case *ast.FuncDecl:
-			processDecl(decl.DeclBase.Loc.File, decl.Name, "FuncDecl", func() error {
+			processDecl(decl.DeclBase.Loc.File, func() error {
 				return p.GenPkg.NewFuncDecl(decl)
 			})
 		}

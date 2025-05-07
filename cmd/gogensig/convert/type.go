@@ -141,7 +141,7 @@ func (p *TypeConv) types() *types.Package {
 }
 
 func (p *TypeConv) handleIdentRefer(t ast.Expr) (types.Type, error) {
-	lookup := func(name string) types.Type {
+	lookup := func(name string) (types.Type, error) {
 		// For types defined in other packages, they should already be in current scope
 		// We don't check for types.Named here because the type returned from ConvertType
 		// for aliases like int8_t might be a built-in type (e.g., int8),
@@ -151,7 +151,7 @@ func (p *TypeConv) handleIdentRefer(t ast.Expr) (types.Type, error) {
 		if obj == nil {
 			// in third hfile but not have converted go type
 			if path, ok := p.pkg.locMap.Lookup(name); ok {
-				log.Panicf("convert %s first, declare its converted package in llcppg.cfg deps for load [%s]. See: https://github.com/goplus/llcppg?tab=readme-ov-file#dependency", path, name)
+				return nil, fmt.Errorf("convert %s first, declare converted package in llcppg.cfg deps for load [%s]. See: https://github.com/goplus/llcppg?tab=readme-ov-file#dependency", path, name)
 			} else {
 				// implicit forward decl
 				decl := p.pkg.handleImplicitForwardDecl(name)
@@ -164,22 +164,28 @@ func (p *TypeConv) handleIdentRefer(t ast.Expr) (types.Type, error) {
 		if p.ctx == Record {
 			if named, ok := typ.(*types.Named); ok {
 				if _, ok := named.Underlying().(*types.Signature); ok {
-					return p.typeMap.CType("Pointer")
+					return p.typeMap.CType("Pointer"), nil
 				}
 			}
 		}
-		return typ
+		return typ, nil
 	}
 	switch t := t.(type) {
 	case *ast.Ident:
-		typ := lookup(t.Name)
+		typ, err := lookup(t.Name)
+		if err != nil {
+			return nil, err
+		}
 		return typ, nil
 	case *ast.ScopingExpr:
 		// todo(zzy)
 	case *ast.TagExpr:
 		// todo(zzy):scoping
 		if ident, ok := t.Name.(*ast.Ident); ok {
-			typ := lookup(ident.Name)
+			typ, err := lookup(ident.Name)
+			if err != nil {
+				return nil, err
+			}
 			return typ, nil
 		}
 		// todo(zzy):scoping expr
