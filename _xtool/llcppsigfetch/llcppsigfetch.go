@@ -86,9 +86,7 @@ func main() {
 
 	if extract {
 		conf, err := buildExtractConfig(extractFile, isTemp, isCpp, otherArgs)
-		if err != nil {
-			panic(err)
-		}
+		check(err)
 		parseConfig.Conf = conf
 	} else {
 		conf, err := config.GetConf(ags.UseStdin, ags.CfgFile)
