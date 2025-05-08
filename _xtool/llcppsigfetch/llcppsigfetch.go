@@ -90,9 +90,7 @@ func main() {
 		parseConfig.Conf = conf
 	} else {
 		conf, err := config.GetConf(ags.UseStdin, ags.CfgFile)
-		if err != nil {
-			check(err)
-		}
+		check(err)
 		defer conf.Delete()
 		parseConfig.Conf = conf.Config
 	}
