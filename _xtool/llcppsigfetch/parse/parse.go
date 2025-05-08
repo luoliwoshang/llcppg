@@ -110,10 +110,11 @@ func Do(conf *Config) error {
 				Args:  libclangFlags,
 			},
 		})
-	defer converter.Dispose()
 	if err != nil {
 		return err
 	}
+	defer converter.Dispose()
+
 	pkg, err := converter.Convert()
 	if err != nil {
 		return err
