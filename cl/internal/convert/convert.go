@@ -26,8 +26,8 @@ func SetDebug(dbgFlags dbgFlags) {
 type Config struct {
 	PkgName   string
 	SymbFile  string // llcppg.symb.json
-	CfgFile   string // llcppg.cfg
 	OutputDir string
+	TypeMap   map[string]string
 
 	Pkg *llconfig.Pkg
 }
@@ -74,19 +74,10 @@ func NewConverter(config *Config) (*Converter, error) {
 		symbTable = cfg.CreateSymbolTable([]cfg.SymbolEntry{})
 	}
 
-	conf, err := cfg.GetCppgCfgFromPath(config.CfgFile)
-	if err != nil {
-		if debugLog {
-			log.Printf("Cant get llcppg.cfg from %s Use empty config\n", config.CfgFile)
-		}
-		conf = llconfig.NewDefault()
-	}
-
 	pkg, err := NewPackage(&PackageConfig{
 		PkgBase: PkgBase{
-			PkgPath:  ".",
-			CppgConf: conf,
-			Pubs:     conf.TypeMap,
+			PkgPath: ".",
+			Pubs:    config.TypeMap,
 		},
 		Name:        config.PkgName,
 		OutputDir:   config.OutputDir,

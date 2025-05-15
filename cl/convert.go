@@ -18,18 +18,17 @@ func ModInit(deps []string, outputDir string, modulePath string) error {
 type ConvConfig struct {
 	PkgName   string
 	SymbFile  string // llcppg.symb.json
-	CfgFile   string // llcppg.cfg
 	OutputDir string
-
-	Pkg *llconfig.Pkg
+	TypeMap   map[string]string
+	Pkg       *llconfig.Pkg
 }
 
 func Convert(config *ConvConfig) (err error) {
 	cvt, err := convert.NewConverter(&convert.Config{
 		PkgName:  config.PkgName,
 		SymbFile: config.SymbFile,
-		CfgFile:  config.CfgFile,
 		Pkg:      config.Pkg,
+		TypeMap:  config.TypeMap,
 	})
 	if err != nil {
 		return

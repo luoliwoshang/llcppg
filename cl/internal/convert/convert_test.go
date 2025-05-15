@@ -221,7 +221,6 @@ func testFrom(t *testing.T, dir string, gen bool, validateFunc func(t *testing.T
 	cvt, err := convert.NewConverter(&convert.Config{
 		PkgName:   cfg.Name,
 		SymbFile:  symbPath,
-		CfgFile:   flagedCfgPath,
 		OutputDir: outputDir,
 		Pkg:       convertPkg,
 	})
@@ -278,7 +277,6 @@ func TestNewConvert(t *testing.T) {
 	_, err := convert.NewConverter(&convert.Config{
 		PkgName:  "test",
 		SymbFile: "",
-		CfgFile:  "",
 	})
 	if err != nil {
 		t.Fatal("NewAstConvert Fail")

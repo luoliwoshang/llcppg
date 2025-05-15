@@ -71,10 +71,13 @@ func main() {
 	convertPkg, err := unmarshal.Pkg(data)
 	check(err)
 
+	conf, err = config.GetCppgCfgFromPath(filepath.Join(wd, cfgFile))
+	check(err)
+
 	err = cl.Convert(&cl.ConvConfig{
 		PkgName:  conf.Name,
 		SymbFile: filepath.Join(wd, llcppg.LLCPPG_SYMB),
-		CfgFile:  filepath.Join(wd, cfgFile),
+		TypeMap:  conf.TypeMap,
 		Pkg:      convertPkg,
 	})
 	if err != nil {

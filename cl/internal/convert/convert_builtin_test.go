@@ -24,7 +24,6 @@ func emptyConverter() *Converter {
 	converter, err := NewConverter(&Config{
 		PkgName:   "test",
 		SymbFile:  "",
-		CfgFile:   "",
 		OutputDir: tempDir,
 		Pkg: &llcppg.Pkg{
 			File: &ast.File{
