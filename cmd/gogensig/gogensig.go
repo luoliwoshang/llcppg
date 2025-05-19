@@ -156,14 +156,15 @@ func (p *NodeConverter) ConvDecl(decl ast.Decl) (goName, goFile string, err erro
 		}
 		return item.GoName, "", nil
 	case *ast.TypeDecl:
-		goFile, err = p.goFile(decl.Loc.File)
+		node := Node{name: decl.Name.Name, kind: TypeDecl}
+		goName, goFile, err = p.Register(decl.Loc, node, p.declName)
 		if err != nil {
 			return
 		}
-		goName, _ := p.GetUniqueName(Node{name: decl.Name.Name, kind: TypeDecl}, p.declName)
 		return goName, goFile, nil
 	case *ast.TypedefDecl:
-		goFile, err = p.goFile(decl.Loc.File)
+		node := Node{name: decl.Name.Name, kind: TypedefDecl}
+		goName, goFile, err = p.Register(decl.Loc, node, p.declName)
 		if err != nil {
 			return
 		}
@@ -190,11 +191,24 @@ func (p *NodeConverter) ConvEnumItem(decl *ast.EnumTypeDecl, item *ast.EnumItem)
 }
 
 func (p *NodeConverter) ConvMacro(macro *ast.Macro) (goName, goFile string, err error) {
-	goFile, err = p.goFile(macro.Loc.File)
+	node := Node{name: macro.Name, kind: Macro}
+	goName, goFile, err = p.Register(macro.Loc, node, p.constName)
 	if err != nil {
 		return
 	}
-	goName, _ = p.GetUniqueName(Node{name: macro.Name, kind: Macro}, p.constName)
+	return
+}
+
+func (p *NodeConverter) Register(loc *ast.Location, node Node, nameMethod NameMethod) (goName string, goFile string, err error) {
+	goFile, err = p.goFile(loc.File)
+	if err != nil {
+		return
+	}
+	pubName, exist := p.symbols.Lookup(node)
+	if exist {
+		return pubName, goFile, nil
+	}
+	goName, _ = p.GetUniqueName(node, nameMethod)
 	return goName, goFile, nil
 }
 

@@ -123,6 +123,14 @@ func (p *Converter) Process() {
 		}
 	}
 
+	// set with goFile Name
+	processNode := func(goFile string, process func() error) {
+		p.GenPkg.SetGoFile(goFile)
+		if err := process(); err != nil {
+			log.Panicln(err)
+		}
+	}
+
 	for _, macro := range p.Pkg.Macros {
 		goName, goFile, err := p.Conf.NodeConv.ConvMacro(macro)
 		if err != nil {
@@ -132,28 +140,43 @@ func (p *Converter) Process() {
 			// todo(zzy):refine error handing
 			log.Panicln(err)
 		}
-		err = p.GenPkg.SetGoFile(goFile)
-		if err != nil {
-			log.Panicln(err)
-		}
-		p.GenPkg.NewMacro(macro, goName)
+		processNode(goFile, func() error {
+			return p.GenPkg.NewMacro(macro, goName)
+		})
 	}
 
 	// todo(zzy):with refactor,name fetch logic
 	for _, decl := range p.Pkg.Decls {
 		switch decl := decl.(type) {
 		case *ast.TypeDecl:
-			processDecl(decl.Object.Loc.File, func() error {
-				return p.GenPkg.NewTypeDecl(decl)
+			goName, goFile, err := p.Conf.NodeConv.ConvDecl(decl)
+			if err != nil {
+				if errors.Is(err, ErrSkip) {
+					continue
+				}
+				log.Panicln(err)
+			}
+			processNode(goFile, func() error {
+				return p.GenPkg.NewTypeDecl(decl, goName)
 			})
 		case *ast.EnumTypeDecl:
 			processDecl(decl.Object.Loc.File, func() error {
 				return p.GenPkg.NewEnumTypeDecl(decl)
 			})
 		case *ast.TypedefDecl:
-			processDecl(decl.Object.Loc.File, func() error {
-				return p.GenPkg.NewTypedefDecl(decl)
+			goName, goFile, err := p.Conf.NodeConv.ConvDecl(decl)
+			if err != nil {
+				if errors.Is(err, ErrSkip) {
+					continue
+				}
+				log.Panicln(err)
+			}
+			processNode(goFile, func() error {
+				return p.GenPkg.NewTypedefDecl(decl, goName)
 			})
+			// processDecl(decl.Object.Loc.File, func() error {
+			// 	return p.GenPkg.NewTypedefDecl(decl)
+			// })
 		case *ast.FuncDecl:
 			processDecl(decl.Object.Loc.File, func() error {
 				return p.GenPkg.NewFuncDecl(decl)

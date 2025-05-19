@@ -15,7 +15,11 @@ import (
 )
 
 func TestMain(t *testing.T) {
-	testFromDir(t, "testdata", false)
+	testFromDir(t, "testdata", true)
+}
+
+func TestLua(t *testing.T) {
+	testFrom(t, "/Users/zhangzhiyang/Documents/Code/goplus/llcppg/cmd/gogensig/testdata/lua", "lua", true)
 }
 
 func testFromDir(t *testing.T, relDir string, gen bool) {

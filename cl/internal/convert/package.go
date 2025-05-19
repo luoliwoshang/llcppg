@@ -396,22 +396,15 @@ func (p *Package) lookupPub(_ string, pubName string) types.Object {
 // Besides regular type declarations, it also supports:
 // - Forward declarations: Pre-registers incomplete types for later definition
 // - Self-referential types: Handles types that reference themselves (like linked lists)
-func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
-	skip, _ := p.handleType(typeDecl.Name, typeDecl.Loc)
-	if skip {
-		if debugLog {
-			log.Printf("NewTypeDecl: %s type of third header\n", typeDecl.Name)
-		}
-		return nil
-	}
-
+func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl, goName string) error {
 	if debugLog {
 		log.Printf("NewTypeDecl: %s\n", typeDecl.Name.Name)
 	}
 
 	cname := typeDecl.Name.Name
+	changed := goName != cname
 	isForward := p.cvt.inComplete(typeDecl.Type)
-	name, changed, exist, err := p.RegisterNode(Node{name: cname, kind: TypeDecl}, p.declName, p.lookupOrigin)
+	exist, err := p.RegisterNodeWithName(Node{name: cname, kind: TypeDecl}, goName, p.lookupOrigin)
 	if err != nil {
 		return fmt.Errorf("NewTypeDecl: %s fail: %w", typeDecl.Name.Name, err)
 	}
@@ -426,8 +419,8 @@ func (p *Package) NewTypeDecl(typeDecl *ast.TypeDecl) error {
 		return nil
 	}
 
-	p.CollectNameMapping(cname, name)
-	incom := p.handleTypeDecl(name, cname, typeDecl)
+	p.XCollectNameMapping(cname, goName)
+	incom := p.handleTypeDecl(goName, cname, typeDecl)
 	if changed {
 		substObj(p.p.Types, p.p.Types.Scope(), cname, incom.decl.Type().Obj())
 	}
@@ -461,8 +454,8 @@ func (p *Package) handleTypeDecl(pubname string, cname string, typeDecl *ast.Typ
 func (p *Package) handleCompleteType(incom *Incomplete, typ *ast.RecordType, name string) error {
 	// defer delete(p.incomplete, name)
 	defer p.incompleteTypes.Complete(name)
-	defer p.SetCurFile(p.curFile)
-	p.SetCurFile(incom.file)
+	// defer p.SetCurFile(p.curFile)
+	// p.SetCurFile(incom.file)
 	structType, err := p.cvt.RecordTypeToStruct(typ)
 	if err != nil {
 		// For incomplete type's conerter error, we use default struct type
@@ -503,20 +496,21 @@ func (p *Package) emptyTypeDecl(name string, doc *ast.CommentGroup) *gogen.TypeD
 	return typeBlock.NewType(name)
 }
 
-func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
-	skip, _ := p.handleType(typedefDecl.Name, typedefDecl.Loc)
-	if skip {
-		if debugLog {
-			log.Printf("NewTypedefDecl: %v is a typedef of third header file\n", typedefDecl.Name)
-		}
-		return nil
-	}
+func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl, goName string) error {
+	// skip, _ := p.handleType(typedefDecl.Name, typedefDecl.Loc)
+	// if skip {
+	// 	if debugLog {
+	// 		log.Printf("NewTypedefDecl: %v is a typedef of third header file\n", typedefDecl.Name)
+	// 	}
+	// 	return nil
+	// }
 	if debugLog {
 		log.Printf("NewTypedefDecl: %s\n", typedefDecl.Name.Name)
 	}
 
 	node := Node{name: typedefDecl.Name.Name, kind: TypedefDecl}
-	name, changed, exist, err := p.RegisterNode(node, p.declName, p.lookupOrigin)
+	exist, err := p.RegisterNodeWithName(node, goName, p.lookupOrigin)
+	changed := goName != typedefDecl.Name.Name
 	if err != nil {
 		return fmt.Errorf("NewTypedefDecl: %s fail: %w", typedefDecl.Name.Name, err)
 	}
@@ -527,10 +521,10 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 		return nil
 	}
 
-	p.CollectNameMapping(typedefDecl.Name.Name, name)
+	p.XCollectNameMapping(typedefDecl.Name.Name, goName)
 
 	genDecl := p.p.NewTypeDefs()
-	typeSpecdecl := genDecl.NewType(name)
+	typeSpecdecl := genDecl.NewType(goName)
 
 	if changed {
 		substObj(p.p.Types, p.p.Types.Scope(), typedefDecl.Name.Name, typeSpecdecl.Type().Obj())
@@ -539,7 +533,7 @@ func (p *Package) NewTypedefDecl(typedefDecl *ast.TypedefDecl) error {
 	deferInit := p.handleTyperefIncomplete(typedefDecl.Type, typeSpecdecl, typedefDecl.Name.Name)
 	if deferInit {
 		if debugLog {
-			log.Printf("NewTypedefDecl: %s defer init\n", name)
+			log.Printf("NewTypedefDecl: %s defer init\n", goName)
 		}
 		return nil
 	}
@@ -693,9 +687,13 @@ func (p *Package) NewMacro(macro *ast.Macro, goName string) error {
 			log.Printf("NewMacro: %s = %s\n", macro.Name, value)
 		}
 		defs := p.NewConstGroup()
-		err := p.Register(macro.Name, goName, p.lookupPub)
+		exist, err := p.RegisterNodeWithName(Node{name: macro.Name, kind: Macro}, goName, p.lookupPub)
 		if err != nil {
 			return fmt.Errorf("NewMacro: %s fail: %w", macro.Name, err)
+		}
+		if exist {
+			// log
+			return nil
 		}
 		if str, err := litToString(value); err == nil {
 			defs.New(str, nil, goName)
@@ -793,12 +791,18 @@ func (p *Package) RegisterNode(node Node, nameMethod NameMethod, lookup func(nam
 	return pubName, changed, exist, nil
 }
 
-func (p *Package) Register(name string, pubName string, lookup func(name string, pubName string) types.Object) (err error) {
-	obj := lookup(name, pubName)
-	if obj != nil {
-		return NewTypeDefinedError(pubName, name)
+// todo(zzy):refine
+func (p *Package) RegisterNodeWithName(node Node, pubName string, lookup func(name string, pubName string) types.Object) (exist bool, err error) {
+	_, exist = p.symbols.Lookup(node)
+	if exist {
+		return exist, nil
 	}
-	return nil
+	_ = p.symbols.Register(node, pubName)
+	obj := lookup(node.name, pubName)
+	if obj != nil {
+		return false, NewTypeDefinedError(pubName, node.name)
+	}
+	return false, nil
 }
 
 // GetUniqueName generates a unique public name for a given node using the provided name transformation method.
@@ -891,6 +895,18 @@ func (p *Package) CollectNameMapping(originName, newName string) {
 		}
 		p.Pubs[originName] = value
 	}
+}
+
+func (p *Package) XCollectNameMapping(originName, newName string) {
+	value := ""
+	if originName != newName {
+		value = newName
+	}
+	// todo(zzy):remove KeepUnderScore
+	if !p.conf.KeepUnderScore && rune(originName[0]) == '_' {
+		return
+	}
+	p.Pubs[originName] = value
 }
 
 type ThirdTypeLoc struct {
