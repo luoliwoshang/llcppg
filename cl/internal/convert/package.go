@@ -163,6 +163,13 @@ func (p *Package) SetCurFile(hfile *HeaderFile) {
 	}
 }
 
+func (p *Package) SetGoFile(fileName string) error {
+	_, err := p.p.SetCurFile(fileName, true)
+	// todo(zzy):avoid mark every time
+	p.p.Unsafe().MarkForceUsed(p.p)
+	return err
+}
+
 // todo(zzy):refine logic
 func (p *Package) linkLib(lib string) error {
 	if lib == "" {
@@ -678,41 +685,30 @@ func (p *Package) createEnumItems(items []*ast.EnumItem, enumType types.Type) er
 	return nil
 }
 
-func (p *Package) NewMacro(macro *ast.Macro) error {
-	if !p.curFile.InCurPkg() {
-		return nil
-	}
-
+func (p *Package) NewMacro(macro *ast.Macro, goName string) error {
 	// simple const macro define (#define NAME value)
 	if len(macro.Tokens) == 2 && macro.Tokens[1].Token == ctoken.LITERAL {
 		value := macro.Tokens[1].Lit
+		if debugLog {
+			log.Printf("NewMacro: %s = %s\n", macro.Name, value)
+		}
 		defs := p.NewConstGroup()
-		node := Node{name: macro.Name, kind: Macro}
-		name, _, exist, err := p.RegisterNode(node, p.constName, p.lookupPub)
+		err := p.Register(macro.Name, goName, p.lookupPub)
 		if err != nil {
 			return fmt.Errorf("NewMacro: %s fail: %w", macro.Name, err)
 		}
-		if exist {
-			if debugLog {
-				log.Printf("NewMacro: %s is processed\n", macro.Name)
-			}
-			return nil
-		}
-		if debugLog {
-			log.Printf("NewMacro: %s = %s\n", name, value)
-		}
 		if str, err := litToString(value); err == nil {
-			defs.New(str, nil, name)
+			defs.New(str, nil, goName)
 		} else if _, err := litToUint(value); err == nil {
 			defs.New(&goast.BasicLit{
 				Kind:  token.INT,
 				Value: value,
-			}, nil, name)
+			}, nil, goName)
 		} else if _, err := litToFloat(value, 64); err == nil {
 			defs.New(&goast.BasicLit{
 				Kind:  token.FLOAT,
 				Value: value,
-			}, nil, name)
+			}, nil, goName)
 		}
 	}
 	return nil
@@ -795,6 +791,14 @@ func (p *Package) RegisterNode(node Node, nameMethod NameMethod, lookup func(nam
 		return "", false, exist, NewTypeDefinedError(pubName, node.name)
 	}
 	return pubName, changed, exist, nil
+}
+
+func (p *Package) Register(name string, pubName string, lookup func(name string, pubName string) types.Object) (err error) {
+	obj := lookup(name, pubName)
+	if obj != nil {
+		return NewTypeDefinedError(pubName, name)
+	}
+	return nil
 }
 
 // GetUniqueName generates a unique public name for a given node using the provided name transformation method.

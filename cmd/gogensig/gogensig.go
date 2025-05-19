@@ -18,7 +18,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -92,6 +91,7 @@ func main() {
 		},
 		NodeConv: NewNodeConverter(
 			&NodeConverterConfig{
+				PkgName:      conf.Name,
 				SymbTable:    symbTable,
 				FileMap:      convertPkg.FileMap,
 				TypeMap:      conf.TypeMap,
@@ -121,12 +121,14 @@ func main() {
 	check(err)
 }
 
+// todo(zzy):move out in gogensig.go
 type NodeConverter struct {
 	symbols *ProcessSymbol
 	conf    *NodeConverterConfig
 }
 
 type NodeConverterConfig struct {
+	PkgName      string
 	SymbTable    *config.SymbolTable
 	FileMap      map[string]*llcppg.FileInfo
 	TrimPrefixes []string
@@ -143,8 +145,9 @@ func NewNodeConverter(cfg *NodeConverterConfig) *NodeConverter {
 func (p *NodeConverter) ConvDecl(decl ast.Decl) (goName, goFile string, err error) {
 	switch decl := decl.(type) {
 	case *ast.FuncDecl:
-		if !p.inPkg(decl.Loc.File) {
-			return "", "", cl.ErrSkip
+		goFile, err = p.goFile(decl.Loc.File)
+		if err != nil {
+			return
 		}
 		var item *config.SymbolEntry
 		item, err = p.conf.SymbTable.LookupSymbol(decl.MangledName)
@@ -153,57 +156,68 @@ func (p *NodeConverter) ConvDecl(decl ast.Decl) (goName, goFile string, err erro
 		}
 		return item.GoName, "", nil
 	case *ast.TypeDecl:
-		if !p.inPkg(decl.Loc.File) {
-			return "", "", cl.ErrSkip
+		goFile, err = p.goFile(decl.Loc.File)
+		if err != nil {
+			return
 		}
 		goName, _ := p.GetUniqueName(Node{name: decl.Name.Name, kind: TypeDecl}, p.declName)
-		return goName, "", nil
+		return goName, goFile, nil
 	case *ast.TypedefDecl:
-		if !p.inPkg(decl.Loc.File) {
-			return "", "", cl.ErrSkip
+		goFile, err = p.goFile(decl.Loc.File)
+		if err != nil {
+			return
 		}
 		goName, _ := p.GetUniqueName(Node{name: decl.Name.Name, kind: TypedefDecl}, p.declName)
-		return goName, "", nil
+		return goName, goFile, nil
 	case *ast.EnumTypeDecl:
-		if !p.inPkg(decl.Loc.File) {
-			return "", "", cl.ErrSkip
+		goFile, err = p.goFile(decl.Loc.File)
+		if err != nil {
+			return
 		}
 		goName, _ := p.GetUniqueName(Node{name: decl.Name.Name, kind: EnumTypeDecl}, p.declName)
-		return goName, "", nil
+		return goName, goFile, nil
 	}
 	return "", "", fmt.Errorf("unsupported decl type: %T", decl)
 }
 
 func (p *NodeConverter) ConvEnumItem(decl *ast.EnumTypeDecl, item *ast.EnumItem) (goName, goFile string, err error) {
-	if !p.inPkg(decl.Loc.File) {
-		return "", "", cl.ErrSkip
+	goFile, err = p.goFile(decl.Loc.File)
+	if err != nil {
+		return
 	}
 	goName, _ = p.GetUniqueName(Node{name: item.Name.Name, kind: EnumItem}, p.constName)
-	return goName, "", nil
+	return goName, goFile, nil
 }
 
 func (p *NodeConverter) ConvMacro(macro *ast.Macro) (goName, goFile string, err error) {
-	if !p.inPkg(macro.Loc.File) {
-		return "", "", cl.ErrSkip
+	goFile, err = p.goFile(macro.Loc.File)
+	if err != nil {
+		return
 	}
 	goName, _ = p.GetUniqueName(Node{name: macro.Name, kind: Macro}, p.constName)
-	return goName, "", nil
+	return goName, goFile, nil
 }
 
 type NameMethod func(name string) string
 
-// Check Current File is in the package
-func (p *NodeConverter) inPkg(file string) bool {
+func (p *NodeConverter) goFile(file string) (string, error) {
 	info, ok := p.conf.FileMap[file]
 	if !ok {
 		var availableFiles []string
 		for f := range p.conf.FileMap {
 			availableFiles = append(availableFiles, f)
 		}
-		log.Panicf("File %q not found in FileMap. Available files:\n%s",
+		return "", fmt.Errorf("file %q not found in FileMap. Available files:\n%s",
 			file, strings.Join(availableFiles, "\n"))
 	}
-	return info.FileType == llcppg.Impl || info.FileType == llcppg.Inter
+	switch info.FileType {
+	case llcppg.Inter:
+		return name.HeaderFileToGo(file), nil
+	case llcppg.Impl:
+		return p.conf.PkgName + "_autogen.go", nil
+	default:
+		return "", cl.ErrSkip
+	}
 }
 
 // GetUniqueName generates a unique public name for a given node using the provided name transformation method.

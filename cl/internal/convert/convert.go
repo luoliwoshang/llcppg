@@ -77,10 +77,11 @@ func ModInit(deps []string, outputDir string, modulePath string) error {
 }
 
 type Converter struct {
-	Pkg     *ast.File
-	FileMap map[string]*llconfig.FileInfo
-	GenPkg  *Package
-	Conf    *Config
+	Pkg      *ast.File
+	FileMap  map[string]*llconfig.FileInfo
+	NodeConv NodeConverter
+	GenPkg   *Package
+	Conf     *Config
 }
 
 func NewConverter(config *Config) (*Converter, error) {
@@ -123,11 +124,22 @@ func (p *Converter) Process() {
 	}
 
 	for _, macro := range p.Pkg.Macros {
-		processDecl(macro.Loc.File, func() error {
-			return p.GenPkg.NewMacro(macro)
-		})
+		goName, goFile, err := p.Conf.NodeConv.ConvMacro(macro)
+		if err != nil {
+			if errors.Is(err, ErrSkip) {
+				continue
+			}
+			// todo(zzy):refine error handing
+			log.Panicln(err)
+		}
+		err = p.GenPkg.SetGoFile(goFile)
+		if err != nil {
+			log.Panicln(err)
+		}
+		p.GenPkg.NewMacro(macro, goName)
 	}
 
+	// todo(zzy):with refactor,name fetch logic
 	for _, decl := range p.Pkg.Decls {
 		switch decl := decl.(type) {
 		case *ast.TypeDecl:
