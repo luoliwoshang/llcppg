@@ -27,6 +27,7 @@ import (
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cl"
 	"github.com/goplus/llcppg/cmd/gogensig/config"
+	"github.com/goplus/llcppg/cmd/gogensig/node"
 	"github.com/goplus/llcppg/cmd/gogensig/unmarshal"
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/qiniu/x/errors"
@@ -79,6 +80,8 @@ func main() {
 	symbTable, err := config.NewSymbolTable(symbFile)
 	check(err)
 
+	symbols := cl.NewProcessSymbol()
+
 	pkg, err := cl.Convert(&cl.ConvConfig{
 		PkgName: conf.Name,
 		ConvSym: func(name *ast.Object, mangleName string) (goName string, err error) {
@@ -88,7 +91,16 @@ func main() {
 			}
 			return item.GoName, nil
 		},
-		NodeConv:       &NodeConverter{},
+		NodeConv: node.NewNodeConverter(
+			&node.NodeConverterConfig{
+				PkgName:      conf.Name,
+				SymbTable:    symbTable,
+				FileMap:      convertPkg.FileMap,
+				TypeMap:      conf.TypeMap,
+				TrimPrefixes: conf.TrimPrefixes,
+				Symbols:      symbols,
+			},
+		),
 		Pkg:            convertPkg.File,
 		FileMap:        convertPkg.FileMap,
 		TypeMap:        conf.TypeMap,
@@ -110,21 +122,6 @@ func main() {
 
 	err = config.RunCommand(outputDir, "go", "mod", "tidy")
 	check(err)
-}
-
-type NodeConverter struct {
-}
-
-func (c *NodeConverter) ConvDecl(decl ast.Decl) (goName, goFile string, err error) {
-	return "", "", nil
-}
-
-func (c *NodeConverter) ConvEnumItem(decl *ast.EnumTypeDecl, item *ast.EnumItem) (goName, goFile string, err error) {
-	return "", "", nil
-}
-
-func (c *NodeConverter) ConvMacro(macro *ast.Macro) (goName, goFile string, err error) {
-	return "", "", nil
 }
 
 // Write all files in the package to the output directory
