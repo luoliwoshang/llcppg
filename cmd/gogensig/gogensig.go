@@ -18,12 +18,14 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/goplus/gogen"
 	args "github.com/goplus/llcppg/_xtool/llcppsymg/tool/arg"
+	name "github.com/goplus/llcppg/_xtool/llcppsymg/tool/name"
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cl"
 	"github.com/goplus/llcppg/cmd/gogensig/config"
@@ -88,6 +90,14 @@ func main() {
 			}
 			return item.GoName, nil
 		},
+		NodeConv: NewNodeConverter(
+			&NodeConverterConfig{
+				SymbTable:    symbTable,
+				FileMap:      convertPkg.FileMap,
+				TypeMap:      conf.TypeMap,
+				TrimPrefixes: conf.TrimPrefixes,
+			},
+		),
 		Pkg:            convertPkg.File,
 		FileMap:        convertPkg.FileMap,
 		TypeMap:        conf.TypeMap,
@@ -109,6 +119,187 @@ func main() {
 
 	err = config.RunCommand(outputDir, "go", "mod", "tidy")
 	check(err)
+}
+
+type NodeConverter struct {
+	symbols *ProcessSymbol
+	conf    *NodeConverterConfig
+}
+
+type NodeConverterConfig struct {
+	SymbTable    *config.SymbolTable
+	FileMap      map[string]*llcppg.FileInfo
+	TrimPrefixes []string
+	TypeMap      map[string]string
+}
+
+func NewNodeConverter(cfg *NodeConverterConfig) *NodeConverter {
+	return &NodeConverter{
+		symbols: NewProcessSymbol(),
+		conf:    cfg,
+	}
+}
+
+func (p *NodeConverter) ConvDecl(decl ast.Decl) (goName, goFile string, err error) {
+	switch decl := decl.(type) {
+	case *ast.FuncDecl:
+		if !p.inPkg(decl.Loc.File) {
+			return "", "", cl.ErrSkip
+		}
+		var item *config.SymbolEntry
+		item, err = p.conf.SymbTable.LookupSymbol(decl.MangledName)
+		if err != nil {
+			return
+		}
+		return item.GoName, "", nil
+	case *ast.TypeDecl:
+		if !p.inPkg(decl.Loc.File) {
+			return "", "", cl.ErrSkip
+		}
+		goName, _ := p.GetUniqueName(Node{name: decl.Name.Name, kind: TypeDecl}, p.declName)
+		return goName, "", nil
+	case *ast.TypedefDecl:
+		if !p.inPkg(decl.Loc.File) {
+			return "", "", cl.ErrSkip
+		}
+		goName, _ := p.GetUniqueName(Node{name: decl.Name.Name, kind: TypedefDecl}, p.declName)
+		return goName, "", nil
+	case *ast.EnumTypeDecl:
+		if !p.inPkg(decl.Loc.File) {
+			return "", "", cl.ErrSkip
+		}
+		goName, _ := p.GetUniqueName(Node{name: decl.Name.Name, kind: EnumTypeDecl}, p.declName)
+		return goName, "", nil
+	}
+	return "", "", fmt.Errorf("unsupported decl type: %T", decl)
+}
+
+func (p *NodeConverter) ConvEnumItem(decl *ast.EnumTypeDecl, item *ast.EnumItem) (goName, goFile string, err error) {
+	if !p.inPkg(decl.Loc.File) {
+		return "", "", cl.ErrSkip
+	}
+	goName, _ = p.GetUniqueName(Node{name: item.Name.Name, kind: EnumItem}, p.constName)
+	return goName, "", nil
+}
+
+func (p *NodeConverter) ConvMacro(macro *ast.Macro) (goName, goFile string, err error) {
+	if !p.inPkg(macro.Loc.File) {
+		return "", "", cl.ErrSkip
+	}
+	goName, _ = p.GetUniqueName(Node{name: macro.Name, kind: Macro}, p.constName)
+	return goName, "", nil
+}
+
+type NameMethod func(name string) string
+
+// Check Current File is in the package
+func (p *NodeConverter) inPkg(file string) bool {
+	info, ok := p.conf.FileMap[file]
+	if !ok {
+		var availableFiles []string
+		for f := range p.conf.FileMap {
+			availableFiles = append(availableFiles, f)
+		}
+		log.Panicf("File %q not found in FileMap. Available files:\n%s",
+			file, strings.Join(availableFiles, "\n"))
+	}
+	return info.FileType == llcppg.Impl || info.FileType == llcppg.Inter
+}
+
+// GetUniqueName generates a unique public name for a given node using the provided name transformation method.
+// It ensures the generated name doesn't conflict with existing names by adding a numeric suffix if needed.
+//
+// Parameters:
+//   - node: The node containing the original name to be transformed
+//   - nameMethod: Function used to transform the original name (e.g., declName, constName)
+//
+// Returns:
+//   - pubName: The generated unique public name
+//   - changed: Whether the generated name differs from the original name
+func (p *NodeConverter) GetUniqueName(node Node, nameMethod NameMethod) (pubName string, changed bool) {
+	pubName = nameMethod(node.name)
+	uniquePubName := p.symbols.Register(node, pubName)
+	return uniquePubName, uniquePubName != node.name
+}
+
+// which is define in llcppg.cfg/typeMap
+func (p *NodeConverter) definedName(name string) (string, bool) {
+	definedName, ok := p.conf.TypeMap[name]
+	if ok {
+		if definedName == "" {
+			return name, true
+		}
+		return definedName, true
+	}
+	return name, false
+}
+
+// transformName handles identifier name conversion following these rules:
+// 1. First checks if the name exists in predefined mapping (in typeMap of llcppg.cfg)
+// 2. If not in predefined mapping, applies the transform function
+// 3. Before applying the transform function, removes specified prefixes (obtained via trimPrefixes)
+//
+// Parameters:
+//   - name: Original C/C++ identifier name
+//   - transform: Name transformation function (like names.PubName or names.ExportName)
+//
+// Returns:
+//   - Transformed identifier name
+func (p *NodeConverter) transformName(cname string, transform NameMethod) string {
+	if definedName, ok := p.definedName(cname); ok {
+		return definedName
+	}
+	return transform(name.RemovePrefixedName(cname, p.conf.TrimPrefixes))
+}
+
+func (p *NodeConverter) declName(cname string) string {
+	return p.transformName(cname, name.PubName)
+}
+
+func (p *NodeConverter) constName(cname string) string {
+	return p.transformName(cname, name.ExportName)
+}
+
+type nodeKind int
+
+const (
+	FuncDecl nodeKind = iota + 1
+	TypeDecl
+	TypedefDecl
+	EnumTypeDecl
+	EnumItem
+	Macro
+)
+
+type Node struct {
+	name string
+	kind nodeKind
+}
+
+type ProcessSymbol struct {
+	// not same node can have same name,so use the Node as key
+	info  map[Node]string
+	count map[string]int
+}
+
+func NewProcessSymbol() *ProcessSymbol {
+	return &ProcessSymbol{
+		info:  make(map[Node]string),
+		count: make(map[string]int),
+	}
+}
+
+func (p *ProcessSymbol) Lookup(node Node) (string, bool) {
+	pubName, ok := p.info[node]
+	return pubName, ok
+}
+
+func (p *ProcessSymbol) Register(node Node, pubName string) string {
+	p.count[pubName]++
+	count := p.count[pubName]
+	pubName = name.SuffixCount(pubName, count)
+	p.info[node] = pubName
+	return pubName
 }
 
 // Write all files in the package to the output directory
