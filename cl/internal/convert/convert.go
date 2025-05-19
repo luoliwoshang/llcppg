@@ -8,6 +8,7 @@ import (
 	"github.com/goplus/llcppg/ast"
 	cfg "github.com/goplus/llcppg/cmd/gogensig/config"
 	llconfig "github.com/goplus/llcppg/config"
+	ctoken "github.com/goplus/llcppg/token"
 )
 
 var (
@@ -133,18 +134,20 @@ func (p *Converter) Process() {
 	}
 
 	for _, macro := range p.Pkg.Macros {
-		goName, goFile, err := p.Conf.NodeConv.ConvMacro(macro)
-		// todo(zzy):goName to New Macro
-		if err != nil {
-			if errors.Is(err, ErrSkip) {
-				continue
+		if len(macro.Tokens) == 2 && macro.Tokens[1].Token == ctoken.LITERAL {
+			goName, goFile, err := p.Conf.NodeConv.ConvMacro(macro)
+			// todo(zzy):goName to New Macro
+			if err != nil {
+				if errors.Is(err, ErrSkip) {
+					continue
+				}
+				// todo(zzy):refine error handing
+				log.Panicln(err)
 			}
-			// todo(zzy):refine error handing
-			log.Panicln(err)
+			processNode(goFile, func() error {
+				return p.GenPkg.NewMacro(macro, goName)
+			})
 		}
-		processNode(goFile, func() error {
-			return p.GenPkg.NewMacro(macro, goName)
-		})
 	}
 
 	for _, decl := range p.Pkg.Decls {
