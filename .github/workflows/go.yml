@@ -35,7 +35,16 @@ jobs:
         # llgo test ./_xtool/internal/parser/...
         # got go/bin/parser.test: exit code -1
         cd _xtool/internal/parser
-        llgo test ./...
+        # check exit code outout for temporary fix
+        # with the latest update can exit in llgo test
+        # only with llgo test ./... with llgo update
+        # https://github.com/goplus/llgo/pull/1128
+        output=$(llgo test ./... 2>&1)
+        echo "$output"
+        if echo "$output" | grep -q "exit code [^0]"; then
+          echo "llgo test fail"
+          exit 1
+        fi
 
     - name: Test llcppsymg & llcppsigfetch
       run: |
