@@ -397,7 +397,7 @@ func TestBuiltinType(t *testing.T) {
 		typ      clang.Type
 		expected ast.BuiltinType
 	}{
-		{"Void", btType(clang.TypeVoid), ast.BuiltinType{Kind: ast.Bool}},
+		{"Void", btType(clang.TypeVoid), ast.BuiltinType{Kind: ast.Void}},
 		{"Bool", btType(clang.TypeBool), ast.BuiltinType{Kind: ast.Bool}},
 		{"Char_S", btType(clang.TypeCharS), ast.BuiltinType{Kind: ast.Char, Flags: ast.Signed}},
 		{"Char_U", btType(clang.TypeCharU), ast.BuiltinType{Kind: ast.Char, Flags: ast.Unsigned}},
