@@ -123,12 +123,14 @@ func TestParseArgs(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		result, filteredArgs := arg.ParseArgs(tc.input, llcppg.LLCPPG_CFG, swflags)
-		if !reflect.DeepEqual(result, tc.expect.args) {
-			t.Fatalf("Test case %s failed: expected %#v, got %#v", tc.name, tc.expect.args, result)
-		}
-		if !reflect.DeepEqual(filteredArgs, tc.expect.remain) {
-			t.Fatalf("Test case %s failed: expected %#v, got %#v", tc.name, tc.expect.remain, filteredArgs)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			result, filteredArgs := arg.ParseArgs(tc.input, llcppg.LLCPPG_CFG, swflags)
+			if !reflect.DeepEqual(result, tc.expect.args) {
+				t.Fatalf("Test case %s failed: expected %#v, got %#v", tc.name, tc.expect.args, result)
+			}
+			if !reflect.DeepEqual(filteredArgs, tc.expect.remain) {
+				t.Fatalf("Test case %s failed: expected %#v, got %#v", tc.name, tc.expect.remain, filteredArgs)
+			}
+		})
 	}
 }

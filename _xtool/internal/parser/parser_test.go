@@ -23,7 +23,9 @@ func TestParser(t *testing.T) {
 	// https://github.com/goplus/llgo/issues/1114
 	// todo(zzy):use os.ReadDir
 	for _, folder := range cases {
-		testFrom(t, filepath.Join("testdata", folder), "temp.h", false)
+		t.Run(folder, func(t *testing.T) {
+			testFrom(t, filepath.Join("testdata", folder), "temp.h", false)
+		})
 	}
 }
 
@@ -369,27 +371,29 @@ func TestNonBuiltinTypes(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		typ, index, unit := GetType(&GetTypeOptions{
-			TypeCode: tc.TypeCode,
-			IsCpp:    true,
-		})
-		converter := &parser.Converter{}
-		expr := converter.ProcessType(typ)
-		json := parser.MarshalASTExpr(expr)
-		str := json.Print()
-		typstr := typ.String()
-		if typGoStr := c.GoString(typstr.CStr()); typGoStr != tc.ExpectTypeStr {
-			t.Fatalf("expect %s , got %s", tc.ExpectTypeStr, typGoStr)
-		}
-		if !reflect.DeepEqual(expr, tc.expr) {
-			t.Fatalf("%s expect %#v, got %#v", tc.ExpectTypeStr, tc.expr, expr)
-		}
+		t.Run(tc.ExpectTypeStr, func(t *testing.T) {
+			typ, index, unit := GetType(&GetTypeOptions{
+				TypeCode: tc.TypeCode,
+				IsCpp:    true,
+			})
+			converter := &parser.Converter{}
+			expr := converter.ProcessType(typ)
+			json := parser.MarshalASTExpr(expr)
+			str := json.Print()
+			typstr := typ.String()
+			if typGoStr := c.GoString(typstr.CStr()); typGoStr != tc.ExpectTypeStr {
+				t.Fatalf("expect %s , got %s", tc.ExpectTypeStr, typGoStr)
+			}
+			if !reflect.DeepEqual(expr, tc.expr) {
+				t.Fatalf("%s expect %#v, got %#v", tc.ExpectTypeStr, tc.expr, expr)
+			}
 
-		typstr.Dispose()
-		cjson.FreeCStr(unsafe.Pointer(str))
-		json.Delete()
-		index.Dispose()
-		unit.Dispose()
+			typstr.Dispose()
+			cjson.FreeCStr(unsafe.Pointer(str))
+			json.Delete()
+			index.Dispose()
+			unit.Dispose()
+		})
 	}
 }
 

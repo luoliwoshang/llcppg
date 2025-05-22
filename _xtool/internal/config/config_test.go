@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"fmt"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -70,25 +71,27 @@ func TestGetConfByByte(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		result, err := config.GetConfByByte([]byte(tc.input))
-		if tc.expectErr {
-			if err == nil {
-				t.Fatalf("expected error for test case %s, but got nil", tc.name)
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := config.GetConfByByte([]byte(tc.input))
+			if tc.expectErr {
+				if err == nil {
+					t.Fatalf("expected error for test case %s, but got nil", tc.name)
+				}
+				return
 			}
-			continue
-		}
-		if err != nil {
-			t.Fatalf("Unexpected error for test case %s: %v", tc.name, err)
-		}
+			if err != nil {
+				t.Fatalf("Unexpected error for test case %s: %v", tc.name, err)
+			}
 
-		if !reflect.DeepEqual(result.Config, tc.expect) {
-			t.Fatalf("expected %#v, but got %#v", tc.expect, result.Config)
-		}
+			if !reflect.DeepEqual(result.Config, tc.expect) {
+				t.Fatalf("expected %#v, but got %#v", tc.expect, result.Config)
+			}
+		})
 	}
 }
 
 func TestPkgHfileInfo(t *testing.T) {
-	confs := []struct {
+	cases := []struct {
 		conf *llconfig.Config
 		want *config.PkgHfilesInfo
 	}{
@@ -115,35 +118,37 @@ func TestPkgHfileInfo(t *testing.T) {
 		},
 	}
 
-	for _, conf := range confs {
-		info := config.PkgHfileInfo(conf.conf, []string{})
-		if !reflect.DeepEqual(info.Inters, conf.want.Inters) {
-			t.Fatalf("inter expected %v, but got %v", conf.want.Inters, info.Inters)
-		}
-		if !reflect.DeepEqual(info.Impls, conf.want.Impls) {
-			t.Fatalf("impl expected %v, but got %v", conf.want.Impls, info.Impls)
-		}
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			info := config.PkgHfileInfo(tc.conf, []string{})
+			if !reflect.DeepEqual(info.Inters, tc.want.Inters) {
+				t.Fatalf("inter expected %v, but got %v", tc.want.Inters, info.Inters)
+			}
+			if !reflect.DeepEqual(info.Impls, tc.want.Impls) {
+				t.Fatalf("impl expected %v, but got %v", tc.want.Impls, info.Impls)
+			}
 
-		thirdhfile, err := filepath.Abs("./testdata/thirdhfile/third.h")
-		if err != nil {
-			panic(err)
-		}
-		tfileFound := false
-		stdioFound := false
-		for _, tfile := range info.Thirds {
-			absTfile, err := filepath.Abs(tfile)
+			thirdhfile, err := filepath.Abs("./testdata/thirdhfile/third.h")
 			if err != nil {
 				t.Fatalf("failed to get abs path: %w", err)
 			}
-			if absTfile == thirdhfile {
-				tfileFound = true
+			tfileFound := false
+			stdioFound := false
+			for _, tfile := range info.Thirds {
+				absTfile, err := filepath.Abs(tfile)
+				if err != nil {
+					t.Fatalf("failed to get abs path: %w", err)
+				}
+				if absTfile == thirdhfile {
+					tfileFound = true
+				}
+				if strings.HasSuffix(absTfile, "stdio.h") {
+					stdioFound = true
+				}
 			}
-			if strings.HasSuffix(absTfile, "stdio.h") {
-				stdioFound = true
+			if !tfileFound || !stdioFound {
+				t.Fatalf("third hfile or std hfile not found")
 			}
-		}
-		if !tfileFound || !stdioFound {
-			t.Fatalf("third hfile or std hfile not found")
-		}
+		})
 	}
 }

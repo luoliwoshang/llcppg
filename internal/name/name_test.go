@@ -1,6 +1,7 @@
 package name_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/goplus/llcppg/internal/name"
@@ -21,11 +22,13 @@ func TestToGoName(t *testing.T) {
 		{[]string{"INI"}, "INIReader", "Reader"},
 	}
 
-	for _, tc := range testCases {
-		result := name.GoName(tc.input, tc.prefixes, true)
-		if result != tc.expect {
-			t.Fatalf("TestToGoName failed, input: %s, expected: %s, got: %s", tc.input, tc.expect, result)
-		}
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			result := name.GoName(tc.input, tc.prefixes, true)
+			if result != tc.expect {
+				t.Fatalf("TestToGoName failed, input: %s, expected: %s, got: %s", tc.input, tc.expect, result)
+			}
+		})
 	}
 }
 
@@ -51,11 +54,13 @@ func TestPubName(t *testing.T) {
 		{"___", "X___"},
 	}
 
-	for _, tc := range testCases {
-		result := name.PubName(tc.input)
-		if result != tc.expected {
-			t.Fatalf("TestPubName failed, input: %s, expected: %s, got: %s", tc.input, tc.expected, result)
-		}
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			result := name.PubName(tc.input)
+			if result != tc.expected {
+				t.Fatalf("TestPubName failed, input: %s, expected: %s, got: %s", tc.input, tc.expected, result)
+			}
+		})
 	}
 }
 
@@ -80,11 +85,13 @@ func TestExportName(t *testing.T) {
 		{"__", "X__"},
 		{"___", "X___"},
 	}
-	for _, tc := range testCases {
-		result := name.ExportName(tc.input)
-		if result != tc.expected {
-			t.Fatalf("TestExportName failed, input: %s, expected: %s, got: %s", tc.input, tc.expected, result)
-		}
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			result := name.ExportName(tc.input)
+			if result != tc.expected {
+				t.Fatalf("TestExportName failed, input: %s, expected: %s, got: %s", tc.input, tc.expected, result)
+			}
+		})
 	}
 }
 
@@ -99,10 +106,12 @@ func TestHeaderFileToGo(t *testing.T) {
 		{"_impl.h", "X_impl.go"},
 	}
 
-	for _, tc := range testCases {
-		result := name.HeaderFileToGo(tc.input)
-		if result != tc.expected {
-			t.Fatalf("TestHeaderFileToGo failed, input: %s, expected: %s, got: %s", tc.input, tc.expected, result)
-		}
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			result := name.HeaderFileToGo(tc.input)
+			if result != tc.expected {
+				t.Fatalf("TestHeaderFileToGo failed, input: %s, expected: %s, got: %s", tc.input, tc.expected, result)
+			}
+		})
 	}
 }

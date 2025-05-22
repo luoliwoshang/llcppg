@@ -1,7 +1,6 @@
 package clangtool_test
 
 import (
-	"fmt"
 	"os"
 	"reflect"
 	"testing"
@@ -10,7 +9,6 @@ import (
 )
 
 func TestComposeIncludes(t *testing.T) {
-	fmt.Println("=== Test ComposeIncludes ===")
 	testCases := []struct {
 		name   string
 		files  []string
@@ -36,24 +34,26 @@ func TestComposeIncludes(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		outfile, err := os.CreateTemp("", "compose_*.h")
-		if err != nil {
-			t.Fatal(err)
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			outfile, err := os.CreateTemp("", "compose_*.h")
+			if err != nil {
+				t.Fatal(err)
+			}
 
-		err = clangtool.ComposeIncludes(tc.files, outfile.Name())
-		if err != nil {
-			t.Fatal(err)
-		}
-		content, err := os.ReadFile(outfile.Name())
-		if err != nil {
-			t.Fatal(err)
-		}
-		if string(content) != tc.expect {
-			t.Fatalf("expect %s, but got %s", tc.expect, string(content))
-		}
-		outfile.Close()
-		os.Remove(outfile.Name())
+			err = clangtool.ComposeIncludes(tc.files, outfile.Name())
+			if err != nil {
+				t.Fatal(err)
+			}
+			content, err := os.ReadFile(outfile.Name())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(content) != tc.expect {
+				t.Fatalf("expect %s, but got %s", tc.expect, string(content))
+			}
+			outfile.Close()
+			os.Remove(outfile.Name())
+		})
 	}
 }
 

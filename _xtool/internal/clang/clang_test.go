@@ -66,60 +66,61 @@ Scoping parts: TestNamespace,namespaced_function
 	}
 
 	for _, tc := range testCases {
-		var filePath string
-		var tempFile *os.File
-		if tc.isTemp {
-			filePath = tc.content
-		} else {
-			var err error
-			tempFile, err = os.CreateTemp("", "test_*.h")
-			if err != nil {
-				t.Fatalf("Failed to create temporary file: %w\n", err)
-				continue
+		t.Run(tc.name, func(t *testing.T) {
+			var filePath string
+			var tempFile *os.File
+			if tc.isTemp {
+				filePath = tc.content
+			} else {
+				var err error
+				tempFile, err = os.CreateTemp("", "test_*.h")
+				if err != nil {
+					t.Fatalf("Failed to create temporary file: %w\n", err)
+					return
+				}
+				defer tempFile.Close()
+
+				_, err = tempFile.Write([]byte(tc.content))
+				if err != nil {
+					t.Fatalf("Failed to write to temporary file: %w\n", err)
+				}
+				defer os.Remove(tempFile.Name())
+				filePath = tempFile.Name()
 			}
-			defer tempFile.Close()
 
-			_, err = tempFile.Write([]byte(tc.content))
-			if err != nil {
-				t.Fatalf("Failed to write to temporary file: %w\n", err)
+			config := &clangutils.Config{
+				File:  filePath,
+				Temp:  tc.isTemp,
+				IsCpp: tc.isCpp,
 			}
-			defer os.Remove(tempFile.Name())
-			filePath = tempFile.Name()
-		}
 
-		config := &clangutils.Config{
-			File:  filePath,
-			Temp:  tc.isTemp,
-			IsCpp: tc.isCpp,
-		}
+			var str strings.Builder
 
-		var str strings.Builder
-
-		visit(config, func(cursor, parent clang.Cursor) clang.ChildVisitResult {
-			switch cursor.Kind {
-			case clang.CursorFunctionDecl, clang.CursorCXXMethod:
-				str.WriteString("Function/Method: ")
-				str.WriteString(clang.GoString(cursor.String()))
-				str.WriteString("\n")
-				parts := clangutils.BuildScopingParts(cursor)
-				str.WriteString("Scoping parts: ")
-				str.WriteString(strings.Join(parts, ","))
-				str.WriteString("\n")
-			case clang.CursorClassDecl:
-				str.WriteString("Class: ")
-				str.WriteString(clang.GoString(cursor.String()))
-				str.WriteString("\n")
-				return clang.ChildVisit_Recurse
-			case clang.CursorNamespace:
-				str.WriteString("Namespace: ")
-				str.WriteString(clang.GoString(cursor.String()))
-				str.WriteString("\n")
-				return clang.ChildVisit_Recurse
-			}
-			return clang.ChildVisit_Continue
+			visit(config, func(cursor, parent clang.Cursor) clang.ChildVisitResult {
+				switch cursor.Kind {
+				case clang.CursorFunctionDecl, clang.CursorCXXMethod:
+					str.WriteString("Function/Method: ")
+					str.WriteString(clang.GoString(cursor.String()))
+					str.WriteString("\n")
+					parts := clangutils.BuildScopingParts(cursor)
+					str.WriteString("Scoping parts: ")
+					str.WriteString(strings.Join(parts, ","))
+					str.WriteString("\n")
+				case clang.CursorClassDecl:
+					str.WriteString("Class: ")
+					str.WriteString(clang.GoString(cursor.String()))
+					str.WriteString("\n")
+					return clang.ChildVisit_Recurse
+				case clang.CursorNamespace:
+					str.WriteString("Namespace: ")
+					str.WriteString(clang.GoString(cursor.String()))
+					str.WriteString("\n")
+					return clang.ChildVisit_Recurse
+				}
+				return clang.ChildVisit_Continue
+			})
+			compareOutput(t, tc.expect, str.String())
 		})
-
-		compareOutput(t, tc.expect, str.String())
 	}
 }
 
@@ -179,7 +180,6 @@ cursorRange 11:1 -> 11:11
 }
 
 func TestPreprocess(t *testing.T) {
-	fmt.Println("=== TestPreprocess ===")
 	outfile, err := os.CreateTemp("", "compose_*.h")
 	if err != nil {
 		panic(err)
