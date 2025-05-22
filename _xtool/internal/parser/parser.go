@@ -925,8 +925,7 @@ func (ct *Converter) ProcessBuiltinType(t clang.Type) *ast.BuiltinType {
 		// float complfex flag is not set
 	default:
 		// like IBM128,NullPtr,Accum
-		kindStr := toStr(t.Kind.String())
-		fmt.Fprintln(os.Stderr, "todo: unknown builtin type:", kindStr)
+		panic(fmt.Sprintf("todo: unknown builtin type: %s", toStr(t.Kind.String())))
 	}
 
 	if IsExplicitSigned(t) {
