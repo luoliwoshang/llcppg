@@ -16,7 +16,7 @@ import (
 
 // llcppg.cfg
 func GetCppgCfgFromPath(filePath string) (*llcppg.Config, error) {
-	bytes, err := ReadFile(filePath)
+	bytes, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -90,15 +90,6 @@ func executeSigfetch(args []string, dir string, isCpp bool) ([]byte, error) {
 	}
 
 	return out.Bytes(), nil
-}
-
-func ReadFile(filePath string) ([]byte, error) {
-	jsonFile, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer jsonFile.Close()
-	return io.ReadAll(jsonFile)
 }
 
 func ReadPubFile(pubfile string) (ret map[string]string, err error) {

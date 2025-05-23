@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -69,7 +70,7 @@ func main() {
 	err = prepareEnv(outputDir, conf.Deps, modulePath)
 	check(err)
 
-	data, err := config.ReadSigfetchFile(filepath.Join(wd, ags.CfgFile))
+	data, err := readSigfetchFile(filepath.Join(wd, ags.CfgFile))
 	check(err)
 
 	convertPkg, err := unmarshal.Pkg(data)
@@ -147,6 +148,18 @@ func prepareEnv(outputDir string, deps []string, modulePath string) error {
 	}
 
 	return cl.ModInit(deps, outputDir, modulePath)
+}
+
+func readSigfetchFile(sigfetchFile string) ([]byte, error) {
+	_, file := filepath.Split(sigfetchFile)
+	var data []byte
+	var err error
+	if file == "-" {
+		data, err = io.ReadAll(os.Stdin)
+	} else {
+		data, err = os.ReadFile(sigfetchFile)
+	}
+	return data, err
 }
 
 func printUsage() {
