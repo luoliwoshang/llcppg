@@ -24,7 +24,7 @@ import (
 
 	clangutils "github.com/goplus/llcppg/_xtool/internal/clang"
 	"github.com/goplus/llcppg/_xtool/internal/config"
-	"github.com/goplus/llcppg/_xtool/llcppsigfetch/parse"
+	"github.com/goplus/llcppg/_xtool/llcppsigfetch/internal/parse"
 	llcppg "github.com/goplus/llcppg/config"
 	args "github.com/goplus/llcppg/internal/arg"
 )

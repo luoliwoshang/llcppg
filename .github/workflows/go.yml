@@ -44,8 +44,7 @@ jobs:
 
     - name: Test llcppsymg & llcppsigfetch
       run: |
-        llgo cmptest ./_xtool/llcppsigfetch/parse/cvt_test/...
-
+        bash .github/workflows/llgo_test.sh $(ls -d _xtool/llcppsigfetch/internal/*/)
         bash .github/workflows/llgo_test.sh $(ls -d _xtool/llcppsymg/internal/*/)
 
         # llgo cmptest ./_xtool/llcppsymg/_cmptest/... causes
