@@ -1,6 +1,7 @@
 package convert_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path"
@@ -102,7 +103,7 @@ func TestDepPkg(t *testing.T) {
 			t.Fatal(err)
 		}
 		cfg.CFlags = cfg.CFlags + incFlag
-		err = config.CreateJSONFile(cfgPath, cfg)
+		err = makeJSONFile(cfgPath, cfg)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -187,7 +188,10 @@ func testFrom(t *testing.T, dir string, gen bool, validateFunc func(t *testing.T
 	}
 
 	cfg.CFlags = " -I" + filepath.Join(dir, "hfile") + " " + cfg.CFlags
-	flagedCfgPath, err := config.CreateTmpJSONFile(llcppg.LLCPPG_CFG, cfg)
+
+	flagedCfgPath := filepath.Join(os.TempDir(), llcppg.LLCPPG_CFG)
+	err = makeJSONFile(flagedCfgPath, cfg)
+
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -345,6 +349,17 @@ func TestModInitFail(t *testing.T) {
 			t.Fatal("no error")
 		}
 	})
+}
+
+func makeJSONFile(filepath string, data any) error {
+	file, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(data)
 }
 
 func prepareEnv(name string, deps []string) (string, error) {

@@ -161,23 +161,6 @@ func RunCommand(dir, cmdName string, args ...string) error {
 	return execCmd.Run()
 }
 
-func CreateTmpJSONFile(filename string, data any) (string, error) {
-	filePath := filepath.Join(os.TempDir(), filename)
-	err := CreateJSONFile(filePath, data)
-	return filePath, err
-}
-
-func CreateJSONFile(filepath string, data any) error {
-	file, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "  ")
-	return encoder.Encode(data)
-}
-
 // temp to avoid call exec.Command in llcppsigfetch
 func ClangResourceDir() string {
 	res, err := exec.Command("clang", "-print-resource-dir").Output()
