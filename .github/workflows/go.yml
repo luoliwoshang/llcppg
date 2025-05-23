@@ -41,23 +41,10 @@ jobs:
         # https://github.com/goplus/llgo/pull/1128
         bash .github/workflows/llgo_test.sh $(ls -d _xtool/internal/*/)
 
-
     - name: Test llcppsymg & llcppsigfetch
       run: |
         bash .github/workflows/llgo_test.sh $(ls -d _xtool/llcppsigfetch/internal/*/)
         bash .github/workflows/llgo_test.sh $(ls -d _xtool/llcppsymg/internal/*/)
-
-        # llgo cmptest ./_xtool/llcppsymg/_cmptest/... causes
-        # panic: runtime error: index out of range [0] with length 0
-        cd _xtool/llcppsymg/_cmptest
-
-        # llgo cmptest ./... cause  lld: error: undefined symbol: sort.init
-        # https://github.com/goplus/llgo/issues/944
-
-        llgo cmptest ./symbol_test
-        llgo cmptest ./symg_test
-
-        cd ../../../
 
     - name: Test
       if: ${{!startsWith(matrix.os, 'macos')}}

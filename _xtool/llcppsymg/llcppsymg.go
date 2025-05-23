@@ -21,7 +21,7 @@ import (
 	"os"
 
 	"github.com/goplus/llcppg/_xtool/internal/config"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/symg"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/internal/symg"
 	llcppg "github.com/goplus/llcppg/config"
 	args "github.com/goplus/llcppg/internal/arg"
 )
