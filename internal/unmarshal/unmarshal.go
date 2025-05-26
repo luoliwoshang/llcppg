@@ -3,7 +3,6 @@ package unmarshal
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"reflect"
 
 	"github.com/goplus/llcppg/ast"
@@ -57,27 +56,25 @@ func File(data []byte) (*ast.File, error) {
 		return nil, newDeserializeError("File", fileData, data, err)
 	}
 
-	file := &ast.File{
-		Includes: fileData.Includes,
-		Macros:   fileData.Macros,
-		Decls:    []ast.Decl{},
-	}
+	var decls []ast.Decl
 
-	for i, declData := range fileData.Decls {
+	for _, declData := range fileData.Decls {
 		declNode, err := Node(declData)
 		if err != nil {
-			// todo(zzy):return error,all of current error is the block pointer.
-			fmt.Fprintf(os.Stderr, "error unmarshalling %d Decl in File: %v\n%s\n", i, err, string(declData))
-			continue
+			return nil, newUnmarshalFieldError("File", fileData, "Decls", declData, err)
 		}
 		decl, ok := declNode.(ast.Decl)
 		if !ok {
-			return nil, newUnexpectType("File", declNode, "ast.Decl")
+			return nil, newUnexpectTypeError("File", declNode, "ast.Decl")
 		}
-		file.Decls = append(file.Decls, decl)
+		decls = append(decls, decl)
 	}
 
-	return file, nil
+	return &ast.File{
+		Includes: fileData.Includes,
+		Macros:   fileData.Macros,
+		Decls:    decls,
+	}, nil
 }
 
 func Node(data []byte) (ast.Node, error) {
@@ -166,29 +163,31 @@ func XType(data []byte, xType ast.Node) (ast.Node, error) {
 		return nil, newDeserializeError("XType", xTypeData, data, err)
 	}
 
-	xNode, err := Node(xTypeData.X)
-	if err != nil {
-		return nil, newUnmarshalFieldError("XType", xTypeData, "X", data, err)
-	}
-	expr, ok := xNode.(ast.Expr)
-	if !ok {
-		return nil, newUnexpectType("XType", xNode, "ast.Expr")
-	}
-	switch v := xType.(type) {
-	case *ast.PointerType:
-		v.X = expr
-	case *ast.LvalueRefType:
-		v.X = expr
-	case *ast.RvalueRefType:
-		v.X = expr
-	case *ast.BlockPointerType:
-		fnType, ok := expr.(*ast.FuncType)
-		if !ok {
-			return nil, newUnexpectType("XType", expr, "*ast.FuncType")
+	if !isJSONNull(xTypeData.X) {
+		xNode, err := Node(xTypeData.X)
+		if err != nil {
+			return nil, newUnmarshalFieldError("XType", xTypeData, "X", data, err)
 		}
-		v.X = fnType
-	default:
-		return nil, newUnexpectType("XType", xType, "*ast.PointerType, *ast.LvalueRefType, *ast.RvalueRefType, *ast.BlockPointerType")
+		expr, ok := xNode.(ast.Expr)
+		if !ok {
+			return nil, newUnexpectTypeError("XType", xNode, "ast.Expr")
+		}
+		switch v := xType.(type) {
+		case *ast.PointerType:
+			v.X = expr
+		case *ast.LvalueRefType:
+			v.X = expr
+		case *ast.RvalueRefType:
+			v.X = expr
+		case *ast.BlockPointerType:
+			fnType, ok := expr.(*ast.FuncType)
+			if !ok {
+				return nil, newUnexpectTypeError("XType", expr, "*ast.FuncType")
+			}
+			v.X = fnType
+		default:
+			return nil, newUnexpectTypeError("XType", xType, "*ast.PointerType, *ast.LvalueRefType, *ast.RvalueRefType")
+		}
 	}
 
 	return xType, nil
@@ -216,32 +215,37 @@ func ArrayType(data []byte) (ast.Node, error) {
 		return nil, newDeserializeError("ArrayType", arrayData, data, err)
 	}
 
-	arrayType := &ast.ArrayType{}
+	var elt ast.Expr
+	var len ast.Expr
 
-	eltNode, err := Node(arrayData.Elt)
-	if err != nil {
-		return nil, newUnmarshalFieldError("ArrayType", arrayData, "Elt", data, err)
+	if !isJSONNull(arrayData.Elt) {
+		eltNode, err := Node(arrayData.Elt)
+		if err != nil {
+			return nil, newUnmarshalFieldError("ArrayType", arrayData, "Elt", data, err)
+		}
+		var ok bool
+		elt, ok = eltNode.(ast.Expr)
+		if !ok {
+			return nil, newUnexpectTypeError("ArrayType", eltNode, "ast.Expr")
+		}
 	}
-	elt, ok := eltNode.(ast.Expr)
-	if !ok {
-		return nil, newUnexpectType("ArrayType", eltNode, "ast.Expr")
-	}
-	arrayType.Elt = elt
 
-	// len permit nil,for array without len
-	if len(arrayData.Len) > 0 && !isJSONNull(arrayData.Len) {
+	if !isJSONNull(arrayData.Len) {
 		lenNode, err := Node(arrayData.Len)
 		if err != nil {
-			return nil, newUnmarshalFieldError("ArrayType", arrayType, "Len", data, err)
+			return nil, newUnmarshalFieldError("ArrayType", arrayData, "Len", data, err)
 		}
-		length, ok := lenNode.(ast.Expr)
+		var ok bool
+		len, ok = lenNode.(ast.Expr)
 		if !ok {
-			return nil, newUnexpectType("ArrayType", lenNode, "ast.Expr")
+			return nil, newUnexpectTypeError("ArrayType", lenNode, "ast.Expr")
 		}
-		arrayType.Len = length
 	}
 
-	return arrayType, nil
+	return &ast.ArrayType{
+		Elt: elt,
+		Len: len,
+	}, nil
 }
 
 func Field(data []byte) (ast.Node, error) {
@@ -257,21 +261,28 @@ func Field(data []byte) (ast.Node, error) {
 	if err := json.Unmarshal(data, &fieldData); err != nil {
 		return nil, newDeserializeError("Field", fieldData, data, err)
 	}
-	typeNode, err := Node(fieldData.Type)
-	if err != nil {
-		return nil, newUnmarshalFieldError("Field", fieldData, "Type", data, err)
+
+	var typ ast.Expr
+	if !isJSONNull(fieldData.Type) {
+		typeNode, err := Node(fieldData.Type)
+		if err != nil {
+			return nil, newUnmarshalFieldError("Field", fieldData, "Type", data, err)
+		}
+		var ok bool
+		typ, ok = typeNode.(ast.Expr)
+		if !ok {
+			return nil, newUnexpectTypeError("Field", typeNode, "ast.Expr")
+		}
 	}
 
-	field := &ast.Field{
+	return &ast.Field{
 		Doc:      fieldData.Doc,
 		Names:    fieldData.Names,
 		Comment:  fieldData.Comment,
 		Access:   fieldData.Access,
 		IsStatic: fieldData.IsStatic,
-		Type:     typeNode.(ast.Expr),
-	}
-
-	return field, nil
+		Type:     typ,
+	}, nil
 }
 
 func FieldList(data []byte) (ast.Node, error) {
@@ -283,7 +294,7 @@ func FieldList(data []byte) (ast.Node, error) {
 		return nil, newDeserializeError("FieldList", fieldListData, data, err)
 	}
 
-	fieldList := &ast.FieldList{}
+	list := []*ast.Field{}
 
 	for _, fieldData := range fieldListData.List {
 		fieldNode, err := Node(fieldData)
@@ -292,12 +303,14 @@ func FieldList(data []byte) (ast.Node, error) {
 		}
 		field, ok := fieldNode.(*ast.Field)
 		if !ok {
-			return nil, newUnexpectType("FieldList", fieldNode, &ast.Field{})
+			return nil, newUnexpectTypeError("FieldList", fieldNode, &ast.Field{})
 		}
-		fieldList.List = append(fieldList.List, field)
+		list = append(list, field)
 	}
 
-	return fieldList, nil
+	return &ast.FieldList{
+		List: list,
+	}, nil
 }
 
 func TagExpr(data []byte) (ast.Node, error) {
@@ -310,55 +323,52 @@ func TagExpr(data []byte) (ast.Node, error) {
 		return nil, newDeserializeError("TagExpr", tagExprData, data, err)
 	}
 
-	tagExpr := &ast.TagExpr{
-		Tag: tagExprData.Tag,
+	var name ast.Expr
+	if !isJSONNull(tagExprData.Name) {
+		nameNode, err := Node(tagExprData.Name)
+		if err != nil {
+			return nil, newUnmarshalFieldError("TagExpr", tagExprData, "Name", data, err)
+		}
+		var ok bool
+		name, ok = nameNode.(ast.Expr)
+		if !ok {
+			return nil, newUnexpectTypeError("TagExpr", nameNode, "ast.Expr")
+		}
 	}
 
-	nameNode, err := Node(tagExprData.Name)
-	if err != nil {
-		return nil, newUnmarshalFieldError("TagExpr", tagExprData, "Name", data, err)
-	}
-	name, ok := nameNode.(ast.Expr)
-	if !ok {
-		return nil, newUnexpectType("TagExpr", nameNode, "ast.Expr")
-	}
-	tagExpr.Name = name
-	return tagExpr, nil
+	return &ast.TagExpr{
+		Tag:  tagExprData.Tag,
+		Name: name,
+	}, nil
 }
 
 func ScopingExpr(data []byte) (ast.Node, error) {
 	type scopingExprTemp struct {
 		Parent json.RawMessage
-		X      json.RawMessage
+		X      *ast.Ident
 	}
 	var scopingExprData scopingExprTemp
 	if err := json.Unmarshal(data, &scopingExprData); err != nil {
 		return nil, newDeserializeError("ScopingExpr", scopingExprData, data, err)
 	}
 
-	scopingExpr := &ast.ScopingExpr{}
+	var parent ast.Expr
+	if !isJSONNull(scopingExprData.Parent) {
+		parentNode, err := Node(scopingExprData.Parent)
+		if err != nil {
+			return nil, newUnmarshalFieldError("ScopingExpr", scopingExprData, "Parent", data, err)
+		}
+		var ok bool
+		parent, ok = parentNode.(ast.Expr)
+		if !ok {
+			return nil, newUnexpectTypeError("ScopingExpr", parentNode, "ast.Expr")
+		}
+	}
 
-	parentNode, err := Node(scopingExprData.Parent)
-	if err != nil {
-		return nil, newUnmarshalFieldError("ScopingExpr", scopingExprData, "Parent", data, err)
-	}
-	parent, ok := parentNode.(ast.Expr)
-	if !ok {
-		return nil, newUnexpectType("ScopingExpr", parentNode, "ast.Expr")
-	}
-	scopingExpr.Parent = parent
-
-	xNode, err := Node(scopingExprData.X)
-	if err != nil {
-		return nil, newUnmarshalFieldError("ScopingExpr", scopingExprData, "X", data, err)
-	}
-	x, ok := xNode.(*ast.Ident)
-	if !ok {
-		return nil, newUnexpectType("ScopingExpr", xNode, "ast.Ident")
-	}
-	scopingExpr.X = x
-
-	return scopingExpr, nil
+	return &ast.ScopingExpr{
+		Parent: parent,
+		X:      scopingExprData.X,
+	}, nil
 }
 
 func EnumItem(data []byte) (ast.Node, error) {
@@ -372,23 +382,23 @@ func EnumItem(data []byte) (ast.Node, error) {
 		return nil, newDeserializeError("EnumItem", enumItemData, data, err)
 	}
 
-	enumItem := &ast.EnumItem{
-		Name: enumItemData.Name,
-	}
-
+	var value ast.Expr
 	if !isJSONNull(enumItemData.Value) {
 		valueNode, err := Node(enumItemData.Value)
 		if err != nil {
 			return nil, newUnmarshalFieldError("EnumItem", enumItemData, "Value", data, err)
 		}
-		value, ok := valueNode.(ast.Expr)
+		var ok bool
+		value, ok = valueNode.(ast.Expr)
 		if !ok {
-			return nil, newUnexpectType("EnumItem", valueNode, "ast.Expr")
+			return nil, newUnexpectTypeError("EnumItem", valueNode, "ast.Expr")
 		}
-		enumItem.Value = value
 	}
 
-	return enumItem, nil
+	return &ast.EnumItem{
+		Name:  enumItemData.Name,
+		Value: value,
+	}, nil
 }
 
 func EnumType(data []byte) (ast.Node, error) {
@@ -400,7 +410,7 @@ func EnumType(data []byte) (ast.Node, error) {
 		return nil, newDeserializeError("EnumType", enumTypeData, data, err)
 	}
 
-	result := &ast.EnumType{}
+	items := []*ast.EnumItem{}
 	for _, itemData := range enumTypeData.Items {
 		itemNode, err := Node(itemData)
 		if err != nil {
@@ -408,12 +418,14 @@ func EnumType(data []byte) (ast.Node, error) {
 		}
 		item, ok := itemNode.(*ast.EnumItem)
 		if !ok {
-			return nil, newUnexpectType("EnumType", itemNode, &ast.EnumItem{})
+			return nil, newUnexpectTypeError("EnumType", itemNode, &ast.EnumItem{})
 		}
-		result.Items = append(result.Items, item)
+		items = append(items, item)
 	}
 
-	return result, nil
+	return &ast.EnumType{
+		Items: items,
+	}, nil
 }
 
 func RecordType(data []byte) (ast.Node, error) {
@@ -427,20 +439,19 @@ func RecordType(data []byte) (ast.Node, error) {
 		return nil, newDeserializeError("RecordType", recordTypeData, data, err)
 	}
 
-	recordType := &ast.RecordType{
-		Tag:     recordTypeData.Tag,
-		Methods: []*ast.FuncDecl{},
+	var fields *ast.FieldList
+	var methods []*ast.FuncDecl
+	if !isJSONNull(recordTypeData.Fields) {
+		fieldsNode, err := Node(recordTypeData.Fields)
+		if err != nil {
+			return nil, newUnmarshalFieldError("RecordType", recordTypeData, "Fields", data, err)
+		}
+		var ok bool
+		fields, ok = fieldsNode.(*ast.FieldList)
+		if !ok {
+			return nil, newUnexpectTypeError("RecordType", fieldsNode, &ast.FieldList{})
+		}
 	}
-
-	fieldsNode, err := Node(recordTypeData.Fields)
-	if err != nil {
-		return nil, newUnmarshalFieldError("RecordType", recordTypeData, "Fields", data, err)
-	}
-	fields, ok := fieldsNode.(*ast.FieldList)
-	if !ok {
-		return nil, newUnexpectType("RecordType", fieldsNode, &ast.FieldList{})
-	}
-	recordType.Fields = fields
 
 	for _, methodData := range recordTypeData.Methods {
 		methodNode, err := Node(methodData)
@@ -449,12 +460,16 @@ func RecordType(data []byte) (ast.Node, error) {
 		}
 		method, ok := methodNode.(*ast.FuncDecl)
 		if !ok {
-			return nil, newUnexpectType("RecordType", methodNode, &ast.FuncDecl{})
+			return nil, newUnexpectTypeError("RecordType", methodNode, &ast.FuncDecl{})
 		}
-		recordType.Methods = append(recordType.Methods, method)
+		methods = append(methods, method)
 	}
 
-	return recordType, nil
+	return &ast.RecordType{
+		Tag:     recordTypeData.Tag,
+		Fields:  fields,
+		Methods: methods,
+	}, nil
 }
 
 func FuncType(data []byte) (ast.Node, error) {
@@ -466,22 +481,31 @@ func FuncType(data []byte) (ast.Node, error) {
 	if err := json.Unmarshal(data, &funcTypeData); err != nil {
 		return nil, newDeserializeError("FuncType", funcTypeData, data, err)
 	}
-	paramsNode, err := Node(funcTypeData.Params)
-	if err != nil {
-		return nil, newUnmarshalFieldError("FuncType", funcTypeData, "Params", data, err)
-	}
-	params, ok := paramsNode.(*ast.FieldList)
-	if !ok {
-		return nil, newUnexpectType("FuncType", paramsNode, &ast.FieldList{})
+
+	var params *ast.FieldList
+	var ret ast.Expr
+	if !isJSONNull(funcTypeData.Params) {
+		paramsNode, err := Node(funcTypeData.Params)
+		if err != nil {
+			return nil, newUnmarshalFieldError("FuncType", funcTypeData, "Params", data, err)
+		}
+		var ok bool
+		params, ok = paramsNode.(*ast.FieldList)
+		if !ok {
+			return nil, newUnexpectTypeError("FuncType", paramsNode, &ast.FieldList{})
+		}
 	}
 
-	retNode, err := Node(funcTypeData.Ret)
-	if err != nil {
-		return nil, newUnmarshalFieldError("FuncType", funcTypeData, "Ret", data, err)
-	}
-	ret, ok := retNode.(ast.Expr)
-	if !ok {
-		return nil, newUnexpectType("FuncType", retNode, "ast.Expr")
+	if !isJSONNull(funcTypeData.Ret) {
+		retNode, err := Node(funcTypeData.Ret)
+		if err != nil {
+			return nil, newUnmarshalFieldError("FuncType", funcTypeData, "Ret", data, err)
+		}
+		var ok bool
+		ret, ok = retNode.(ast.Expr)
+		if !ok {
+			return nil, newUnexpectTypeError("FuncType", retNode, "ast.Expr")
+		}
 	}
 
 	return &ast.FuncType{
@@ -508,13 +532,17 @@ func FuncDecl(data []byte) (ast.Node, error) {
 		return nil, newDeserializeError("FuncDecl", funcDeclData, data, err)
 	}
 
-	typeNode, err := Node(funcDeclData.Type)
-	if err != nil {
-		return nil, newUnmarshalFieldError("FuncDecl", funcDeclData, "Type", data, err)
-	}
-	typ, ok := typeNode.(*ast.FuncType)
-	if !ok {
-		return nil, newUnexpectType("FuncDecl", typeNode, &ast.FuncType{})
+	var typ *ast.FuncType
+	if !isJSONNull(funcDeclData.Type) {
+		typeNode, err := Node(funcDeclData.Type)
+		if err != nil {
+			return nil, newUnmarshalFieldError("FuncDecl", funcDeclData, "Type", data, err)
+		}
+		var ok bool
+		typ, ok = typeNode.(*ast.FuncType)
+		if !ok {
+			return nil, newUnexpectTypeError("FuncDecl", typeNode, &ast.FuncType{})
+		}
 	}
 
 	declBase, err := declBase(data)
@@ -546,13 +574,17 @@ func TypeDecl(data []byte) (ast.Node, error) {
 		return nil, newDeserializeError("TypeDecl", typeDeclData, data, err)
 	}
 
-	typeNode, err := Node(typeDeclData.Type)
-	if err != nil {
-		return nil, newUnmarshalFieldError("TypeDecl", typeDeclData, "Type", data, err)
-	}
-	typ, ok := typeNode.(*ast.RecordType)
-	if !ok {
-		return nil, newUnexpectType("TypeDecl", typeNode, &ast.RecordType{})
+	var typ *ast.RecordType
+	if !isJSONNull(typeDeclData.Type) {
+		typeNode, err := Node(typeDeclData.Type)
+		if err != nil {
+			return nil, newUnmarshalFieldError("TypeDecl", typeDeclData, "Type", data, err)
+		}
+		var ok bool
+		typ, ok = typeNode.(*ast.RecordType)
+		if !ok {
+			return nil, newUnexpectTypeError("TypeDecl", typeNode, &ast.RecordType{})
+		}
 	}
 
 	declBase, err := declBase(data)
@@ -575,13 +607,17 @@ func TypeDefDecl(data []byte) (ast.Node, error) {
 		return nil, newDeserializeError("TypeDefDecl", typeDefDeclData, data, err)
 	}
 
-	typeNode, err := Node(typeDefDeclData.Type)
-	if err != nil {
-		return nil, newUnmarshalFieldError("TypeDefDecl", typeDefDeclData, "Type", data, err)
-	}
-	typ, ok := typeNode.(ast.Expr)
-	if !ok {
-		return nil, newUnexpectType("TypeDefDecl", typeNode, "ast.Expr")
+	var typ ast.Expr
+	if !isJSONNull(typeDefDeclData.Type) {
+		typeNode, err := Node(typeDefDeclData.Type)
+		if err != nil {
+			return nil, newUnmarshalFieldError("TypeDefDecl", typeDefDeclData, "Type", data, err)
+		}
+		var ok bool
+		typ, ok = typeNode.(ast.Expr)
+		if !ok {
+			return nil, newUnexpectTypeError("TypeDefDecl", typeNode, "ast.Expr")
+		}
 	}
 
 	declBase, err := declBase(data)
@@ -604,13 +640,17 @@ func EnumTypeDecl(data []byte) (ast.Node, error) {
 		return nil, newDeserializeError("EnumTypeDecl", enumTypeDeclData, data, err)
 	}
 
-	typeNode, err := Node(enumTypeDeclData.Type)
-	if err != nil {
-		return nil, newUnmarshalFieldError("EnumTypeDecl", enumTypeDeclData, "Type", data, err)
-	}
-	typ, ok := typeNode.(*ast.EnumType)
-	if !ok {
-		return nil, newUnexpectType("EnumTypeDecl", typeNode, &ast.EnumType{})
+	var typ *ast.EnumType
+	if !isJSONNull(enumTypeDeclData.Type) {
+		typeNode, err := Node(enumTypeDeclData.Type)
+		if err != nil {
+			return nil, newUnmarshalFieldError("EnumTypeDecl", enumTypeDeclData, "Type", data, err)
+		}
+		var ok bool
+		typ, ok = typeNode.(*ast.EnumType)
+		if !ok {
+			return nil, newUnexpectTypeError("EnumTypeDecl", typeNode, &ast.EnumType{})
+		}
 	}
 
 	declBase, err := declBase(data)
@@ -636,25 +676,25 @@ func declBase(data []byte) (ast.Object, error) {
 		return ast.Object{}, newDeserializeError("declBase", declBaseData, data, err)
 	}
 
-	declBase := ast.Object{
-		Loc:  declBaseData.Loc,
-		Doc:  declBaseData.Doc,
-		Name: declBaseData.Name,
-	}
-
+	var parent ast.Expr
 	if !isJSONNull(declBaseData.Parent) {
 		parentNode, err := Node(declBaseData.Parent)
 		if err != nil {
 			return ast.Object{}, newUnmarshalFieldError("declBase", declBaseData, "Parent", data, err)
 		}
-		parent, ok := parentNode.(ast.Expr)
+		var ok bool
+		parent, ok = parentNode.(ast.Expr)
 		if !ok {
-			return ast.Object{}, newUnexpectType("declBase", parentNode, "ast.Expr")
+			return ast.Object{}, newUnexpectTypeError("declBase", parentNode, "ast.Expr")
 		}
-		declBase.Parent = parent
 	}
 
-	return declBase, nil
+	return ast.Object{
+		Loc:    declBaseData.Loc,
+		Doc:    declBaseData.Doc,
+		Name:   declBaseData.Name,
+		Parent: parent,
+	}, nil
 }
 
 func isJSONNull(data json.RawMessage) bool {
@@ -672,17 +712,12 @@ type DeserializeError struct {
 }
 
 func (e *DeserializeError) Error() string {
-	const maxDataLen = 100
-	data := e.Data
-	if len(data) > maxDataLen {
-		data = data[:maxDataLen] + "..."
-	}
 	if e.Field != "" {
 		return fmt.Sprintf("unmarshal error in %s when converting %s of %v: %s\ninput: %s",
-			e.Func, e.Field, reflect.TypeOf(e.TargetType), e.Err.Error(), data)
+			e.Func, e.Field, reflect.TypeOf(e.TargetType), e.Err.Error(), e.Data)
 	}
 	return fmt.Sprintf("unmarshal error in %s into %v: %s\ninput: %s",
-		e.Func, reflect.TypeOf(e.TargetType), e.Err.Error(), data)
+		e.Func, reflect.TypeOf(e.TargetType), e.Err.Error(), e.Data)
 }
 
 func newDeserializeError(funcName string, targetType any, data []byte, err error) *DeserializeError {
@@ -704,21 +739,21 @@ func newUnmarshalFieldError(funcName string, targetType any, field string, data 
 	}
 }
 
-type UnexpectType struct {
+type UnexpectTypeError struct {
 	Func     string
 	GotType  any
 	WantType any
 }
 
-func (e *UnexpectType) Error() string {
+func (e *UnexpectTypeError) Error() string {
 	if reflect.TypeOf(e.WantType).Kind() == reflect.String {
 		return fmt.Sprintf("unmarshal error in %s: got %v, want %s", e.Func, reflect.TypeOf(e.GotType), e.WantType)
 	}
 	return fmt.Sprintf("unmarshal error in %s: got %v, want %v", e.Func, reflect.TypeOf(e.GotType), reflect.TypeOf(e.WantType))
 }
 
-func newUnexpectType(funcName string, gotType any, wantType any) *UnexpectType {
-	return &UnexpectType{
+func newUnexpectTypeError(funcName string, gotType any, wantType any) *UnexpectTypeError {
+	return &UnexpectTypeError{
 		Func:     funcName,
 		GotType:  gotType,
 		WantType: wantType,

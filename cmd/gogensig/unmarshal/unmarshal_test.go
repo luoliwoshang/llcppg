@@ -88,9 +88,10 @@ func TestUnmarshalPkg(t *testing.T) {
 						Name: &ast.Ident{Name: "lua_State"},
 					},
 					Type: &ast.RecordType{
-						Tag:     0,
-						Fields:  &ast.FieldList{},
-						Methods: []*ast.FuncDecl{},
+						Tag: 0,
+						Fields: &ast.FieldList{
+							List: []*ast.Field{},
+						},
 					},
 				},
 				&ast.TypedefDecl{

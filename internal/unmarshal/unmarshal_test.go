@@ -1370,7 +1370,7 @@ func TestUnmarshalErrors(t *testing.T) {
 			name:        "unmarshalArrayType - Invalid Len",
 			fn:          unmarshal.ArrayType,
 			input:       `{"Elt": {"_Type": "BuiltinType", "Kind": 1}, "Len": {"_Type": "InvalidType"}}`,
-			expectedErr: "unmarshal error in ArrayType when converting Len of *ast.ArrayType",
+			expectedErr: "unmarshal error in ArrayType when converting Len of unmarshal.arrayTemp",
 		},
 		{
 			name:        "unmarshalArrayType - Unexpect Len",
@@ -1450,18 +1450,6 @@ func TestUnmarshalErrors(t *testing.T) {
 			fn:          unmarshal.ScopingExpr,
 			input:       `{"Parent": {"_Type": "Token", "Token": 1, "Lit": "test"}, "X": {"_Type": "Ident", "Name": "test"}}`,
 			expectedErr: "unmarshal error in ScopingExpr: got *ast.Token, want ast.Expr",
-		},
-		{
-			name:        "unmarshalScopingExpr - Invalid X",
-			fn:          unmarshal.ScopingExpr,
-			input:       `{"Parent": {"_Type": "Ident", "Name": "test"}, "X": {"_Type": "InvalidType"}}`,
-			expectedErr: "unmarshal error in ScopingExpr when converting X of unmarshal.scopingExprTemp",
-		},
-		{
-			name:        "unmarshalScopingExpr - Unexpected X",
-			fn:          unmarshal.ScopingExpr,
-			input:       `{"Parent": {"_Type": "Ident", "Name": "test"}, "X": {"_Type": "Token", "Token": 1, "Lit": "test"}}`,
-			expectedErr: "unmarshal error in ScopingExpr: got *ast.Token, want ast.Ident",
 		},
 
 		// unmarshalEnumItem errors
@@ -1716,7 +1704,7 @@ func TestUnmarshalFileErrors(t *testing.T) {
 		{
 			name:        "unmarshalFile - Invalid JSON",
 			input:       `{"_Type": "File", "Includes": [], "Macros": [], "Decls": [{"_Type": "InvalidType"}]}`,
-			expectedErr: "",
+			expectedErr: "unmarshal error in File when converting Decls of unmarshal.fileTemp: unknown node type: InvalidType",
 		},
 		{
 			name:        "unmarshalFile - Unexpected Decl",
