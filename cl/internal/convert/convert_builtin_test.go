@@ -148,6 +148,98 @@ func TestProcessWithError(t *testing.T) {
 	checkError(t, err, "NewTypedefDecl: Foo fail")
 }
 
+func TestIdentRefer(t *testing.T) {
+	nc := cltest.NC(&llcppg.Config{},
+		map[string]*llcppg.FileInfo{
+			"exist.h": {
+				FileType: llcppg.Inter,
+			},
+			"third.h": {
+				FileType: llcppg.Third,
+			},
+		},
+		cltest.NewConvSym(cltest.SymbolEntry{
+			CppName:    "Foo",
+			MangleName: "Foo",
+			GoName:     "Foo",
+		}),
+	)
+	thirdType := &ast.TypedefDecl{
+		Object: ast.Object{
+			Loc: &ast.Location{
+				File: "third.h",
+			},
+			Name: &ast.Ident{
+				Name: "undefType",
+			},
+		},
+		Type: &ast.BuiltinType{
+			Kind:  ast.Char,
+			Flags: ast.Signed,
+		},
+	}
+	t.Run("undef sys ident ref", func(t *testing.T) {
+		pkg := &ast.File{
+			Decls: []ast.Decl{
+				thirdType,
+				&ast.TypeDecl{
+					Object: ast.Object{
+						Loc:  &ast.Location{File: "exist.h"},
+						Name: &ast.Ident{Name: "Foo"},
+					},
+					Type: &ast.RecordType{
+						Tag: ast.Struct,
+						Fields: &ast.FieldList{
+							List: []*ast.Field{
+								{
+									Names: []*ast.Ident{{Name: "notfound"}},
+									Type: &ast.Ident{
+										Name: "undefType",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+		converter := basicConverter(pkg, nc)
+		err := converter.Process()
+		checkError(t, err, "NewTypeDecl: fail to complete type Foo: convert third.h first, declare converted package in llcppg.cfg deps for load [undefType]")
+	})
+	t.Run("undef tag ref ident", func(t *testing.T) {
+		pkg := &ast.File{
+			Decls: []ast.Decl{
+				thirdType,
+				&ast.TypeDecl{
+					Object: ast.Object{
+						Loc:  &ast.Location{File: "exist.h"},
+						Name: &ast.Ident{Name: "Foo"},
+					},
+					Type: &ast.RecordType{
+						Tag: ast.Struct,
+						Fields: &ast.FieldList{
+							List: []*ast.Field{
+								{
+									Names: []*ast.Ident{{Name: "notfound"}},
+									Type: &ast.TagExpr{
+										Name: &ast.Ident{
+											Name: "undefType",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+		converter := basicConverter(pkg, nc)
+		err := converter.Process()
+		checkError(t, err, "NewTypeDecl: fail to complete type Foo: convert third.h first, declare converted package in llcppg.cfg deps for load [undefType]")
+	})
+}
+
 func checkError(t *testing.T, err error, expectedPrefix string) {
 	if err == nil {
 		t.Fatalf("Expected error, but got nil")

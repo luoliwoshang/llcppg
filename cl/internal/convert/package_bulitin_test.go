@@ -37,35 +37,6 @@ func emptyPkg(nc nc.NodeConverter) *Package {
 }
 
 func TestTypeRefIncompleteFail(t *testing.T) {
-	/* todo(zzy):move to nodeconverter test
-	t.Run("defer write third type not found", func(t *testing.T) {
-		nc := cltest.NC(&llcppg.Config{}, nil, cltest.NewConvSym())
-		pkg := emptyPkg(nc)
-		tempFile := &ncimpl.HeaderFile{
-			File:     "temp.h",
-			FileType: llcppg.Inter,
-		}
-		pkg.p.SetCurFile(tempFile.ToGoFileName("testpkg"), true)
-		// pkg.locMap.Add(&ast.Ident{Name: "Bar"}, &ast.Location{File: "Bar"})
-		pkg.incompleteTypes.Add(&Incomplete{cname: "Bar"})
-		err := pkg.NewTypedefDecl("Foo", &ast.TypedefDecl{
-			Object: ast.Object{
-				Name: &ast.Ident{Name: "Foo"},
-			},
-			Type: &ast.TagExpr{
-				Name: &ast.Ident{Name: "Bar"},
-			},
-		})
-		if err != nil {
-			t.Fatal("NewTypedefDecl failed:", err)
-		}
-		pkg.incompleteTypes.Complete("Bar")
-		err = pkg.Complete()
-		if err == nil {
-			t.Fatal("expect a error")
-		}
-	})
-	*/
 	t.Run("ref tag incomplete fail", func(t *testing.T) {
 		pkg := emptyPkg(nil)
 		tempFile := &ncimpl.HeaderFile{

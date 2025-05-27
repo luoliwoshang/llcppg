@@ -349,10 +349,6 @@ func TestModInitFail(t *testing.T) {
 	})
 }
 
-func TestConvertFail(t *testing.T) {
-
-}
-
 func prepareEnv(name string, deps []string) (string, error) {
 	tempDir, err := os.MkdirTemp("", "gogensig-test")
 	if err != nil {
