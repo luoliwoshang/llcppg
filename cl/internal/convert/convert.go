@@ -1,7 +1,7 @@
 package convert
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cl/nc"
@@ -88,13 +88,15 @@ func NewConverter(config *Config) (*Converter, error) {
 	}, nil
 }
 
-// todo(zzy):throw error
-func (p *Converter) Convert() {
-	p.Process()
-	p.Complete()
+func (p *Converter) Convert() error {
+	err := p.Process()
+	if err != nil {
+		return err
+	}
+	return p.Complete()
 }
 
-func (p *Converter) Process() {
+func (p *Converter) Process() error {
 	pnc := p.NC
 	ctx := p.GenPkg
 	for _, macro := range p.Pkg.Macros {
@@ -103,12 +105,12 @@ func (p *Converter) Process() {
 			if err == nc.ErrSkip {
 				continue
 			}
-			log.Panicln("ConvMacro:", err)
+			return fmt.Errorf("ConvMacro: %w", err)
 		}
 		ctx.setGoFile(goFile)
 		err = ctx.NewMacro(goName, macro)
 		if err != nil {
-			log.Panicln("NewMacro:", err)
+			return err
 		}
 	}
 
@@ -119,7 +121,7 @@ func (p *Converter) Process() {
 			if err == nc.ErrSkip {
 				continue
 			}
-			log.Panicln("ConvDecl:", err)
+			return fmt.Errorf("ConvDecl: %w", err)
 		}
 		ctx.setGoFile(goFile)
 		switch decl := decl.(type) {
@@ -133,14 +135,16 @@ func (p *Converter) Process() {
 			err = ctx.NewFuncDecl(goName, decl)
 		}
 		if err != nil {
-			log.Panicln(err)
+			return err
 		}
 	}
+	return nil
 }
 
-func (p *Converter) Complete() {
+func (p *Converter) Complete() error {
 	err := p.GenPkg.Complete()
 	if err != nil {
-		log.Panicf("Complete Fail: %v\n", err)
+		return fmt.Errorf("Complete Fail: %w", err)
 	}
+	return nil
 }

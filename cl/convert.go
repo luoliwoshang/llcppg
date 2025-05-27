@@ -40,7 +40,10 @@ func Convert(config *ConvConfig) (pkg Package, err error) {
 	if err != nil {
 		return
 	}
-	cvt.Convert()
+	err = cvt.Convert()
+	if err != nil {
+		return
+	}
 	gp := cvt.GenPkg
 	return Package{gp.Pkg(), gp.PkgInfo}, nil
 }

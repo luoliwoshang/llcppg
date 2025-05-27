@@ -71,22 +71,17 @@ func TestPkgFail(t *testing.T) {
 	*/
 
 	t.Run("Complete fail", func(t *testing.T) {
-		defer func() {
-			checkPanic(t, recover(), "Complete Fail: Mock Err")
-		}()
 		ctx := converter.GenPkg
 		ctx.p.SetCurFile("temp.go", true)
 		ctx.incompleteTypes.Add(&Incomplete{cname: "Bar", file: ctx.p.CurFile(), getType: func() (types.Type, error) {
 			return nil, errors.New("Mock Err")
 		}})
-		converter.Complete()
+		err := converter.Complete()
+		checkError(t, err, "Complete Fail: Mock Err")
 	})
 }
 
 func TestProcessWithError(t *testing.T) {
-	defer func() {
-		checkPanic(t, recover(), "NewTypedefDecl: Foo fail")
-	}()
 	converter := basicConverter(cltest.NC(&llcppg.Config{},
 		map[string]*llcppg.FileInfo{
 			"exist.h": {
@@ -132,15 +127,15 @@ func TestProcessWithError(t *testing.T) {
 			},
 		},
 	}
-	converter.Process()
+	err := converter.Process()
+	checkError(t, err, "NewTypedefDecl: Foo fail")
 }
 
-func checkPanic(t *testing.T, r interface{}, expectedPrefix string) {
-	if r == nil {
-		t.Errorf("Expected panic, but got: %v", r)
-	} else {
-		if !strings.HasPrefix(r.(string), expectedPrefix) {
-			t.Errorf("Expected panic %s, but got: %v", expectedPrefix, r)
-		}
+func checkError(t *testing.T, err error, expectedPrefix string) {
+	if err == nil {
+		t.Fatalf("Expected error, but got nil")
+	}
+	if !strings.HasPrefix(err.Error(), expectedPrefix) {
+		t.Fatalf("Expected error %s, but got: %s", expectedPrefix, err.Error())
 	}
 }

@@ -234,7 +234,10 @@ func testFrom(t *testing.T, dir string, gen bool, validateFunc func(t *testing.T
 	if err != nil {
 		t.Fatal(err)
 	}
-	cvt.Convert()
+	err = cvt.Convert()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	pkg := cvt.GenPkg.Pkg()
 	pkg.ForEachFile(func(fname string, _ *gogen.File) {
@@ -307,7 +310,6 @@ func testFrom(t *testing.T, dir string, gen bool, validateFunc func(t *testing.T
 }
 
 func TestNewConvert(t *testing.T) {
-	// todo: remove this,convert will not read llcppg.cfg directly
 	cfg := &llcppg.Config{
 		Libs: "${pkg-config --libs xxx}",
 	}

@@ -93,8 +93,6 @@ func TestRedefPubName(t *testing.T) {
 		File:     "temp.h",
 		FileType: llcppg.Inter,
 	}
-	// todo(zzy):remove this
-	// pkg.SetCurFile(tempFile)
 	pkg.p.SetCurFile(tempFile.ToGoFileName("testpkg"), true)
 	// mock a function name which is not register in processsymbol
 	pkg.p.NewFuncDecl(token.NoPos, "Foo", types.NewSignatureType(nil, nil, nil, types.NewTuple(), types.NewTuple(), false))
