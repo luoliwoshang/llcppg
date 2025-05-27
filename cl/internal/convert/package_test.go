@@ -209,11 +209,11 @@ func TestFuncDecl(t *testing.T) {
 					Ret:    &ast.BuiltinType{Kind: ast.Void},
 				},
 			},
-			symbs: []cltest.SymbolEntry{
+			symbs: []llcppg.SymbolInfo{
 				{
-					CppName:    "foo",
-					MangleName: "foo",
-					GoName:     "Foo",
+					Mangle: "foo",
+					CPP:    "foo",
+					Go:     "Foo",
 				},
 			},
 			expected: `
@@ -240,11 +240,11 @@ func Foo()
 					Ret: &ast.BuiltinType{Kind: ast.Void},
 				},
 			},
-			symbs: []cltest.SymbolEntry{
+			symbs: []llcppg.SymbolInfo{
 				{
-					CppName:    "foo",
-					MangleName: "foo",
-					GoName:     "Foo",
+					Mangle: "foo",
+					CPP:    "foo",
+					Go:     "Foo",
 				},
 			},
 			expected: `
@@ -274,11 +274,11 @@ func Foo(__llgo_va_list ...interface{})
 					Ret: nil,
 				},
 			},
-			symbs: []cltest.SymbolEntry{
+			symbs: []llcppg.SymbolInfo{
 				{
-					CppName:    "invalidFunc",
-					MangleName: "invalidFunc",
-					GoName:     "InvalidFunc",
+					Mangle: "invalidFunc",
+					CPP:    "invalidFunc",
+					Go:     "InvalidFunc",
 				},
 			},
 			expectedErr: "NewFuncDecl: fail convert signature invalidFunc: not found in type map",
@@ -295,11 +295,11 @@ func Foo(__llgo_va_list ...interface{})
 					Ret:    &ast.BuiltinType{Kind: ast.Void},
 				},
 			},
-			symbs: []cltest.SymbolEntry{
+			symbs: []llcppg.SymbolInfo{
 				{
-					CppName:    "foo",
-					MangleName: "foo",
-					GoName:     "Foo",
+					Mangle: "foo",
+					CPP:    "foo",
+					Go:     "Foo",
 				},
 			},
 			expected: `
@@ -345,11 +345,11 @@ func Foo()
 				},
 			},
 
-			symbs: []cltest.SymbolEntry{
+			symbs: []llcppg.SymbolInfo{
 				{
-					CppName:    "foo",
-					MangleName: "foo",
-					GoName:     "Foo",
+					Mangle: "foo",
+					CPP:    "foo",
+					Go:     "Foo",
 				},
 			},
 			expected: `
@@ -386,11 +386,11 @@ func Foo(a uint16, b bool) c.Double
 					Ret: &ast.BuiltinType{Kind: ast.Int, Flags: ast.Long | ast.Unsigned},
 				},
 			},
-			symbs: []cltest.SymbolEntry{
+			symbs: []llcppg.SymbolInfo{
 				{
-					CppName:    "foo",
-					MangleName: "foo",
-					GoName:     "Foo",
+					Mangle: "foo",
+					CPP:    "foo",
+					Go:     "Foo",
 				},
 			},
 			expected: `
@@ -427,11 +427,11 @@ func Foo(a c.Uint, b c.Long) c.Ulong
 					Ret: &ast.BuiltinType{Kind: ast.Int, Flags: ast.Long | ast.Unsigned},
 				},
 			},
-			symbs: []cltest.SymbolEntry{
+			symbs: []llcppg.SymbolInfo{
 				{
-					CppName:    "foo",
-					MangleName: "foo",
-					GoName:     "Foo",
+					Mangle: "foo",
+					CPP:    "foo",
+					Go:     "Foo",
 				},
 			},
 			expected: `
@@ -477,11 +477,11 @@ func Foo(a c.Uint, b c.Long) c.Ulong
 					},
 				},
 			},
-			symbs: []cltest.SymbolEntry{
+			symbs: []llcppg.SymbolInfo{
 				{
-					CppName:    "foo",
-					MangleName: "foo",
-					GoName:     "Foo",
+					Mangle: "foo",
+					CPP:    "foo",
+					Go:     "Foo",
 				},
 			},
 			expected: `
@@ -518,11 +518,11 @@ func Foo(a *c.Uint, b *c.Long) *c.Double
 					},
 				},
 			},
-			symbs: []cltest.SymbolEntry{
+			symbs: []llcppg.SymbolInfo{
 				{
-					CppName:    "foo",
-					MangleName: "foo",
-					GoName:     "Foo",
+					Mangle: "foo",
+					CPP:    "foo",
+					Go:     "Foo",
 				},
 			},
 			expected: `
@@ -576,11 +576,11 @@ func Foo(a c.Pointer) c.Pointer
 					},
 				},
 			},
-			symbs: []cltest.SymbolEntry{
+			symbs: []llcppg.SymbolInfo{
 				{
-					CppName:    "foo",
-					MangleName: "foo",
-					GoName:     "Foo",
+					Mangle: "foo",
+					CPP:    "foo",
+					Go:     "Foo",
 				},
 			},
 			cppgconf: &llcppg.Config{
@@ -617,11 +617,11 @@ func Foo(a *c.Uint, b *c.Double) **c.Char
 					Ret: nil,
 				},
 			},
-			symbs: []cltest.SymbolEntry{
+			symbs: []llcppg.SymbolInfo{
 				{
-					CppName:    "foo",
-					MangleName: "foo",
-					GoName:     "Foo",
+					Mangle: "foo",
+					CPP:    "foo",
+					Go:     "Foo",
 				},
 			},
 			expectedErr: "NewFuncDecl: fail convert signature foo: error convert elem type: not found in type map",
@@ -638,11 +638,11 @@ func Foo(a *c.Uint, b *c.Double) **c.Char
 					Ret:    &ast.BuiltinType{Kind: ast.Bool, Flags: ast.Double},
 				},
 			},
-			symbs: []cltest.SymbolEntry{
+			symbs: []llcppg.SymbolInfo{
 				{
-					CppName:    "foo",
-					MangleName: "foo",
-					GoName:     "Foo",
+					Mangle: "foo",
+					CPP:    "foo",
+					Go:     "Foo",
 				},
 			},
 			expectedErr: "NewFuncDecl: fail convert signature foo: error convert return type: not found in type map",
@@ -663,11 +663,11 @@ func Foo(a *c.Uint, b *c.Double) **c.Char
 					Ret: nil,
 				},
 			},
-			symbs: []cltest.SymbolEntry{
+			symbs: []llcppg.SymbolInfo{
 				{
-					CppName:    "foo",
-					MangleName: "foo",
-					GoName:     "Foo",
+					Mangle: "foo",
+					CPP:    "foo",
+					Go:     "Foo",
 				},
 			},
 			expectedErr: "NewFuncDecl: fail convert signature foo: error convert type: unexpected nil field",
@@ -690,11 +690,11 @@ func Foo(a *c.Uint, b *c.Double) **c.Char
 					},
 				},
 			},
-			symbs: []cltest.SymbolEntry{
+			symbs: []llcppg.SymbolInfo{
 				{
-					CppName:    "foo",
-					MangleName: "foo",
-					GoName:     "(*Foo).foo",
+					Mangle: "foo",
+					CPP:    "foo",
+					Go:     "(*Foo).foo",
 				},
 			},
 			expectedErr: "NewFuncDecl: foo fail: newReceiver:failed to convert type: not found in type map",
@@ -1077,8 +1077,10 @@ type Foo func(a c.Int, b c.Int) c.Int
 // Test Redefine error
 func TestRedef(t *testing.T) {
 	nc := cltest.NC(&llcppg.Config{}, nil, cltest.NewConvSym(
-		cltest.SymbolEntry{
-			CppName: "Bar", MangleName: "Bar", GoName: "Bar",
+		llcppg.SymbolInfo{
+			Mangle: "Bar",
+			CPP:    "Bar",
+			Go:     "Bar",
 		},
 	))
 	pkg, err := createTestPkg(nc, &convert.PackageConfig{
@@ -1269,8 +1271,10 @@ const Foo__1 c.Int = 0
 }
 
 func TestRedefTypedef(t *testing.T) {
-	nc := cltest.NC(&llcppg.Config{}, nil, cltest.NewConvSym(cltest.SymbolEntry{
-		CppName: "Foo", MangleName: "Foo", GoName: "Foo",
+	nc := cltest.NC(&llcppg.Config{}, nil, cltest.NewConvSym(llcppg.SymbolInfo{
+		Mangle: "Foo",
+		CPP:    "Foo",
+		Go:     "Foo",
 	}))
 	pkg, err := createTestPkg(nc, &convert.PackageConfig{})
 	if err != nil {
@@ -1302,8 +1306,10 @@ func TestRedefTypedef(t *testing.T) {
 }
 
 func TestRedefineFunc(t *testing.T) {
-	nc := cltest.NC(&llcppg.Config{}, nil, cltest.NewConvSym(cltest.SymbolEntry{
-		CppName: "Foo", MangleName: "Foo", GoName: "Foo",
+	nc := cltest.NC(&llcppg.Config{}, nil, cltest.NewConvSym(llcppg.SymbolInfo{
+		Mangle: "Foo",
+		CPP:    "Foo",
+		Go:     "Foo",
 	}))
 	pkg, err := createTestPkg(nc, &convert.PackageConfig{})
 	if err != nil {
@@ -1633,8 +1639,10 @@ type Foo struct {
 
 func TestForwardDecl(t *testing.T) {
 	nc := cltest.NC(&llcppg.Config{}, nil, cltest.NewConvSym(
-		cltest.SymbolEntry{
-			CppName: "Bar", MangleName: "Bar", GoName: "Bar",
+		llcppg.SymbolInfo{
+			Mangle: "Bar",
+			CPP:    "Bar",
+			Go:     "Bar",
 		},
 	))
 	pkg, err := createTestPkg(nc, &convert.PackageConfig{
@@ -1706,7 +1714,7 @@ type Foo struct {
 type genDeclTestCase struct {
 	name        string
 	decl        ast.Decl
-	symbs       []cltest.SymbolEntry
+	symbs       []llcppg.SymbolInfo
 	cppgconf    *llcppg.Config
 	expected    string
 	expectedErr string
@@ -1826,8 +1834,16 @@ func comparePackageOutput(t *testing.T, pkg *convert.Package, expect string) {
 
 func TestTypeClean(t *testing.T) {
 	nc := cltest.NC(&llcppg.Config{}, nil, cltest.NewConvSym(
-		cltest.SymbolEntry{CppName: "Func1", MangleName: "Func1", GoName: "Func1"},
-		cltest.SymbolEntry{CppName: "Func2", MangleName: "Func2", GoName: "Func2"},
+		llcppg.SymbolInfo{
+			Mangle: "Func1",
+			CPP:    "Func1",
+			Go:     "Func1",
+		},
+		llcppg.SymbolInfo{
+			Mangle: "Func2",
+			CPP:    "Func2",
+			Go:     "Func2",
+		},
 	))
 	pkg, err := createTestPkg(nc, &convert.PackageConfig{
 		OutputDir: "",

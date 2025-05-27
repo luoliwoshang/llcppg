@@ -28,7 +28,6 @@ import (
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cl"
 	"github.com/goplus/llcppg/cl/nc/ncimpl"
-	"github.com/goplus/llcppg/cmd/gogensig/config"
 	"github.com/goplus/llcppg/cmd/gogensig/unmarshal"
 	llcppg "github.com/goplus/llcppg/config"
 	args "github.com/goplus/llcppg/internal/arg"
@@ -77,7 +76,7 @@ func main() {
 	check(err)
 
 	symbFile := filepath.Join(wd, llcppg.LLCPPG_SYMB)
-	symbTable, err := config.NewSymbolTable(symbFile)
+	symbTable, err := llcppg.GetSymTableFromFile(symbFile)
 	check(err)
 
 	pkg, err := cl.Convert(&cl.ConvConfig{
@@ -91,7 +90,7 @@ func main() {
 				if err != nil {
 					return
 				}
-				return item.GoName, nil
+				return item.Go, nil
 			},
 			FileMap:        convertPkg.FileMap,
 			TrimPrefixes:   conf.TrimPrefixes,

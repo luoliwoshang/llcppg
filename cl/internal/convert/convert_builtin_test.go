@@ -74,10 +74,10 @@ func TestPkgFail(t *testing.T) {
 					FileType: llcppg.Inter,
 				},
 			},
-			cltest.NewConvSym(cltest.SymbolEntry{
-				CppName:    "Foo",
-				MangleName: "Foo",
-				GoName:     "Foo",
+			cltest.NewConvSym(llcppg.SymbolInfo{
+				Mangle: "Foo",
+				CPP:    "Foo",
+				Go:     "Foo",
 			}),
 		))
 		cvt.Convert()
@@ -137,10 +137,10 @@ func TestProcessWithError(t *testing.T) {
 				FileType: llcppg.Inter,
 			},
 		},
-		cltest.NewConvSym(cltest.SymbolEntry{
-			CppName:    "Foo",
-			MangleName: "Foo",
-			GoName:     "Foo",
+		cltest.NewConvSym(llcppg.SymbolInfo{
+			Mangle: "Foo",
+			CPP:    "Foo",
+			Go:     "Foo",
 		}),
 	))
 
@@ -158,10 +158,10 @@ func TestIdentRefer(t *testing.T) {
 				FileType: llcppg.Third,
 			},
 		},
-		cltest.NewConvSym(cltest.SymbolEntry{
-			CppName:    "Foo",
-			MangleName: "Foo",
-			GoName:     "Foo",
+		cltest.NewConvSym(llcppg.SymbolInfo{
+			Mangle: "Foo",
+			CPP:    "Foo",
+			Go:     "Foo",
 		}),
 	)
 	thirdType := &ast.TypedefDecl{

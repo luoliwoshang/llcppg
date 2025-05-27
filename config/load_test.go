@@ -3,6 +3,7 @@ package config_test
 import (
 	"fmt"
 	"os"
+	"path"
 	"reflect"
 	"testing"
 
@@ -181,5 +182,46 @@ func TestGetConfByByte(t *testing.T) {
 				t.Fatalf("expected %#v, but got %#v", tc.expect, result)
 			}
 		})
+	}
+}
+
+func TestLookupSymbolOK(t *testing.T) {
+	table, err := llconfig.GetSymTableFromFile(path.Join("./testdata", llconfig.LLCPPG_SYMB))
+	if err != nil {
+		t.Fatal(err)
+	}
+	entry, err := table.LookupSymbol("_ZNK9INIReader10GetBooleanERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_b")
+	if err != nil {
+		t.Fatal(err)
+	}
+	const expectCppName = "INIReader::GetBoolean(std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, bool) const"
+	const expectGoName = "(*Reader).GetBoolean"
+
+	if entry.CPP != expectCppName {
+		t.Fatalf("expect %s, got %s", expectCppName, entry.CPP)
+	}
+	if entry.Go != expectGoName {
+		t.Fatalf("expect %s, got %s", expectGoName, entry.Go)
+	}
+}
+
+func TestLookupSymbolError(t *testing.T) {
+	_, err := llconfig.GetSymTableFromFile("./testdata/llcppg.symb.txt")
+	if err == nil {
+		t.Error("expect error")
+	}
+	table, err := llconfig.GetSymTableFromFile(path.Join("./testdata", llconfig.LLCPPG_SYMB))
+	if err != nil {
+		t.Fatal(err)
+	}
+	lookupSymbs := []string{
+		"_ZNK9INIReader10GetBooleanERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_bXXX",
+		"",
+	}
+	for _, lookupSymbol := range lookupSymbs {
+		_, err := table.LookupSymbol(lookupSymbol)
+		if err == nil {
+			t.Error("expect error")
+		}
 	}
 }
