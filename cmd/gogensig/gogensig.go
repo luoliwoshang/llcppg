@@ -70,7 +70,7 @@ func main() {
 	err = prepareEnv(outputDir, conf.Deps, modulePath)
 	check(err)
 
-	data, err := config.ReadSigfetchFile(filepath.Join(wd, ags.CfgFile))
+	data, err := llcppg.ReadSigfetchFile(filepath.Join(wd, ags.CfgFile))
 	check(err)
 
 	convertPkg, err := unmarshal.Pkg(data)

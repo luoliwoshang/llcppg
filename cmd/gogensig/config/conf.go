@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	llcppg "github.com/goplus/llcppg/config"
@@ -25,18 +23,6 @@ func GetCppgCfgFromPath(filePath string) (*llcppg.Config, error) {
 		return nil, err
 	}
 	return conf, nil
-}
-
-func ReadSigfetchFile(sigfetchFile string) ([]byte, error) {
-	_, file := filepath.Split(sigfetchFile)
-	var data []byte
-	var err error
-	if file == "-" {
-		data, err = io.ReadAll(os.Stdin)
-	} else {
-		data, err = os.ReadFile(sigfetchFile)
-	}
-	return data, err
 }
 
 type SigfetchExtractConfig struct {

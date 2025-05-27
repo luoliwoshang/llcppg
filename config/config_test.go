@@ -90,3 +90,44 @@ stdio`
 		t.Fatalf("expect file %s, got error %v", notExistFile, err)
 	}
 }
+
+func TestReadSigfetchFile(t *testing.T) {
+	t.Run("From File", func(t *testing.T) {
+		tempFile := filepath.Join(t.TempDir(), "test.txt")
+		content := []byte("test content")
+		if err := os.WriteFile(tempFile, content, 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		got, err := config.ReadSigfetchFile(tempFile)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(got) != string(content) {
+			t.Errorf("Expect %q, Got %q", content, got)
+		}
+	})
+
+	t.Run("From Stdin", func(t *testing.T) {
+		oldStdin := os.Stdin
+		r, w, _ := os.Pipe()
+		os.Stdin = r
+		defer func() {
+			os.Stdin = oldStdin
+		}()
+
+		expected := []byte("stdin content")
+		go func() {
+			w.Write(expected)
+			w.Close()
+		}()
+
+		got, err := config.ReadSigfetchFile("-")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(got) != string(expected) {
+			t.Errorf("Expect %q, Got %q", expected, got)
+		}
+	})
+}
