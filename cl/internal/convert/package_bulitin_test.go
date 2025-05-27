@@ -139,43 +139,6 @@ func TestGetNameType(t *testing.T) {
 	}
 }
 
-/* todo(zzy):move to node convert test
-func TestTrimPrefixes(t *testing.T) {
-	pkg, err := NewPackage(cltest.NC(&llcppg.Config{
-		TrimPrefixes: []string{"prefix1", "prefix2"},
-	}, nil, cltest.NewConvSym()), &PackageConfig{
-		PkgBase: PkgBase{
-			PkgPath: ".",
-			Pubs:    make(map[string]string),
-		},
-		Name:       "testpkg",
-		GenConf:    &gogen.Config{},
-		OutputDir:  "",
-		ConvSym:    cltest.NewConvSym(),
-		LibCommand: "${pkg-config --libs xxx}",
-	})
-	if err != nil {
-		t.Fatal("NewPackage failed:", err)
-	}
-
-	pkg.curFile = &HeaderFile{
-		FileType: llcppg.Inter,
-	}
-
-	result := pkg.trimPrefixes()
-	expected := []string{"prefix1", "prefix2"}
-	if len(result) != len(expected) || (len(result) > 0 && result[0] != expected[0]) {
-		t.Errorf("Expected %v, got %v", expected, result)
-	}
-
-	pkg.curFile.FileType = llcppg.Third
-	result = pkg.trimPrefixes()
-	if len(result) != 0 {
-		t.Errorf("Expected Empty TrimPrefix")
-	}
-}
-*/
-
 func TestMarkUseFail(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
