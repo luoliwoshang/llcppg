@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 )
 
 type MangleNameType = string
@@ -23,7 +24,7 @@ type SymbolTable struct {
 
 // llcppg.symb.json
 func NewSymbolTable(filePath string) (*SymbolTable, error) {
-	bytes, err := ReadFile(filePath)
+	bytes, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}

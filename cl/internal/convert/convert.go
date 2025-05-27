@@ -2,10 +2,11 @@ package convert
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cl/nc"
-	cfg "github.com/goplus/llcppg/cmd/gogensig/config"
 )
 
 type dbgFlags = int
@@ -36,7 +37,7 @@ type Config struct {
 func ModInit(deps []string, outputDir string, modulePath string) error {
 	var err error
 	if modulePath != "" {
-		err = cfg.RunCommand(outputDir, "go", "mod", "init", modulePath)
+		err = runCommand(outputDir, "go", "mod", "init", modulePath)
 		if err != nil {
 			return err
 		}
@@ -51,7 +52,7 @@ func ModInit(deps []string, outputDir string, modulePath string) error {
 		}
 	}
 	for _, dep := range loadDeps {
-		err = cfg.RunCommand(outputDir, "go", "get", dep)
+		err = runCommand(outputDir, "go", "get", dep)
 		if err != nil {
 			return err
 		}
@@ -147,4 +148,12 @@ func (p *Converter) Complete() error {
 		return fmt.Errorf("Complete Fail: %w", err)
 	}
 	return nil
+}
+
+func runCommand(dir, cmdName string, args ...string) error {
+	execCmd := exec.Command(cmdName, args...)
+	execCmd.Stdout = os.Stdout
+	execCmd.Stderr = os.Stderr
+	execCmd.Dir = dir
+	return execCmd.Run()
 }

@@ -1,8 +1,10 @@
 package convert_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -102,7 +104,7 @@ func TestDepPkg(t *testing.T) {
 			t.Fatal(err)
 		}
 		cfg.CFlags = cfg.CFlags + incFlag
-		err = config.CreateJSONFile(cfgPath, cfg)
+		err = createJSONFile(cfgPath, cfg)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -187,7 +189,7 @@ func testFrom(t *testing.T, dir string, gen bool, validateFunc func(t *testing.T
 	}
 
 	cfg.CFlags = " -I" + filepath.Join(dir, "hfile") + " " + cfg.CFlags
-	flagedCfgPath, err := config.CreateTmpJSONFile(llcppg.LLCPPG_CFG, cfg)
+	flagedCfgPath, err := createTmpJSONFile(llcppg.LLCPPG_CFG, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -256,12 +258,12 @@ func testFrom(t *testing.T, dir string, gen bool, validateFunc func(t *testing.T
 		t.Fatal(err)
 	}
 
-	err = config.RunCommand(outputDir, "go", "fmt", ".")
+	err = runCommand(outputDir, "go", "fmt", ".")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = config.RunCommand(outputDir, "go", "mod", "tidy")
+	err = runCommand(outputDir, "go", "mod", "tidy")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -368,16 +370,16 @@ func prepareEnv(name string, deps []string) (string, error) {
 	}
 
 	// with the same module to import the internal/testdata/pkg
-	err = config.RunCommand(outputDir, "go", "mod", "init", "github.com/goplus/llcppg/cl/internal/"+name)
+	err = runCommand(outputDir, "go", "mod", "init", "github.com/goplus/llcppg/cl/internal/"+name)
 	if err != nil {
 		return "", err
 	}
 
-	err = config.RunCommand(outputDir, "go", "get", "github.com/goplus/llcppg")
+	err = runCommand(outputDir, "go", "get", "github.com/goplus/llcppg")
 	if err != nil {
 		return "", err
 	}
-	err = config.RunCommand(outputDir, "go", "mod", "edit", "-replace", "github.com/goplus/llcppg="+projectRoot)
+	err = runCommand(outputDir, "go", "mod", "edit", "-replace", "github.com/goplus/llcppg="+projectRoot)
 	if err != nil {
 		return "", err
 	}
@@ -387,4 +389,29 @@ func prepareEnv(name string, deps []string) (string, error) {
 		return "", err
 	}
 	return outputDir, nil
+}
+
+func runCommand(dir, cmdName string, args ...string) error {
+	execCmd := exec.Command(cmdName, args...)
+	execCmd.Stdout = os.Stdout
+	execCmd.Stderr = os.Stderr
+	execCmd.Dir = dir
+	return execCmd.Run()
+}
+
+func createTmpJSONFile(filename string, data any) (string, error) {
+	filePath := filepath.Join(os.TempDir(), filename)
+	err := createJSONFile(filePath, data)
+	return filePath, err
+}
+
+func createJSONFile(filepath string, data any) error {
+	file, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(data)
 }

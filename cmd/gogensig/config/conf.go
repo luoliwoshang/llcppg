@@ -15,7 +15,7 @@ import (
 
 // llcppg.cfg
 func GetCppgCfgFromPath(filePath string) (*llcppg.Config, error) {
-	bytes, err := ReadFile(filePath)
+	bytes, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -84,38 +84,4 @@ func executeSigfetch(args []string, dir string, isCpp bool) ([]byte, error) {
 	}
 
 	return out.Bytes(), nil
-}
-
-func ReadFile(filePath string) ([]byte, error) {
-	jsonFile, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer jsonFile.Close()
-	return io.ReadAll(jsonFile)
-}
-
-func RunCommand(dir, cmdName string, args ...string) error {
-	execCmd := exec.Command(cmdName, args...)
-	execCmd.Stdout = os.Stdout
-	execCmd.Stderr = os.Stderr
-	execCmd.Dir = dir
-	return execCmd.Run()
-}
-
-func CreateTmpJSONFile(filename string, data any) (string, error) {
-	filePath := filepath.Join(os.TempDir(), filename)
-	err := CreateJSONFile(filePath, data)
-	return filePath, err
-}
-
-func CreateJSONFile(filepath string, data any) error {
-	file, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "  ")
-	return encoder.Encode(data)
 }
