@@ -1,22 +1,31 @@
 package config
 
 import (
+	"encoding/json"
 	"io"
 	"os"
-	"path/filepath"
 )
 
-func ReadSigfetchFile(sigfetchFile string) ([]byte, error) {
-	if sigfetchFile == "" {
-		sigfetchFile = LLCPPG_SIGFETCH
+func GetConfFromStdin() (conf Config, err error) {
+	return ConfigFromReader(os.Stdin)
+}
+
+func GetConfFromFile(cfgFile string) (conf Config, err error) {
+	fileReader, err := os.Open(cfgFile)
+	if err != nil {
+		return
 	}
-	_, file := filepath.Split(sigfetchFile)
-	var data []byte
-	var err error
-	if file == "-" {
-		data, err = io.ReadAll(os.Stdin)
-	} else {
-		data, err = os.ReadFile(sigfetchFile)
+	defer fileReader.Close()
+
+	return ConfigFromReader(fileReader)
+}
+
+func ConfigFromReader(reader io.Reader) (Config, error) {
+	var config Config
+
+	if err := json.NewDecoder(reader).Decode(&config); err != nil {
+		return Config{}, err
 	}
-	return data, err
+
+	return config, nil
 }

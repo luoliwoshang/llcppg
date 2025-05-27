@@ -1,10 +1,7 @@
 package config_test
 
 import (
-	"os"
 	"path"
-	"path/filepath"
-	"reflect"
 	"testing"
 
 	"github.com/goplus/llcppg/cmd/gogensig/config"
@@ -50,69 +47,4 @@ func TestLookupSymbolError(t *testing.T) {
 			t.Error("expect error")
 		}
 	}
-}
-
-func TestGetCppgCfgFromPath(t *testing.T) {
-	// Create temporary directory
-	tempDir, err := os.MkdirTemp("", "config_test")
-	if err != nil {
-		t.Fatalf("Failed to create temp directory: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
-
-	// Prepare valid config file
-	validConfigPath := filepath.Join(tempDir, "valid_config.cfg")
-	validConfigContent := `{
-		"name": "lua",
-		"cflags": "$(pkg-config --cflags lua5.4)",
-		"include": ["litelua.h"],
-		"libs": "$(pkg-config --libs lua5.4)",
-		"trimPrefixes": ["lua_"],
-		"cplusplus": false
-	}`
-	err = os.WriteFile(validConfigPath, []byte(validConfigContent), 0644)
-	if err != nil {
-		t.Fatalf("Failed to create valid config file: %v", err)
-	}
-
-	t.Run("Successfully parse config file", func(t *testing.T) {
-		cfg, err := config.GetCppgCfgFromPath(validConfigPath)
-		if err != nil {
-			t.Fatalf("Expected no error, got: %v", err)
-		}
-		if cfg == nil {
-			t.Fatal("Expected non-nil config")
-		}
-
-		expectedConfig := llcppg.NewDefault()
-		expectedConfig.Name = "lua"
-		expectedConfig.CFlags = "$(pkg-config --cflags lua5.4)"
-		expectedConfig.Include = []string{"litelua.h"}
-		expectedConfig.Libs = "$(pkg-config --libs lua5.4)"
-		expectedConfig.TrimPrefixes = []string{"lua_"}
-
-		if !reflect.DeepEqual(cfg, expectedConfig) {
-			t.Errorf("Parsed config does not match expected config.\nGot: %+v\nWant: %+v", cfg, expectedConfig)
-		}
-	})
-
-	t.Run("File not found", func(t *testing.T) {
-		_, err := config.GetCppgCfgFromPath(filepath.Join(tempDir, "nonexistent_file.cfg"))
-		if err == nil {
-			t.Error("Expected error for non-existent file, got nil")
-		}
-	})
-
-	t.Run("Invalid JSON", func(t *testing.T) {
-		invalidJSONPath := filepath.Join(tempDir, "invalid_config.cfg")
-		err := os.WriteFile(invalidJSONPath, []byte("{invalid json}"), 0644)
-		if err != nil {
-			t.Fatalf("Failed to create invalid JSON file: %v", err)
-		}
-
-		_, err = config.GetCppgCfgFromPath(invalidJSONPath)
-		if err == nil {
-			t.Error("Expected error for invalid JSON, got nil")
-		}
-	})
 }

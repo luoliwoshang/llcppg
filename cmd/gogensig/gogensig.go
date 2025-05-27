@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -59,8 +60,7 @@ func main() {
 	if cfgFile == "" {
 		cfgFile = llcppg.LLCPPG_CFG
 	}
-
-	conf, err := config.GetCppgCfgFromPath(cfgFile)
+	conf, err := llcppg.GetConfFromFile(cfgFile)
 	check(err)
 	wd, err := os.Getwd()
 	check(err)
@@ -70,7 +70,7 @@ func main() {
 	err = prepareEnv(outputDir, conf.Deps, modulePath)
 	check(err)
 
-	data, err := llcppg.ReadSigfetchFile(filepath.Join(wd, ags.CfgFile))
+	data, err := readSigfetchFile(filepath.Join(wd, ags.CfgFile))
 	check(err)
 
 	convertPkg, err := unmarshal.Pkg(data)
@@ -160,4 +160,12 @@ func runCommand(dir, cmdName string, args ...string) error {
 
 func printUsage() {
 	fmt.Fprintln(os.Stderr, "Usage: gogensig [-v|-cfg|-mod] [sigfetch-file]")
+}
+
+func readSigfetchFile(sigfetchFile string) ([]byte, error) {
+	_, file := filepath.Split(sigfetchFile)
+	if file == "-" {
+		return io.ReadAll(os.Stdin)
+	}
+	return os.ReadFile(sigfetchFile)
 }

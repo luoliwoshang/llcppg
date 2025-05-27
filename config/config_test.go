@@ -33,7 +33,7 @@ func TestReadPubFileError(t *testing.T) {
 	}
 	defer os.Remove(temp.Name())
 	content := `a b c`
-	_, err = temp.WriteString(content)
+	_, err = temp.Write([]byte(content))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,6 @@ func TestWritePubFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(tempDir)
 	pubFile := filepath.Join(tempDir, config.LLCPPG_PUB)
 	err = config.WritePubFile(pubFile, pub)
 	if err != nil {
@@ -89,45 +88,4 @@ stdio`
 	if err != nil && !os.IsNotExist(err) {
 		t.Fatalf("expect file %s, got error %v", notExistFile, err)
 	}
-}
-
-func TestReadSigfetchFile(t *testing.T) {
-	t.Run("From File", func(t *testing.T) {
-		tempFile := filepath.Join(t.TempDir(), "test.txt")
-		content := []byte("test content")
-		if err := os.WriteFile(tempFile, content, 0644); err != nil {
-			t.Fatal(err)
-		}
-
-		got, err := config.ReadSigfetchFile(tempFile)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if string(got) != string(content) {
-			t.Errorf("Expect %q, Got %q", content, got)
-		}
-	})
-
-	t.Run("From Stdin", func(t *testing.T) {
-		oldStdin := os.Stdin
-		r, w, _ := os.Pipe()
-		os.Stdin = r
-		defer func() {
-			os.Stdin = oldStdin
-		}()
-
-		expected := []byte("stdin content")
-		go func() {
-			w.Write(expected)
-			w.Close()
-		}()
-
-		got, err := config.ReadSigfetchFile("-")
-		if err != nil {
-			t.Fatal(err)
-		}
-		if string(got) != string(expected) {
-			t.Errorf("Expect %q, Got %q", expected, got)
-		}
-	})
 }

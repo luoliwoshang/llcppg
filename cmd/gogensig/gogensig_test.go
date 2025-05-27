@@ -12,7 +12,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/goplus/llcppg/cmd/gogensig/config"
 	llconfig "github.com/goplus/llcppg/config"
 )
 
@@ -82,7 +81,7 @@ func testFrom(t *testing.T, dir string, modulePath string, gen bool) {
 		t.Fatal("Chdir failed:", err)
 	}
 
-	conf, err := config.GetCppgCfgFromPath(path.Join(confDir, llconfig.LLCPPG_CFG))
+	conf, err := llconfig.GetConfFromFile(path.Join(confDir, llconfig.LLCPPG_CFG))
 	if err != nil {
 		t.Fatal("GetCppgCfgFromPath failed:", err)
 	}
@@ -158,4 +157,45 @@ func callSigfetch(configFile string, dir string) ([]byte, error) {
 		return nil, err
 	}
 	return out.Bytes(), nil
+}
+
+func TestReadSigfetchFile(t *testing.T) {
+	t.Run("From File", func(t *testing.T) {
+		tempFile := filepath.Join(t.TempDir(), "test.txt")
+		content := []byte("test content")
+		if err := os.WriteFile(tempFile, content, 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		got, err := readSigfetchFile(tempFile)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(got) != string(content) {
+			t.Errorf("Expect %q, Got %q", content, got)
+		}
+	})
+
+	t.Run("From Stdin", func(t *testing.T) {
+		oldStdin := os.Stdin
+		r, w, _ := os.Pipe()
+		os.Stdin = r
+		defer func() {
+			os.Stdin = oldStdin
+		}()
+
+		expected := []byte("stdin content")
+		go func() {
+			w.Write(expected)
+			w.Close()
+		}()
+
+		got, err := readSigfetchFile("-")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(got) != string(expected) {
+			t.Errorf("Expect %q, Got %q", expected, got)
+		}
+	})
 }
