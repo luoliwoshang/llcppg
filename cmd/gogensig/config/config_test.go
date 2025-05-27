@@ -5,11 +5,9 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/goplus/llcppg/cmd/gogensig/config"
-	"github.com/goplus/llcppg/cmd/gogensig/unmarshal"
 	llcppg "github.com/goplus/llcppg/config"
 )
 
@@ -51,83 +49,6 @@ func TestLookupSymbolError(t *testing.T) {
 		if err == nil {
 			t.Error("expect error")
 		}
-	}
-}
-
-func TestSigfetch(t *testing.T) {
-	testCases := []struct {
-		name   string
-		input  string
-		isTemp bool
-		isCpp  bool
-	}{
-		{name: "cpp sigfetch", input: `void fn();`, isTemp: true, isCpp: true},
-		{name: "c sigfetch", input: `void fn();`, isTemp: true, isCpp: false},
-	}
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			data, err := config.SigfetchExtract(&config.SigfetchExtractConfig{
-				File:   tc.input,
-				IsTemp: tc.isTemp,
-				IsCpp:  tc.isCpp,
-				Dir:    ".",
-			})
-			if err != nil {
-				t.Fatal(err)
-			}
-			_, err = unmarshal.Pkg(data)
-			if err != nil {
-				t.Fatal(err)
-			}
-		})
-	}
-}
-
-func TestSigfetchConfig(t *testing.T) {
-	data, err := config.SigfetchConfig(llcppg.LLCPPG_CFG, "./_testinput", false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = unmarshal.Pkg(data)
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestSigfetchError(t *testing.T) {
-	oldPath := os.Getenv("PATH")
-	defer os.Setenv("PATH", oldPath)
-
-	_, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("Failed to get current working directory: %v", err)
-	}
-
-	tempDir, err := os.MkdirTemp("", "test")
-	if err != nil {
-		t.Fatalf("Failed to create temp directory: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
-
-	mockScript := filepath.Join(tempDir, "llcppsigfetch")
-	err = os.WriteFile(mockScript, []byte("#!/bin/bash\necho 'Simulated llcppsigfetch error' >&2\nexit 1"), 0755)
-	if err != nil {
-		t.Fatalf("Failed to create mock script: %v", err)
-	}
-
-	os.Setenv("PATH", tempDir+string(os.PathListSeparator)+oldPath)
-
-	_, err = config.SigfetchExtract(&config.SigfetchExtractConfig{
-		File:   "test.cpp",
-		IsTemp: false,
-		IsCpp:  true,
-		Dir:    ".",
-	})
-	if err == nil {
-		t.Error("Expected error, got nil")
-	}
-	if !strings.Contains(err.Error(), "Simulated llcppsigfetch error") {
-		t.Errorf("Unexpected error message: %v", err)
 	}
 }
 

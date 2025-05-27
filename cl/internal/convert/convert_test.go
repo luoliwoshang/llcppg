@@ -1,6 +1,7 @@
 package convert_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -214,7 +215,7 @@ func testFrom(t *testing.T, dir string, gen bool, validateFunc func(t *testing.T
 	}
 	defer os.RemoveAll(outputDir)
 
-	bytes, err := config.SigfetchConfig(flagedCfgPath, confPath, cfg.Cplusplus)
+	bytes, err := callSigfetch(flagedCfgPath, confPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -414,4 +415,18 @@ func createJSONFile(filepath string, data any) error {
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
 	return encoder.Encode(data)
+}
+
+func callSigfetch(configFile string, dir string) ([]byte, error) {
+	cmd := exec.Command("llcppsigfetch", configFile)
+	cmd.Dir = dir
+
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	err := cmd.Run()
+	if err != nil {
+		return nil, err
+	}
+	return out.Bytes(), nil
 }

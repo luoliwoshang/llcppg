@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -91,7 +93,7 @@ func testFrom(t *testing.T, dir string, modulePath string, gen bool) {
 	}
 	os.WriteFile(cfgFile, jsonData, 0644)
 
-	astData, err := config.SigfetchConfig(cfgFile, confDir, conf.Cplusplus)
+	astData, err := callSigfetch(cfgFile, confDir)
 	if err != nil {
 		t.Fatal("SigfetchConfig failed:", err)
 	}
@@ -142,4 +144,18 @@ func testFrom(t *testing.T, dir string, modulePath string, gen bool) {
 			t.Errorf("does not match expected.\nExpected:\n%s\nGot:\n%s", expect, got)
 		}
 	}
+}
+
+func callSigfetch(configFile string, dir string) ([]byte, error) {
+	cmd := exec.Command("llcppsigfetch", configFile)
+	cmd.Dir = dir
+
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	err := cmd.Run()
+	if err != nil {
+		return nil, err
+	}
+	return out.Bytes(), nil
 }
