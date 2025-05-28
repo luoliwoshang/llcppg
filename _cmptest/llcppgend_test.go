@@ -21,8 +21,6 @@ type testCase struct {
 	config  map[string]string // conan options
 }
 
-// expect result is in corresponding dir/result
-// ./testdata/cjson/1.7.18/result/xxx is the expected result
 var testCases = []testCase{
 	{
 		modpath: "github.com/goplus/llcppg/_cmptest/testdata/cjson/1.7.18/cjson",

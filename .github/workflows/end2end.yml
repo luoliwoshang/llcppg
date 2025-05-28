@@ -1,0 +1,46 @@
+name: Test Result End2End
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+
+  test:
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-24.04
+        llvm: [19]
+        llgo: [87c7b65223eea16ade3ad1de4079bf2a20d20b1b]
+        go: [1.23]
+    runs-on: ${{matrix.os}}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup llcppg environment
+      uses: ./.github/actions/setup-llcppg
+      with:
+        go: ${{ matrix.go }}
+        llvm: ${{ matrix.llvm }}
+        llgo: ${{ matrix.llgo }}
+
+    - name: Install Conan
+      if: startsWith(matrix.os, 'macos')
+      run: brew install conan
+
+    - name: Install Conan
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo apt-get install -y python3 python3-pip
+        python3 -m pip install conan
+
+    - name: Set up Conan
+      run: conan profile detect
+    
+    - name: Test End2End
+      working-directory: _cmptest
+      run: |
+        go test -v .
