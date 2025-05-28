@@ -1,20 +1,17 @@
 package symg
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
 	"os"
 	"runtime"
 	"sort"
 	"strings"
-	"unsafe"
 
-	"github.com/goplus/lib/c"
 	"github.com/goplus/llcppg/_xtool/internal/config"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/internal/flag"
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/goplus/llgo/xtool/nm"
-	"github.com/goplus/llpkg/cjson"
 )
 
 type dbgFlags = int
@@ -57,12 +54,14 @@ func Do(conf *Config) error {
 		return err
 	}
 
-	symbolData, err := GenerateSymTable(symbols, headerInfos)
+	commonSymbols := GetCommonSymbols(symbols, headerInfos)
+
+	jsonData, err := json.MarshalIndent(commonSymbols, "", "  ")
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(llcppg.LLCPPG_SYMB, symbolData, 0644)
+	err = os.WriteFile(llcppg.LLCPPG_SYMB, jsonData, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -175,48 +174,6 @@ func GetCommonSymbols(dylibSymbols []*nm.Symbol, headerSymbols map[string]*Symbo
 	})
 
 	return commonSymbols
-}
-
-func GenSymbolTableData(commonSymbols []*llcppg.SymbolInfo) ([]byte, error) {
-	if dbgSymbol {
-		fmt.Println("GenSymbolTableData:generate symbol table")
-		for _, symbol := range commonSymbols {
-			fmt.Println("new symbol", symbol.Mangle, "-", symbol.CPP, "-", symbol.Go)
-		}
-	}
-
-	root := cjson.Array()
-	defer root.Delete()
-
-	for _, symbol := range commonSymbols {
-		item := cjson.Object()
-		item.SetItem(c.Str("mangle"), cjson.String(c.AllocaCStr(symbol.Mangle)))
-		item.SetItem(c.Str("c++"), cjson.String(c.AllocaCStr(symbol.CPP)))
-		item.SetItem(c.Str("go"), cjson.String(c.AllocaCStr(symbol.Go)))
-		root.AddItem(item)
-	}
-
-	cStr := root.Print()
-	if cStr == nil {
-		return nil, errors.New("symbol table is empty")
-	}
-	defer c.Free(unsafe.Pointer(cStr))
-	result := []byte(c.GoString(cStr))
-	return result, nil
-}
-
-func GenerateSymTable(symbols []*nm.Symbol, headerInfos map[string]*SymbolInfo) ([]byte, error) {
-	commonSymbols := GetCommonSymbols(symbols, headerInfos)
-	if dbgSymbol {
-		fmt.Println("GenerateSymTable:", len(commonSymbols), "common symbols")
-	}
-
-	symbolData, err := GenSymbolTableData(commonSymbols)
-	if err != nil {
-		return nil, err
-	}
-
-	return symbolData, nil
 }
 
 // For mutiple os test,the nm output's symbol name is different.

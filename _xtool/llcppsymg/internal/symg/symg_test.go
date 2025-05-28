@@ -1,6 +1,7 @@
 package symg_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -142,32 +143,38 @@ func TestGenSymbolTableData(t *testing.T) {
 		{Mangle: "lua_callk", CPP: "lua_callk(lua_State *, int, int, lua_KContext, lua_KFunction)", Go: "Callk"},
 	}
 
-	data, err := symg.GenSymbolTableData(commonSymbols)
+	data, err := json.MarshalIndent(commonSymbols, "", "  ")
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	expect := strings.TrimSpace(`
-[{
-		"mangle":	"lua_absindex",
-		"c++":	"lua_absindex(lua_State *, int)",
-		"go":	"Absindex"
-	}, {
-		"mangle":	"lua_arith",
-		"c++":	"lua_arith(lua_State *, int)",
-		"go":	"Arith"
-	}, {
-		"mangle":	"lua_atpanic",
-		"c++":	"lua_atpanic(lua_State *, lua_CFunction)",
-		"go":	"Atpanic"
-	}, {
-		"mangle":	"lua_callk",
-		"c++":	"lua_callk(lua_State *, int, int, lua_KContext, lua_KFunction)",
-		"go":	"Callk"
-	}]
+[
+  {
+    "mangle": "lua_absindex",
+    "c++": "lua_absindex(lua_State *, int)",
+    "go": "Absindex"
+  },
+  {
+    "mangle": "lua_arith",
+    "c++": "lua_arith(lua_State *, int)",
+    "go": "Arith"
+  },
+  {
+    "mangle": "lua_atpanic",
+    "c++": "lua_atpanic(lua_State *, lua_CFunction)",
+    "go": "Atpanic"
+  },
+  {
+    "mangle": "lua_callk",
+    "c++": "lua_callk(lua_State *, int, int, lua_KContext, lua_KFunction)",
+    "go": "Callk"
+  }
+]
 `)
 
 	if res := strings.TrimSpace(string(data)); res != expect {
-		t.Fatalf("expect %s, but got %s", expect, res)
+		t.Fatalf("expect \n%s, but got \n%s", expect, res)
 	}
 }
 
@@ -532,7 +539,11 @@ func TestGen(t *testing.T) {
 			for _, symb := range tc.dylibSymbols {
 				dylibsymbs = append(dylibsymbs, &nm.Symbol{Name: symg.AddSymbolPrefixUnder(symb, cfg.Cplusplus)})
 			}
-			symbolData, err := symg.GenerateSymTable(dylibsymbs, headerSymbolMap)
+			symbols := symg.GetCommonSymbols(dylibsymbs, headerSymbolMap)
+			if err != nil {
+				t.Fatal(err)
+			}
+			symbolData, err := json.MarshalIndent(symbols, "", "  ")
 			if err != nil {
 				t.Fatal(err)
 			}
