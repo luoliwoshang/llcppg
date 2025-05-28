@@ -33,23 +33,29 @@ func SetDebug(flags dbgFlags) {
 }
 
 type Config struct {
-	Conf *llcppg.Config
+	Libs         string
+	CFlags       string
+	Includes     []string
+	Mix          bool
+	TrimPrefixes []string
+	SymMap       map[string]string
+	IsCpp        bool
 }
 
 func Do(conf *Config) error {
-	symbols, err := ParseDylibSymbols(conf.Conf.Libs)
+	symbols, err := ParseDylibSymbols(conf.Libs)
 	if err != nil {
 		return err
 	}
 
-	pkgHfiles := config.PkgHfileInfo(conf.Conf.Include, strings.Fields(conf.Conf.CFlags), conf.Conf.Mix)
+	pkgHfiles := config.PkgHfileInfo(conf.Includes, strings.Fields(conf.CFlags), conf.Mix)
 	if dbgSymbol {
 		fmt.Println("interfaces", pkgHfiles.Inters)
 		fmt.Println("implements", pkgHfiles.Impls)
 		fmt.Println("thirdhfile", pkgHfiles.Thirds)
 	}
 
-	headerInfos, err := ParseHeaderFile(pkgHfiles.CurPkgFiles(), conf.Conf.TrimPrefixes, strings.Fields(conf.Conf.CFlags), conf.Conf.SymMap, conf.Conf.Cplusplus, false)
+	headerInfos, err := ParseHeaderFile(pkgHfiles.CurPkgFiles(), conf.TrimPrefixes, strings.Fields(conf.CFlags), conf.SymMap, conf.IsCpp, false)
 	if err != nil {
 		return err
 	}

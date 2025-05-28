@@ -64,7 +64,13 @@ func main() {
 	}
 
 	err = symg.Do(&symg.Config{
-		Conf: &conf,
+		Libs:         conf.Libs,
+		CFlags:       conf.CFlags,
+		Includes:     conf.Include,
+		Mix:          conf.Mix,
+		TrimPrefixes: conf.TrimPrefixes,
+		SymMap:       conf.SymMap,
+		IsCpp:        conf.Cplusplus,
 	})
 	check(err)
 }
