@@ -521,7 +521,7 @@ func TestGen(t *testing.T) {
 			}
 
 			cfg.CFlags = "-I" + projPath
-			pkgHfileInfo := config.PkgHfileInfo(&cfg, []string{})
+			pkgHfileInfo := config.PkgHfileInfo(cfg.Include, strings.Fields(cfg.CFlags), false)
 			headerSymbolMap, err := symg.ParseHeaderFile(pkgHfileInfo.CurPkgFiles(), cfg.TrimPrefixes, strings.Fields(cfg.CFlags), cfg.SymMap, cfg.Cplusplus, false)
 			if err != nil {
 				t.Fatal(err)

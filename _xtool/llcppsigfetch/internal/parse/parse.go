@@ -102,7 +102,7 @@ func Do(conf *Config) error {
 	// As a solution, the resource directory is externally provided by llcppg.
 	libclangFlags := []string{"-fparse-all-comments"}
 
-	pkgHfiles := config.PkgHfileInfo(conf.Conf, libclangFlags)
+	pkgHfiles := config.PkgHfileInfo(conf.Conf.Include, append(libclangFlags, strings.Fields(conf.Conf.CFlags)...), conf.Conf.Mix)
 	if debugParse {
 		fmt.Fprintln(os.Stderr, "interfaces", pkgHfiles.Inters)
 		fmt.Fprintln(os.Stderr, "implements", pkgHfiles.Impls)

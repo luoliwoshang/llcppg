@@ -8,7 +8,6 @@ import (
 	"github.com/goplus/lib/c/clang"
 	clangutils "github.com/goplus/llcppg/_xtool/internal/clang"
 	"github.com/goplus/llcppg/_xtool/internal/clangtool"
-	llcppg "github.com/goplus/llcppg/config"
 )
 
 type PkgHfilesInfo struct {
@@ -30,7 +29,7 @@ func (p *PkgHfilesInfo) CurPkgFiles() []string {
 // 1. Creating a temporary header file that includes all headers from conf.Include
 // 2. Using clang to parse the translation unit and analyze includes
 // 3. Categorizing includes based on their inclusion level and path relationship
-func PkgHfileInfo(conf *llcppg.Config, args []string) *PkgHfilesInfo {
+func PkgHfileInfo(includes []string, args []string, mix bool) *PkgHfilesInfo {
 	info := &PkgHfilesInfo{
 		Inters: []string{},
 		Impls:  []string{},
@@ -40,16 +39,16 @@ func PkgHfileInfo(conf *llcppg.Config, args []string) *PkgHfilesInfo {
 	if err != nil {
 		panic(err)
 	}
+	defer os.Remove(outfile.Name())
 
-	cflags := append(args, strings.Fields(conf.CFlags)...)
 	inters := make(map[string]struct{})
 	others := []string{} // impl & third
-	for _, f := range conf.Include {
+	for _, f := range includes {
 		content := "#include <" + f + ">"
 		index, unit, err := clangutils.CreateTranslationUnit(&clangutils.Config{
 			File: content,
 			Temp: true,
-			Args: cflags,
+			Args: args,
 		})
 		if err != nil {
 			panic(err)
@@ -65,11 +64,11 @@ func PkgHfileInfo(conf *llcppg.Config, args []string) *PkgHfilesInfo {
 		index.Dispose()
 	}
 
-	clangtool.ComposeIncludes(conf.Include, outfile.Name())
+	clangtool.ComposeIncludes(includes, outfile.Name())
 	index, unit, err := clangutils.CreateTranslationUnit(&clangutils.Config{
 		File: outfile.Name(),
 		Temp: false,
-		Args: cflags,
+		Args: args,
 	})
 	defer unit.Dispose()
 	defer index.Dispose()
@@ -85,7 +84,7 @@ func PkgHfileInfo(conf *llcppg.Config, args []string) *PkgHfilesInfo {
 		}
 	})
 
-	if conf.Mix {
+	if mix {
 		info.Thirds = others
 		return info
 	}

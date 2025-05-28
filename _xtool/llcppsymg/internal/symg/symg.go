@@ -45,7 +45,7 @@ func Do(conf *Config) error {
 		return err
 	}
 
-	pkgHfiles := config.PkgHfileInfo(conf.Conf, []string{})
+	pkgHfiles := config.PkgHfileInfo(conf.Conf.Include, strings.Fields(conf.Conf.CFlags), conf.Conf.Mix)
 	if dbgSymbol {
 		fmt.Println("interfaces", pkgHfiles.Inters)
 		fmt.Println("implements", pkgHfiles.Impls)
