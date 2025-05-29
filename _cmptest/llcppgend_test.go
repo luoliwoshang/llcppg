@@ -15,10 +15,11 @@ import (
 const llcppgGoVersion = "1.20.14"
 
 type testCase struct {
-	modpath string
-	dir     string
-	pkg     upstream.Package
-	config  map[string]string // conan options
+	modpath  string
+	dir      string
+	pkg      upstream.Package
+	config   map[string]string // conan options
+	demosDir string
 }
 
 var testCases = []testCase{
@@ -29,6 +30,7 @@ var testCases = []testCase{
 		config: map[string]string{
 			"options": "utils=True",
 		},
+		demosDir: "./testdata/cjson/demo",
 	},
 }
 
@@ -44,6 +46,7 @@ func TestEnd2End(t *testing.T) {
 
 func testFrom(t *testing.T, tc testCase, gen bool) {
 	wd, _ := os.Getwd()
+	dir := filepath.Join(wd, tc.dir)
 	conanDir, err := os.MkdirTemp("", "llcppg_end2end_test_conan_dir_*")
 	if err != nil {
 		t.Fatal(err)
@@ -68,10 +71,7 @@ func testFrom(t *testing.T, tc testCase, gen bool) {
 		t.Fatal(err)
 	}
 
-	cmd := exec.Command("llcppg", "-v", "-mod="+tc.modpath)
-	cmd.Dir = resultDir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd := command("llcppg", resultDir, "-v", "-mod="+tc.modpath)
 	lockGoVersion(cmd, conanDir)
 
 	err = cmd.Run()
@@ -82,19 +82,61 @@ func testFrom(t *testing.T, tc testCase, gen bool) {
 	os.Remove(filepath.Join(resultDir, config.LLCPPG_SYMB))
 
 	if gen {
-		os.RemoveAll(filepath.Join(wd, tc.dir))
-		os.Rename(resultDir, filepath.Join(wd, tc.dir))
-		return
+		os.RemoveAll(dir)
+		os.Rename(resultDir, dir)
+	} else {
+		// check the result is the same as the expected result
+		diffCmd := exec.Command("git", "diff", "--no-index", dir, resultDir)
+		diffCmd.Dir = wd
+		diffCmd.Stdout = os.Stdout
+		diffCmd.Stderr = os.Stderr
+		err = diffCmd.Run()
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
+	runDemos(t, filepath.Join(wd, tc.demosDir), tc.pkg.Name, filepath.Join(dir, tc.pkg.Name))
+}
 
-	diffCmd := exec.Command("git", "diff", "--no-index", tc.dir, resultDir)
-	diffCmd.Dir = wd
-	diffCmd.Stdout = os.Stdout
-	diffCmd.Stderr = os.Stderr
-	err = diffCmd.Run()
+// pkgpath is the filepath use to replace the import path in demo's go.mod
+func runDemos(t *testing.T, demosPath string, pkgname, pkgpath string) {
+	goMod := command("go", demosPath, "mod", "init", "test")
+	err := goMod.Run()
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer os.Remove(filepath.Join(demosPath, "go.mod"))
+
+	replace := command("go", demosPath, "mod", "edit", "-replace", pkgname+"="+pkgpath)
+	err = replace.Run()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tidy := command("go", demosPath, "mod", "tidy")
+	err = tidy.Run()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(filepath.Join(demosPath, "go.sum"))
+
+	demos, err := os.ReadDir(demosPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, demo := range demos {
+		if !demo.IsDir() {
+			continue
+		}
+		demoPath := filepath.Join(demosPath, demo.Name())
+		demoCmd := command("llgo", demosPath, "run", demoPath)
+		err = demoCmd.Run()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
 }
 
 func appendPCPath(path string) string {
@@ -115,4 +157,12 @@ func lockGoVersion(cmd *exec.Cmd, pcPath string) {
 func setPath(cmd *exec.Cmd, path string) {
 	pcPath := fmt.Sprintf("PKG_CONFIG_PATH=%s", appendPCPath(path))
 	cmd.Env = append(os.Environ(), pcPath)
+}
+
+func command(app string, dir string, args ...string) *exec.Cmd {
+	cmd := exec.Command(app, args...)
+	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd
 }
