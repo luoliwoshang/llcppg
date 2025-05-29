@@ -47,7 +47,6 @@ func TestEnd2End(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(fmt.Sprintf("%s/%s", tc.pkg.Name, tc.pkg.Version), func(t *testing.T) {
-			t.Parallel()
 			testFrom(t, tc, false)
 		})
 	}
@@ -80,7 +79,7 @@ func testFrom(t *testing.T, tc testCase, gen bool) {
 		t.Fatal(err)
 	}
 
-	cmd := command(resultDir, "llcppg", "-mod="+tc.modpath)
+	cmd := command(resultDir, "llcppg", "-v", "-mod="+tc.modpath)
 	cmd.Env = append(cmd.Env, goVerEnv())
 	cmd.Env = append(cmd.Env, pcPathEnv(conanDir)...)
 
@@ -114,7 +113,10 @@ func runDemos(t *testing.T, demosPath string, pkgname, pkgpath, pcPath string) {
 		t.Fatal(err)
 	}
 	defer os.RemoveAll(tempDemosPath)
-	os.CopyFS(tempDemosPath, os.DirFS(demosPath))
+	err = os.CopyFS(tempDemosPath, os.DirFS(demosPath))
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	goMod := command(tempDemosPath, "go", "mod", "init", "test")
 	err = goMod.Run()
