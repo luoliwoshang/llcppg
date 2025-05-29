@@ -32,12 +32,21 @@ var testCases = []testCase{
 		},
 		demosDir: "./testdata/cjson/demo",
 	},
+	{
+		modpath: "github.com/goplus/llcppg/_cmptest/testdata/cjson/1.7.17/cjson",
+		dir:     "./testdata/cjson/1.7.17",
+		pkg:     upstream.Package{Name: "cjson", Version: "1.7.17"},
+		config: map[string]string{
+			"options": "utils=True",
+		},
+		demosDir: "./testdata/cjson/demo",
+	},
 }
 
 func TestEnd2End(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
-		t.Run(tc.pkg.Name, func(t *testing.T) {
+		t.Run(fmt.Sprintf("%s/%s", tc.pkg.Name, tc.pkg.Version), func(t *testing.T) {
 			t.Parallel()
 			testFrom(t, tc, false)
 		})
@@ -71,7 +80,7 @@ func testFrom(t *testing.T, tc testCase, gen bool) {
 		t.Fatal(err)
 	}
 
-	cmd := command(resultDir, "llcppg", "-v", "-mod="+tc.modpath)
+	cmd := command(resultDir, "llcppg", "-mod="+tc.modpath)
 	cmd.Env = append(cmd.Env, goVerEnv())
 	cmd.Env = append(cmd.Env, pcPathEnv(conanDir)...)
 
@@ -100,27 +109,32 @@ func testFrom(t *testing.T, tc testCase, gen bool) {
 
 // pkgpath is the filepath use to replace the import path in demo's go.mod
 func runDemos(t *testing.T, demosPath string, pkgname, pkgpath, pcPath string) {
-	goMod := command(demosPath, "go", "mod", "init", "test")
-	err := goMod.Run()
+	tempDemosPath, err := os.MkdirTemp("", "llcppg_end2end_test_demos_*")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(filepath.Join(demosPath, "go.mod"))
+	defer os.RemoveAll(tempDemosPath)
+	os.CopyFS(tempDemosPath, os.DirFS(demosPath))
 
-	replace := command(demosPath, "go", "mod", "edit", "-replace", pkgname+"="+pkgpath)
+	goMod := command(tempDemosPath, "go", "mod", "init", "test")
+	err = goMod.Run()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	replace := command(tempDemosPath, "go", "mod", "edit", "-replace", pkgname+"="+pkgpath)
 	err = replace.Run()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	tidy := command(demosPath, "go", "mod", "tidy")
+	tidy := command(tempDemosPath, "go", "mod", "tidy")
 	err = tidy.Run()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(filepath.Join(demosPath, "go.sum"))
 
-	demos, err := os.ReadDir(demosPath)
+	demos, err := os.ReadDir(tempDemosPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -129,9 +143,9 @@ func runDemos(t *testing.T, demosPath string, pkgname, pkgpath, pcPath string) {
 		if !demo.IsDir() {
 			continue
 		}
-		demoPath := filepath.Join(demosPath, demo.Name())
-		demoCmd := command(demosPath, "llgo", "run", demoPath)
-		demoCmd.Env = append(demoCmd.Env, "LLGO_RPATH_CHANGE=on")
+		demoPath := filepath.Join(tempDemosPath, demo.Name())
+		demoCmd := command(demoPath, "llgo", "run", ".")
+		demoCmd.Env = append(demoCmd.Env, llgoEnv()...)
 		demoCmd.Env = append(demoCmd.Env, pcPathEnv(pcPath)...)
 		err = demoCmd.Run()
 		if err != nil {
@@ -146,6 +160,14 @@ func appendPCPath(path string) string {
 		return path + ":" + env
 	}
 	return path
+}
+
+// llgo env
+func llgoEnv() []string {
+	return []string{
+		// for https://github.com/goplus/llgo/issues/1135
+		"LLGO_RPATH_CHANGE=on",
+	}
 }
 
 // env for pkg-config
