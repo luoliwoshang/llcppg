@@ -95,11 +95,11 @@ func testFrom(t *testing.T, tc testCase, gen bool) {
 			t.Fatal(err)
 		}
 	}
-	runDemos(t, filepath.Join(wd, tc.demosDir), tc.pkg.Name, filepath.Join(dir, tc.pkg.Name))
+	runDemos(t, filepath.Join(wd, tc.demosDir), tc.pkg.Name, filepath.Join(dir, tc.pkg.Name), conanDir)
 }
 
 // pkgpath is the filepath use to replace the import path in demo's go.mod
-func runDemos(t *testing.T, demosPath string, pkgname, pkgpath string) {
+func runDemos(t *testing.T, demosPath string, pkgname, pkgpath, pcPath string) {
 	goMod := command("go", demosPath, "mod", "init", "test")
 	err := goMod.Run()
 	if err != nil {
@@ -131,6 +131,7 @@ func runDemos(t *testing.T, demosPath string, pkgname, pkgpath string) {
 		}
 		demoPath := filepath.Join(demosPath, demo.Name())
 		demoCmd := command("llgo", demosPath, "run", demoPath)
+		setPath(demoCmd, pcPath)
 		err = demoCmd.Run()
 		if err != nil {
 			t.Fatal(err)
