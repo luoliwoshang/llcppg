@@ -107,11 +107,11 @@ func main() {
 	err = writePkg(pkg.Package, outputDir)
 	check(err)
 
-	err = runCommand(outputDir, "go", "fmt", ".")
-	check(err)
+	// err = runCommand(outputDir, "go", "fmt", ".")
+	// check(err)
 
-	err = runCommand(outputDir, "go", "mod", "tidy")
-	check(err)
+	// err = runCommand(outputDir, "go", "mod", "tidy")
+	// check(err)
 }
 
 // Write all files in the package to the output directory
