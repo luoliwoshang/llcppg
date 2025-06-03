@@ -52,6 +52,12 @@ var testCases = []testCase{
 		pkg:      upstream.Package{Name: "sqlite3", Version: "3.49.1"},
 		demosDir: "./testdata/sqlite3/demo",
 	},
+	{
+		modpath:  "github.com/goplus/llcppg/_cmptest/testdata/zlib/1.3.1/zlib",
+		dir:      "./testdata/zlib/1.3.1",
+		pkg:      upstream.Package{Name: "zlib", Version: "1.3.1"},
+		demosDir: "./testdata/zlib/demo",
+	},
 }
 
 var mkdirTempLazily = sync.OnceValue(func() string {
