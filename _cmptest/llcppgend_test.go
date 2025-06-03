@@ -60,15 +60,15 @@ var mkdirTempLazily = sync.OnceValue(func() string {
 })
 
 func logFile(tc testCase) (*os.File, error) {
-	dirName := fmt.Sprintf("%s-%s-llcppg-%s-%s", runtime.GOOS, runtime.GOARCH, tc.pkg.Name, tc.pkg.Version)
-	dirPath := filepath.Join(mkdirTempLazily(), dirName)
+	caseName := fmt.Sprintf("%s-%s-llcppg-%s-%s", runtime.GOOS, runtime.GOARCH, tc.pkg.Name, tc.pkg.Version)
+	dirPath := filepath.Join(mkdirTempLazily(), caseName)
 
 	err := os.MkdirAll(dirPath, 0755)
 	if err != nil {
 		return nil, err
 	}
 
-	return os.Create(filepath.Join(dirPath, "all.log"))
+	return os.Create(filepath.Join(dirPath, fmt.Sprintf("%s.log", caseName)))
 }
 
 func TestEnd2End(t *testing.T) {
