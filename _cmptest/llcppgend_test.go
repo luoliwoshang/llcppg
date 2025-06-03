@@ -51,6 +51,15 @@ var testCases = []testCase{
 		demosDir: "./testdata/cjson/demo",
 	},
 	{
+		modpath: "github.com/goplus/llcppg/_cmptest/testdata/libxml2/2.13.6/libxml2",
+		dir:     "./testdata/libxml2/2.13.6",
+		pkg:     upstream.Package{Name: "libxml2", Version: "2.13.6"},
+		config: map[string]string{
+			"options": "iconv=False",
+		},
+		demosDir: "./testdata/libxml2/demo",
+	},
+	{
 		modpath:  "github.com/goplus/llcppg/_cmptest/testdata/sqlite3/3.49.1/sqlite3",
 		dir:      "./testdata/sqlite3/3.49.1",
 		pkg:      upstream.Package{Name: "sqlite3", Version: "3.49.1"},
