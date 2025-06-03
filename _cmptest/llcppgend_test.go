@@ -16,8 +16,12 @@ import (
 
 const llcppgGoVersion = "1.20.14"
 
-// avoid conan install race condition
-var conanInstallMutex sync.Mutex
+var (
+	// avoid conan install race condition
+	conanInstallMutex sync.Mutex
+	// avoid llgo run race condition
+	llgoRunMutex sync.Mutex
+)
 
 type testCase struct {
 	modpath  string
@@ -197,6 +201,10 @@ func runDemos(t *testing.T, logFile *os.File, demosPath string, pkgname, pkgpath
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	// only can lock out of loop,will got ld64.lld: error: undefined symbol: math.Float32bits
+	llgoRunMutex.Lock()
+	defer llgoRunMutex.Unlock()
 
 	for _, demo := range demos {
 		if !demo.IsDir() {
