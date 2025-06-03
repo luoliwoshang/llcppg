@@ -59,6 +59,12 @@ var testCases = []testCase{
 		demosDir: "./testdata/zlib/demo",
 	},
 	{
+		modpath:  "github.com/goplus/llcppg/_cmptest/testdata/bzip3/1.5.1/bzip3",
+		dir:      "./testdata/bzip3/1.5.1",
+		pkg:      upstream.Package{Name: "bzip3", Version: "1.5.1"},
+		demosDir: "./testdata/bzip3/demo",
+	},
+	{
 		modpath:  "github.com/goplus/llcppg/_cmptest/testdata/cargs/1.2.0/cargs",
 		dir:      "./testdata/cargs/1.2.0",
 		pkg:      upstream.Package{Name: "cargs", Version: "1.2.0"},
