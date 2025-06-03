@@ -16,6 +16,9 @@ import (
 
 const llcppgGoVersion = "1.20.14"
 
+// avoid conan install race condition
+var conanInstallMutex sync.Mutex
+
 type testCase struct {
 	modpath  string
 	dir      string
@@ -107,7 +110,9 @@ func testFrom(t *testing.T, tc testCase, gen bool) {
 	}
 
 	os.WriteFile(filepath.Join(resultDir, config.LLCPPG_CFG), cfg, os.ModePerm)
-	_, err = conan.NewConanInstaller(tc.config).Install(tc.pkg, conanDir)
+
+	installer := conan.NewConanInstaller(tc.config)
+	err = conanInstall(t, installer, tc.pkg, conanDir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,6 +193,13 @@ func runDemos(t *testing.T, logFile *os.File, demosPath string, pkgname, pkgpath
 		}
 	}
 
+}
+
+func conanInstall(t *testing.T, installer upstream.Installer, pkg upstream.Package, conanDir string) error {
+	conanInstallMutex.Lock()
+	defer conanInstallMutex.Unlock()
+	_, err := installer.Install(pkg, conanDir)
+	return err
 }
 
 func appendPCPath(path string) string {
