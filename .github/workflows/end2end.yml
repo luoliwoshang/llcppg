@@ -40,7 +40,19 @@ jobs:
     - name: Set up Conan
       run: conan profile detect
     
+    - name: Setup Log directory
+      run: echo "LLCPPG_TEST_LOG_DIR=$(mktemp -d)" >> $GITHUB_ENV
+
     - name: Test End2End
       working-directory: _cmptest
       run: |
         go test -v .
+
+    - name: Upload Logs to Artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: ${{matrix.os}}-log
+        path: ${{env.LLCPPG_TEST_LOG_DIR}}
+        retention-days: 1
+        include-hidden-files: true
