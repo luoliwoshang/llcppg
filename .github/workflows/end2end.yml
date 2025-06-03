@@ -17,6 +17,7 @@ jobs:
         llvm: [19]
         llgo: [87c7b65223eea16ade3ad1de4079bf2a20d20b1b]
         go: [1.23]
+      fail-fast: false
     runs-on: ${{matrix.os}}
     steps:
     - uses: actions/checkout@v4
