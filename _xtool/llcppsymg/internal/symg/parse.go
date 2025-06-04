@@ -358,17 +358,13 @@ func (p *SymbolProcessor) processCollect() {
 	}
 }
 
-func ParseHeaderFile(files []string, prefixes []string, cflags []string, symMap map[string]string, isCpp bool, isTemp bool) (map[string]*SymbolInfo, error) {
+func ParseHeaderFile(files []string, prefixes []string, cflags []string, symMap map[string]string, isCpp bool) (map[string]*SymbolInfo, error) {
 	index := clang.CreateIndex(0, 0)
 	var units []*clang.TranslationUnit
-	if isTemp {
-		files = append(files, clangutils.TEMP_FILE)
-	}
 	processer := NewSymbolProcessor(files, prefixes, symMap)
 	for _, file := range files {
 		unit, err := processer.collect(&clangutils.Config{
 			File:  file,
-			Temp:  isTemp,
 			IsCpp: isCpp,
 			Index: index,
 			Args:  cflags,

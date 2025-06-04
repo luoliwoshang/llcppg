@@ -345,7 +345,16 @@ class INIReader {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			symbolMap, err := symg.ParseHeaderFile([]string{tc.content}, tc.prefixes, []string{}, nil, tc.isCpp, true)
+			f, err := os.CreateTemp("", "temp*.h")
+			if err != nil {
+				log.Fatal(err)
+			}
+			_, err = f.Write([]byte(tc.content))
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer os.Remove(f.Name())
+			symbolMap, err := symg.ParseHeaderFile([]string{f.Name()}, tc.prefixes, []string{}, nil, tc.isCpp)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -476,7 +485,7 @@ func TestGen(t *testing.T) {
 
 			cfg.CFlags = "-I" + projPath
 			pkgHfileInfo := config.PkgHfileInfo(cfg.Include, strings.Fields(cfg.CFlags), false)
-			headerSymbolMap, err := symg.ParseHeaderFile(pkgHfileInfo.CurPkgFiles(), cfg.TrimPrefixes, strings.Fields(cfg.CFlags), cfg.SymMap, cfg.Cplusplus, false)
+			headerSymbolMap, err := symg.ParseHeaderFile(pkgHfileInfo.CurPkgFiles(), cfg.TrimPrefixes, strings.Fields(cfg.CFlags), cfg.SymMap, cfg.Cplusplus)
 			if err != nil {
 				t.Fatal(err)
 			}

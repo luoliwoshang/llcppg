@@ -56,7 +56,7 @@ func Do(conf *Config) error {
 		fmt.Println("thirdhfile", pkgHfiles.Thirds)
 	}
 
-	headerInfos, err := ParseHeaderFile(pkgHfiles.CurPkgFiles(), conf.TrimPrefixes, strings.Fields(conf.CFlags), conf.SymMap, conf.IsCpp, false)
+	headerInfos, err := ParseHeaderFile(pkgHfiles.CurPkgFiles(), conf.TrimPrefixes, strings.Fields(conf.CFlags), conf.SymMap, conf.IsCpp)
 	if err != nil {
 		return err
 	}
