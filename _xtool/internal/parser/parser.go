@@ -62,10 +62,11 @@ func NewConverter(config *ConverterConfig) (*Converter, error) {
 	}
 
 	index, unit, err := clangutils.CreateTranslationUnit(&clangutils.Config{
-		File:  config.File,
-		Temp:  false,
-		Args:  config.Args,
-		IsCpp: config.IsCpp,
+		File:    config.File,
+		Temp:    false,
+		Args:    config.Args,
+		IsCpp:   config.IsCpp,
+		Options: clang.DetailedPreprocessingRecord,
 	})
 	if err != nil {
 		return nil, err
