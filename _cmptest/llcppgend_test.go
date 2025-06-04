@@ -146,13 +146,9 @@ func testFrom(t *testing.T, tc testCase, gen bool) {
 	}
 	defer os.RemoveAll(resultDir)
 
-	cfgPath := filepath.Join(wd, tc.dir, config.LLCPPG_CFG)
-	cfg, err := os.ReadFile(cfgPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	os.WriteFile(filepath.Join(resultDir, config.LLCPPG_CFG), cfg, os.ModePerm)
+	cfgPath := filepath.Join(wd, tc.dir, tc.pkg.Name, config.LLCPPG_CFG)
+	processCfgPath := filepath.Join(resultDir, config.LLCPPG_CFG)
+	copyFile(cfgPath, processCfgPath)
 
 	conanInstallMutex.Lock()
 	_, err = conan.NewConanInstaller(tc.config).Install(tc.pkg, conanDir)
@@ -172,6 +168,7 @@ func testFrom(t *testing.T, tc testCase, gen bool) {
 
 	// llcppg.symb.json is a middle file
 	os.Remove(filepath.Join(resultDir, config.LLCPPG_SYMB))
+	copyFile(processCfgPath, filepath.Join(resultDir, tc.pkg.Name, config.LLCPPG_CFG))
 
 	if gen {
 		os.RemoveAll(dir)
@@ -179,7 +176,7 @@ func testFrom(t *testing.T, tc testCase, gen bool) {
 	} else {
 		// check the result is the same as the expected result
 		// when have diff,will got exit code 1
-		diffCmd := command(logFile, wd, "git", "diff", "--no-index", dir, resultDir)
+		diffCmd := command(logFile, wd, "git", "diff", "--no-index", filepath.Join(dir, tc.pkg.Name), filepath.Join(resultDir, tc.pkg.Name))
 		err = diffCmd.Run()
 		if err != nil {
 			t.Fatal(err)
@@ -267,6 +264,14 @@ func pcPathEnv(path string) []string {
 // control the go version in output version
 func goVerEnv() string {
 	return fmt.Sprintf("GOTOOLCHAIN=go%s", llcppgGoVersion)
+}
+
+func copyFile(src, dst string) error {
+	data, err := os.ReadFile(src)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(dst, data, os.ModePerm)
 }
 
 func command(logFile *os.File, dir string, app string, args ...string) *exec.Cmd {
