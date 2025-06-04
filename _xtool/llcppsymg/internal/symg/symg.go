@@ -67,7 +67,7 @@ func Do(conf *Config) error {
 		return err
 	}
 
-	headerInfos, err := XParseHeaderFile(tempFile.Name(), pkgHfiles.CurPkgFiles(), conf.TrimPrefixes, strings.Fields(conf.CFlags), conf.SymMap, conf.IsCpp)
+	headerInfos, err := ParseHeaderFile(tempFile.Name(), pkgHfiles.CurPkgFiles(), conf.TrimPrefixes, strings.Fields(conf.CFlags), conf.SymMap, conf.IsCpp)
 	if err != nil {
 		return err
 	}

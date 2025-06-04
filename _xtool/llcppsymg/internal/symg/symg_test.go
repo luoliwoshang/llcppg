@@ -355,7 +355,7 @@ class INIReader {
 				t.Fatal(err)
 			}
 			defer os.Remove(f.Name())
-			symbolMap, err := symg.ParseHeaderFile([]string{f.Name()}, tc.prefixes, []string{}, nil, tc.isCpp)
+			symbolMap, err := symg.ParseHeaderFile(f.Name(), []string{f.Name()}, tc.prefixes, []string{}, nil, tc.isCpp)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -494,7 +494,7 @@ func TestGen(t *testing.T) {
 			clangtool.ComposeIncludes(cfg.Include, tempFile.Name())
 
 			pkgHfileInfo := config.PkgHfileInfo(cfg.Include, strings.Fields(cfg.CFlags), false)
-			headerSymbolMap, err := symg.XParseHeaderFile(tempFile.Name(), pkgHfileInfo.CurPkgFiles(), cfg.TrimPrefixes, strings.Fields(cfg.CFlags), cfg.SymMap, cfg.Cplusplus)
+			headerSymbolMap, err := symg.ParseHeaderFile(tempFile.Name(), pkgHfileInfo.CurPkgFiles(), cfg.TrimPrefixes, strings.Fields(cfg.CFlags), cfg.SymMap, cfg.Cplusplus)
 			if err != nil {
 				t.Fatal(err)
 			}

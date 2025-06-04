@@ -1,7 +1,6 @@
 package symg
 
 import (
-	"errors"
 	"fmt"
 	"runtime"
 	"sort"
@@ -34,21 +33,15 @@ type SymbolProcessor struct {
 	CustomSymMap map[string]string
 	// register queue
 	collectQueue []*Collect
-	// for independent files,signal that the file has been processed
-	// will clean in a translation unit process end
-	processingFiles map[string]struct{}
-	processedFiles  map[string]struct{}
 }
 
 func NewSymbolProcessor(Files []string, Prefixes []string, SymMap map[string]string) *SymbolProcessor {
 	p := &SymbolProcessor{
-		Files:           Files,
-		Prefixes:        Prefixes,
-		CustomSymMap:    SymMap,
-		SymbolMap:       make(map[string]*SymbolInfo),
-		NameCounts:      make(map[string]int),
-		processedFiles:  make(map[string]struct{}),
-		processingFiles: make(map[string]struct{}),
+		Files:        Files,
+		Prefixes:     Prefixes,
+		CustomSymMap: SymMap,
+		SymbolMap:    make(map[string]*SymbolInfo),
+		NameCounts:   make(map[string]int),
 	}
 	return p
 }
@@ -289,19 +282,6 @@ func (p *SymbolProcessor) collectFuncInfo(cursor clang.Cursor) {
 
 func (p *SymbolProcessor) visitTop(cursor, parent clang.Cursor) clang.ChildVisitResult {
 	filename := clang.GoString(cursor.Location().File().FileName())
-	if _, ok := p.processedFiles[filename]; ok {
-		if dbgSymbol {
-			fmt.Printf("visitTop: %s has been processed: \n", filename)
-		}
-		return clang.ChildVisit_Continue
-	}
-	if filename == "" {
-		return clang.ChildVisit_Continue
-	}
-	p.processingFiles[filename] = struct{}{}
-	if dbgSymbol && filename != "" {
-		fmt.Printf("visitTop: %s\n", filename)
-	}
 	switch cursor.Kind {
 	case clang.CursorNamespace, clang.CursorClassDecl:
 		clangutils.VisitChildren(cursor, p.visitTop)
@@ -312,33 +292,6 @@ func (p *SymbolProcessor) visitTop(cursor, parent clang.Cursor) clang.ChildVisit
 		}
 	}
 	return clang.ChildVisit_Continue
-}
-
-func (p *SymbolProcessor) collect(cfg *clangutils.Config) (*clang.TranslationUnit, error) {
-	filename := cfg.File
-	if _, ok := p.processedFiles[filename]; ok {
-		if dbgSymbol {
-			fmt.Printf("%s has been processed: \n", filename)
-		}
-		return nil, nil
-	}
-	if dbgSymbol {
-		fmt.Printf("create translation unit: \nfile:%s\nIsCpp:%v\nArgs:%v\n", filename, cfg.IsCpp, cfg.Args)
-	}
-	_, unit, err := clangutils.CreateTranslationUnit(cfg)
-	if err != nil {
-		return nil, errors.New("Unable to parse translation unit for file " + filename)
-	}
-	cursor := unit.Cursor()
-	if dbgSymbol {
-		fmt.Printf("%s start collect \n", filename)
-	}
-	clangutils.VisitChildren(cursor, p.visitTop)
-	for filename := range p.processingFiles {
-		p.processedFiles[filename] = struct{}{}
-	}
-	p.processingFiles = make(map[string]struct{})
-	return unit, nil
 }
 
 // processCollect processes the symbol collection queue and prioritizes custom go names.
@@ -355,33 +308,9 @@ func (p *SymbolProcessor) processCollect() {
 	}
 }
 
-func ParseHeaderFile(files []string, prefixes []string, cflags []string, symMap map[string]string, isCpp bool) (map[string]*SymbolInfo, error) {
-	index := clang.CreateIndex(0, 0)
-	var units []*clang.TranslationUnit
-	processer := NewSymbolProcessor(files, prefixes, symMap)
-	for _, file := range files {
-		unit, err := processer.collect(&clangutils.Config{
-			File:  file,
-			IsCpp: isCpp,
-			Index: index,
-			Args:  cflags,
-		})
-		if err != nil {
-			return nil, err
-		}
-		units = append(units, unit)
-	}
-	processer.processCollect()
-	index.Dispose()
-	for _, unit := range units {
-		unit.Dispose()
-	}
-	return processer.SymbolMap, nil
-}
-
-func XParseHeaderFile(combineFile string, files []string, prefixes []string, cflags []string, symMap map[string]string, isCpp bool) (map[string]*SymbolInfo, error) {
+func ParseHeaderFile(combileFile string, curPkgFiles []string, prefixes []string, cflags []string, symMap map[string]string, isCpp bool) (map[string]*SymbolInfo, error) {
 	index, unit, err := clangutils.CreateTranslationUnit(&clangutils.Config{
-		File:  combineFile,
+		File:  combileFile,
 		IsCpp: isCpp,
 		Index: clang.CreateIndex(0, 0),
 		Args:  cflags,
@@ -392,22 +321,8 @@ func XParseHeaderFile(combineFile string, files []string, prefixes []string, cfl
 	defer unit.Dispose()
 	defer index.Dispose()
 	cursor := unit.Cursor()
-	processer := NewSymbolProcessor(files, prefixes, symMap)
-	clangutils.VisitChildren(cursor, processer.xVisitTop)
+	processer := NewSymbolProcessor(curPkgFiles, prefixes, symMap)
+	clangutils.VisitChildren(cursor, processer.visitTop)
 	processer.processCollect()
 	return processer.SymbolMap, nil
-}
-
-func (p *SymbolProcessor) xVisitTop(cursor, parent clang.Cursor) clang.ChildVisitResult {
-	filename := clang.GoString(cursor.Location().File().FileName())
-	switch cursor.Kind {
-	case clang.CursorNamespace, clang.CursorClassDecl:
-		clangutils.VisitChildren(cursor, p.xVisitTop)
-	case clang.CursorCXXMethod, clang.CursorFunctionDecl, clang.CursorConstructor, clang.CursorDestructor:
-		isPublicMethod := (cursor.CXXAccessSpecifier() == clang.CXXPublic) && cursor.Kind == clang.CursorCXXMethod || cursor.Kind == clang.CursorConstructor || cursor.Kind == clang.CursorDestructor
-		if p.isSelfFile(filename) && (cursor.Kind == clang.CursorFunctionDecl || isPublicMethod) {
-			p.collectFuncInfo(cursor)
-		}
-	}
-	return clang.ChildVisit_Continue
 }
