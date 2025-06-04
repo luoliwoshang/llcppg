@@ -316,9 +316,6 @@ func (p *SymbolProcessor) visitTop(cursor, parent clang.Cursor) clang.ChildVisit
 
 func (p *SymbolProcessor) collect(cfg *clangutils.Config) (*clang.TranslationUnit, error) {
 	filename := cfg.File
-	if cfg.Temp {
-		filename = clangutils.TEMP_FILE
-	}
 	if _, ok := p.processedFiles[filename]; ok {
 		if dbgSymbol {
 			fmt.Printf("%s has been processed: \n", filename)
@@ -326,7 +323,7 @@ func (p *SymbolProcessor) collect(cfg *clangutils.Config) (*clang.TranslationUni
 		return nil, nil
 	}
 	if dbgSymbol {
-		fmt.Printf("create translation unit: \nfile:%s\nIsCpp:%v\nTemp:%v\nArgs:%v\n", filename, cfg.IsCpp, cfg.Temp, cfg.Args)
+		fmt.Printf("create translation unit: \nfile:%s\nIsCpp:%v\nArgs:%v\n", filename, cfg.IsCpp, cfg.Args)
 	}
 	_, unit, err := clangutils.CreateTranslationUnit(cfg)
 	if err != nil {
