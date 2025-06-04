@@ -133,7 +133,7 @@ func ParseDylibSymbols(lib string) ([]*nm.Symbol, error) {
 			continue
 		}
 
-		args := []string{}
+		args := []string{"-g"}
 		if runtime.GOOS == "linux" {
 			args = append(args, "-D")
 		}
