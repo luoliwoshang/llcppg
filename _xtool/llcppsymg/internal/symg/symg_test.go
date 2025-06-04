@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/goplus/llcppg/_xtool/internal/clangtool"
 	"github.com/goplus/llcppg/_xtool/internal/config"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/internal/symg"
 	llcppg "github.com/goplus/llcppg/config"
@@ -484,8 +485,16 @@ func TestGen(t *testing.T) {
 			}
 
 			cfg.CFlags = "-I" + projPath
+
+			tempFile, err := os.CreateTemp("", "combine*.h")
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer os.Remove(tempFile.Name())
+			clangtool.ComposeIncludes(cfg.Include, tempFile.Name())
+
 			pkgHfileInfo := config.PkgHfileInfo(cfg.Include, strings.Fields(cfg.CFlags), false)
-			headerSymbolMap, err := symg.ParseHeaderFile(pkgHfileInfo.CurPkgFiles(), cfg.TrimPrefixes, strings.Fields(cfg.CFlags), cfg.SymMap, cfg.Cplusplus)
+			headerSymbolMap, err := symg.XParseHeaderFile(tempFile.Name(), pkgHfileInfo.CurPkgFiles(), cfg.TrimPrefixes, strings.Fields(cfg.CFlags), cfg.SymMap, cfg.Cplusplus)
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/goplus/llcppg/_xtool/internal/clangtool"
 	"github.com/goplus/llcppg/_xtool/internal/config"
 	"github.com/goplus/llcppg/_xtool/internal/ld"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/internal/flag"
@@ -56,7 +57,17 @@ func Do(conf *Config) error {
 		fmt.Println("thirdhfile", pkgHfiles.Thirds)
 	}
 
-	headerInfos, err := ParseHeaderFile(pkgHfiles.CurPkgFiles(), conf.TrimPrefixes, strings.Fields(conf.CFlags), conf.SymMap, conf.IsCpp)
+	tempFile, err := os.CreateTemp("", "combine*.h")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tempFile.Name())
+	err = clangtool.ComposeIncludes(conf.Includes, tempFile.Name())
+	if err != nil {
+		return err
+	}
+
+	headerInfos, err := XParseHeaderFile(tempFile.Name(), pkgHfiles.CurPkgFiles(), conf.TrimPrefixes, strings.Fields(conf.CFlags), conf.SymMap, conf.IsCpp)
 	if err != nil {
 		return err
 	}

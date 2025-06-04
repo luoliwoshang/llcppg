@@ -381,3 +381,36 @@ func ParseHeaderFile(files []string, prefixes []string, cflags []string, symMap 
 	}
 	return processer.SymbolMap, nil
 }
+
+func XParseHeaderFile(combineFile string, files []string, prefixes []string, cflags []string, symMap map[string]string, isCpp bool) (map[string]*SymbolInfo, error) {
+	index, unit, err := clangutils.CreateTranslationUnit(&clangutils.Config{
+		File:  combineFile,
+		IsCpp: isCpp,
+		Index: clang.CreateIndex(0, 0),
+		Args:  cflags,
+	})
+	if err != nil {
+		return nil, err
+	}
+	defer unit.Dispose()
+	defer index.Dispose()
+	cursor := unit.Cursor()
+	processer := NewSymbolProcessor(files, prefixes, symMap)
+	clangutils.VisitChildren(cursor, processer.xVisitTop)
+	processer.processCollect()
+	return processer.SymbolMap, nil
+}
+
+func (p *SymbolProcessor) xVisitTop(cursor, parent clang.Cursor) clang.ChildVisitResult {
+	filename := clang.GoString(cursor.Location().File().FileName())
+	switch cursor.Kind {
+	case clang.CursorNamespace, clang.CursorClassDecl:
+		clangutils.VisitChildren(cursor, p.xVisitTop)
+	case clang.CursorCXXMethod, clang.CursorFunctionDecl, clang.CursorConstructor, clang.CursorDestructor:
+		isPublicMethod := (cursor.CXXAccessSpecifier() == clang.CXXPublic) && cursor.Kind == clang.CursorCXXMethod || cursor.Kind == clang.CursorConstructor || cursor.Kind == clang.CursorDestructor
+		if p.isSelfFile(filename) && (cursor.Kind == clang.CursorFunctionDecl || isPublicMethod) {
+			p.collectFuncInfo(cursor)
+		}
+	}
+	return clang.ChildVisit_Continue
+}
