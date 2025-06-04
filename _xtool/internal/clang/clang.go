@@ -80,6 +80,11 @@ func GetLocation(loc clang.SourceLocation) (file clang.File, line c.Uint, column
 	return
 }
 
+func GetPresumedLocation(loc clang.SourceLocation) (file clang.String, line c.Uint, column c.Uint) {
+	loc.PresumedLocation(&file, &line, &column)
+	return
+}
+
 // Traverse up the semantic parents
 func BuildScopingParts(cursor clang.Cursor) []string {
 	var parts []string

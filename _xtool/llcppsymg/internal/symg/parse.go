@@ -281,7 +281,12 @@ func (p *SymbolProcessor) collectFuncInfo(cursor clang.Cursor) {
 }
 
 func (p *SymbolProcessor) visitTop(cursor, parent clang.Cursor) clang.ChildVisitResult {
-	filename := clang.GoString(cursor.Location().File().FileName())
+	// https://releases.llvm.org/19.1.0/tools/clang/docs/ReleaseNotes.html#libclang
+	// cursor.Location() in llvm@19 cannot get the fileinfo for a macro expansion,so we dirrect use PresumedLocation
+	loc := cursor.Location()
+	file, _, _ := clangutils.GetPresumedLocation(loc)
+	filename := clang.GoString(file)
+
 	switch cursor.Kind {
 	case clang.CursorNamespace, clang.CursorClassDecl:
 		clangutils.VisitChildren(cursor, p.visitTop)
@@ -310,10 +315,11 @@ func (p *SymbolProcessor) processCollect() {
 
 func ParseHeaderFile(combileFile string, curPkgFiles []string, prefixes []string, cflags []string, symMap map[string]string, isCpp bool) (map[string]*SymbolInfo, error) {
 	index, unit, err := clangutils.CreateTranslationUnit(&clangutils.Config{
-		File:  combileFile,
-		IsCpp: isCpp,
-		Index: clang.CreateIndex(0, 0),
-		Args:  cflags,
+		File:    combileFile,
+		IsCpp:   isCpp,
+		Index:   clang.CreateIndex(0, 0),
+		Args:    cflags,
+		Options: clang.DetailedPreprocessingRecord,
 	})
 	if err != nil {
 		return nil, err

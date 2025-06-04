@@ -138,8 +138,7 @@ func (ct *Converter) logln(args ...interface{}) {
 
 func (ct *Converter) InFile(cursor clang.Cursor) bool {
 	loc := cursor.Location()
-	var file clang.String
-	loc.PresumedLocation(&file, nil, nil)
+	file, _, _ := clangutils.GetPresumedLocation(loc)
 	filePath := clang.GoString(file)
 	ct.logf("GetCurFile: PresumedLocation %s cursor.Location() %s\n", filePath, clang.GoString(loc.File().FileName()))
 	if filePath == "<built-in>" || filePath == "<command line>" {
