@@ -347,7 +347,7 @@ class INIReader {
 		t.Run(tc.name, func(t *testing.T) {
 			f, err := os.CreateTemp("", "temp*.h")
 			if err != nil {
-				log.Fatal(err)
+				t.Fatal(err)
 			}
 			_, err = f.Write([]byte(tc.content))
 			if err != nil {
