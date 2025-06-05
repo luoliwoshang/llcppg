@@ -55,6 +55,11 @@ func (p *SymbolProcessor) isSelfFile(filename string) bool {
 	return false
 }
 
+// Is the cursor in the current package
+func (p *SymbolProcessor) inCurPkg(cursor clang.Cursor) bool {
+	return p.isSelfFile(cursorFileName(cursor))
+}
+
 func (p *SymbolProcessor) GenMethodName(class, name string, isDestructor bool, isPointer bool) string {
 	prefix := class + "."
 	if isPointer {
@@ -69,7 +74,7 @@ func (p *SymbolProcessor) GenMethodName(class, name string, isDestructor bool, i
 	return prefix + name
 }
 
-func (p *SymbolProcessor) printTypeInfo(typ clang.Type, isArg bool, prefix string) {
+func (p *SymbolProcessor) printTypeInfo(typ clang.Type, prefix string) {
 	if dbgParseIsMethod {
 		definitionType := clang.GoString(typ.TypeDeclaration().Definition().Type().String())
 		canonicalType := clang.GoString(typ.CanonicalType().String())
@@ -100,7 +105,7 @@ func (p *SymbolProcessor) pointerLevel(typ clang.Type) int {
 }
 
 // check cursor can be a receiver
-func (p *SymbolProcessor) beRecv(cur clang.Cursor, isArg bool) (ok bool, isPtr bool, typeName string) {
+func (p *SymbolProcessor) beRecv(cur clang.Cursor) (ok bool, isPtr bool, typeName string) {
 	typ := cur.Type()
 
 	// Check if the type can be a receiver:
@@ -111,34 +116,28 @@ func (p *SymbolProcessor) beRecv(cur clang.Cursor, isArg bool) (ok bool, isPtr b
 		return false, false, ""
 	}
 
-	// if is a arg,check the arg's type's location
-	var filename string
-	if isArg {
-		filename = cursorFileName(underCursor(cur))
-	} else {
-		filename = cursorFileName(cur)
-	}
-	isInCurPkg := p.isSelfFile(filename)
+	// check the arg's type's location
+	isInCurPkg := p.inCurPkg(underCursor(cur))
 
-	p.printTypeInfo(typ, isArg, "typ")
+	p.printTypeInfo(typ, "typ")
 	if typ.Kind == clang.TypePointer {
 		pointeeType := typ.PointeeType()
-		p.printTypeInfo(pointeeType, isArg, "typ.PointeeType()")
+		p.printTypeInfo(pointeeType, "typ.PointeeType()")
 		pointeeTypeNamedType := pointeeType.NamedType()
 		namedTypeGoString := clang.GoString(pointeeTypeNamedType.String())
-		p.printTypeInfo(pointeeTypeNamedType, isArg, "typ.PointeeType().NamedType()")
+		p.printTypeInfo(pointeeTypeNamedType, "typ.PointeeType().NamedType()")
 		if len(namedTypeGoString) > 0 {
 			goName := name.GoName(namedTypeGoString, p.Prefixes, isInCurPkg)
 			printResult(isInCurPkg, true, goName, "typ.pointeeType().NamedType()")
 			return isInCurPkg, true, goName
 		}
-		return p.beRecv(pointeeType.TypeDeclaration(), isArg)
+		return p.beRecv(pointeeType.TypeDeclaration())
 	} else if typ.Kind == clang.TypeElaborated ||
 		typ.Kind == clang.TypeTypedef {
 		canonicalType := typ.CanonicalType()
-		p.printTypeInfo(canonicalType, isArg, "typ.CanonicalType()")
+		p.printTypeInfo(canonicalType, "typ.CanonicalType()")
 		if canonicalType.Kind == clang.TypePointer {
-			return p.beRecv(canonicalType.TypeDeclaration(), isArg)
+			return p.beRecv(canonicalType.TypeDeclaration())
 		}
 	}
 	namedType := typ.NamedType()
@@ -169,16 +168,16 @@ func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) stri
 	isDestructor := cursor.Kind == clang.CursorDestructor
 	var convertedName string
 	if isDestructor {
-		convertedName = name.GoName(originName[1:], p.Prefixes, p.curPkg(cursor))
+		convertedName = name.GoName(originName[1:], p.Prefixes, p.inCurPkg(cursor))
 	} else {
-		convertedName = name.GoName(originName, p.Prefixes, p.curPkg(cursor))
+		convertedName = name.GoName(originName, p.Prefixes, p.inCurPkg(cursor))
 	}
 
 	customGoName, toMethod, isCustom := p.customGoName(symbolName)
 
 	// 1. for class method,gen method name
 	if parent := cursor.SemanticParent(); parent.Kind == clang.CursorClassDecl {
-		class := name.GoName(clang.GoString(parent.String()), p.Prefixes, p.curPkg(cursor))
+		class := name.GoName(clang.GoString(parent.String()), p.Prefixes, p.inCurPkg(cursor))
 		// concat method name
 		if isCustom {
 			convertedName = customGoName
@@ -194,7 +193,7 @@ func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) stri
 		if isCustom && !toMethod {
 			return p.AddSuffix(customGoName)
 		}
-		if ok, isPtr, typeName := p.beRecv(cursor.Argument(0), true); ok {
+		if ok, isPtr, typeName := p.beRecv(cursor.Argument(0)); ok {
 			if isCustom {
 				convertedName = customGoName
 			}
@@ -273,11 +272,6 @@ func (p *SymbolProcessor) visitTop(cursor, parent clang.Cursor) clang.ChildVisit
 		}
 	}
 	return clang.ChildVisit_Continue
-}
-
-// Is the cursor in the current package
-func (p *SymbolProcessor) curPkg(cursor clang.Cursor) bool {
-	return p.isSelfFile(cursorFileName(cursor))
 }
 
 // processCollect processes the symbol collection queue and prioritizes custom go names.
