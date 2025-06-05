@@ -23,36 +23,35 @@ type Collect struct {
 }
 
 type SymbolProcessor struct {
-	Files      []string
-	Prefixes   []string
-	SymbolMap  map[string]*SymbolInfo
-	NameCounts map[string]int
+	curPkgFiles map[string]struct{}
+	prefixes    []string
+	symbolMap   map[string]*SymbolInfo
+	nameCounts  map[string]int
 	// custom symbol map like:
 	// "sqlite3_finalize":".Close" -> method
 	// "sqlite3_open":"Open" -> function
-	CustomSymMap map[string]string
+	customSymMap map[string]string
 	// register queue
 	collectQueue []*Collect
 }
 
-func NewSymbolProcessor(Files []string, Prefixes []string, SymMap map[string]string) *SymbolProcessor {
+func NewSymbolProcessor(curPkgFiles []string, prefixes []string, symMap map[string]string) *SymbolProcessor {
 	p := &SymbolProcessor{
-		Files:        Files,
-		Prefixes:     Prefixes,
-		CustomSymMap: SymMap,
-		SymbolMap:    make(map[string]*SymbolInfo),
-		NameCounts:   make(map[string]int),
+		prefixes:     prefixes,
+		customSymMap: symMap,
+		symbolMap:    make(map[string]*SymbolInfo),
+		nameCounts:   make(map[string]int),
+		curPkgFiles:  make(map[string]struct{}),
+	}
+	for _, file := range curPkgFiles {
+		p.curPkgFiles[file] = struct{}{}
 	}
 	return p
 }
 
 func (p *SymbolProcessor) isSelfFile(filename string) bool {
-	for _, file := range p.Files {
-		if file == filename {
-			return true
-		}
-	}
-	return false
+	_, ok := p.curPkgFiles[filename]
+	return ok
 }
 
 // Is the cursor in the current package
@@ -74,31 +73,6 @@ func (p *SymbolProcessor) GenMethodName(class, name string, isDestructor bool, i
 	return prefix + name
 }
 
-func (p *SymbolProcessor) printTypeInfo(typ clang.Type, prefix string) {
-	if dbgParseIsMethod {
-		definitionType := clang.GoString(typ.TypeDeclaration().Definition().Type().String())
-		canonicalType := clang.GoString(typ.CanonicalType().String())
-		fmt.Println("**********", prefix, "**********")
-		fmt.Println(
-			"typ.String():", clang.GoString(typ.String()),
-			"typ.NamedType().String():", clang.GoString(typ.NamedType().String()),
-			"isTypePointer:", typ.Kind == clang.TypePointer,
-			"isTypeElaborated:", typ.Kind == clang.TypeElaborated,
-			"isTypeTypedef:", typ.Kind == clang.TypeTypedef,
-			"definitionType:", definitionType,
-			"canonicalType:", canonicalType,
-			"pointLevel:", p.pointerLevel(typ),
-		)
-	}
-}
-
-func printResult(isInCurPkg, isPointer bool, goName, prefix string) {
-	if dbgParseIsMethod {
-		fmt.Println("===========", prefix, "===========")
-		fmt.Println("isInCurPkg:", isInCurPkg, "isPointer:", isPointer, "goName", goName)
-	}
-}
-
 func (p *SymbolProcessor) pointerLevel(typ clang.Type) int {
 	canonicalTypeGoString := clang.GoString(typ.CanonicalType().String())
 	return strings.Count(canonicalTypeGoString, "*")
@@ -107,11 +81,9 @@ func (p *SymbolProcessor) pointerLevel(typ clang.Type) int {
 // check cursor can be a receiver
 func (p *SymbolProcessor) beRecv(cur clang.Cursor) (ok bool, isPtr bool, typeName string) {
 	typ := cur.Type()
-
-	// Check if the type can be a receiver:
-	// - If the type is a level 1 pointer (e.g., *MyStruct), it can potentially be a pointer method receiver
-	//   like (*MyStruct).Method(), but still needs further validation for package location and type compatibility
-	// - If the type is a level 2+ pointer (e.g., **MyStruct), it can't be a receiver at all
+	// Check if the type has more than one level of pointers (e.g., **int, ***char)
+	// Multi-level pointers are not considered for method generation as they are
+	// typically used for complex data structures rather than object instances
 	if p.pointerLevel(typ) > 1 {
 		return false, false, ""
 	}
@@ -119,44 +91,29 @@ func (p *SymbolProcessor) beRecv(cur clang.Cursor) (ok bool, isPtr bool, typeNam
 	// check the arg's type's location
 	isInCurPkg := p.inCurPkg(underCursor(cur))
 
-	p.printTypeInfo(typ, "typ")
 	if typ.Kind == clang.TypePointer {
-		pointeeType := typ.PointeeType()
-		p.printTypeInfo(pointeeType, "typ.PointeeType()")
-		pointeeTypeNamedType := pointeeType.NamedType()
-		namedTypeGoString := clang.GoString(pointeeTypeNamedType.String())
-		p.printTypeInfo(pointeeTypeNamedType, "typ.PointeeType().NamedType()")
-		if len(namedTypeGoString) > 0 {
-			goName := name.GoName(namedTypeGoString, p.Prefixes, isInCurPkg)
-			printResult(isInCurPkg, true, goName, "typ.pointeeType().NamedType()")
-			return isInCurPkg, true, goName
-		}
-		return p.beRecv(pointeeType.TypeDeclaration())
-	} else if typ.Kind == clang.TypeElaborated ||
-		typ.Kind == clang.TypeTypedef {
-		canonicalType := typ.CanonicalType()
-		p.printTypeInfo(canonicalType, "typ.CanonicalType()")
-		if canonicalType.Kind == clang.TypePointer {
-			return p.beRecv(canonicalType.TypeDeclaration())
+		underTypeName := clang.GoString(typ.PointeeType().NamedType().String())
+		return isInCurPkg, true, name.GoName(underTypeName, p.prefixes, isInCurPkg)
+	}
+
+	// Check if the type is an elaborated type (e.g., struct/class with full qualification)
+	// or a typedef (type alias). These types may wrap underlying pointer types
+	// that should be considered for method generation
+	if typ.Kind == clang.TypeElaborated || typ.Kind == clang.TypeTypedef {
+		underTyp := typ.CanonicalType()
+		if underTyp.Kind == clang.TypePointer {
+			return p.beRecv(underTyp.TypeDeclaration())
 		}
 	}
-	namedType := typ.NamedType()
-	namedTypeGoString := clang.GoString(namedType.String())
-	if len(namedTypeGoString) > 0 {
-		goName := name.GoName(namedTypeGoString, p.Prefixes, isInCurPkg)
-		printResult(isInCurPkg, false, goName, "typ.NamedType()")
-		return isInCurPkg, false, goName
-	}
-	typeGoString := clang.GoString(typ.String())
-	goName := name.GoName(typeGoString, p.Prefixes, isInCurPkg)
-	printResult(isInCurPkg, false, goName, "typ")
+	namedType := clang.GoString(typ.NamedType().String())
+	goName := name.GoName(namedType, p.prefixes, isInCurPkg)
 	return isInCurPkg, false, goName
 }
 
 // sqlite3_finalize -> .Close -> method
 // sqlite3_open -> Open -> function
-func (p *SymbolProcessor) customGoName(mangled string) (goName string, beRecv bool, ok bool) {
-	if customName, ok := p.CustomSymMap[mangled]; ok {
+func (p *SymbolProcessor) customGoName(mangled string) (goName string, isMethod bool, ok bool) {
+	if customName, ok := p.customSymMap[mangled]; ok {
 		name, found := strings.CutPrefix(customName, ".")
 		return name, found, true
 	}
@@ -168,16 +125,16 @@ func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) stri
 	isDestructor := cursor.Kind == clang.CursorDestructor
 	var convertedName string
 	if isDestructor {
-		convertedName = name.GoName(originName[1:], p.Prefixes, p.inCurPkg(cursor))
+		convertedName = name.GoName(originName[1:], p.prefixes, p.inCurPkg(cursor))
 	} else {
-		convertedName = name.GoName(originName, p.Prefixes, p.inCurPkg(cursor))
+		convertedName = name.GoName(originName, p.prefixes, p.inCurPkg(cursor))
 	}
 
 	customGoName, toMethod, isCustom := p.customGoName(symbolName)
 
 	// 1. for class method,gen method name
 	if parent := cursor.SemanticParent(); parent.Kind == clang.CursorClassDecl {
-		class := name.GoName(clang.GoString(parent.String()), p.Prefixes, p.inCurPkg(cursor))
+		class := name.GoName(clang.GoString(parent.String()), p.prefixes, p.inCurPkg(cursor))
 		// concat method name
 		if isCustom {
 			convertedName = customGoName
@@ -222,8 +179,8 @@ func (p *SymbolProcessor) genProtoName(cursor clang.Cursor) string {
 }
 
 func (p *SymbolProcessor) AddSuffix(name string) string {
-	p.NameCounts[name]++
-	if count := p.NameCounts[name]; count > 1 {
+	p.nameCounts[name]++
+	if count := p.nameCounts[name]; count > 1 {
 		return name + "__" + strconv.Itoa(count-1)
 	}
 	return name
@@ -245,10 +202,10 @@ func (p *SymbolProcessor) collectFuncInfo(cursor clang.Cursor) {
 	// Functions with identical signatures will have the same mangled name.
 	// We treat them as the same function rather than overloads, so we only
 	// process the first occurrence and skip subsequent declarations.
-	if _, exists := p.SymbolMap[symbolName]; exists {
+	if _, exists := p.symbolMap[symbolName]; exists {
 		return
 	}
-	p.SymbolMap[symbolName] = &SymbolInfo{}
+	p.symbolMap[symbolName] = &SymbolInfo{}
 	p.collectQueue = append(p.collectQueue, &Collect{
 		SymName: symbolName,
 		GetSymInfo: func() *SymbolInfo {
@@ -279,12 +236,12 @@ func (p *SymbolProcessor) visitTop(cursor, parent clang.Cursor) clang.ChildVisit
 // to ensure user-defined mappings take precedence.
 func (p *SymbolProcessor) processCollect() {
 	sort.SliceStable(p.collectQueue, func(i, j int) bool {
-		_, customI := p.CustomSymMap[p.collectQueue[i].SymName]
-		_, customJ := p.CustomSymMap[p.collectQueue[j].SymName]
+		_, customI := p.customSymMap[p.collectQueue[i].SymName]
+		_, customJ := p.customSymMap[p.collectQueue[j].SymName]
 		return customI && !customJ
 	})
 	for _, collect := range p.collectQueue {
-		p.SymbolMap[collect.SymName] = collect.GetSymInfo()
+		p.symbolMap[collect.SymName] = collect.GetSymInfo()
 	}
 }
 
@@ -323,5 +280,5 @@ func ParseHeaderFile(combileFile string, curPkgFiles []string, prefixes []string
 	processer := NewSymbolProcessor(curPkgFiles, prefixes, symMap)
 	clangutils.VisitChildren(cursor, processer.visitTop)
 	processer.processCollect()
-	return processer.SymbolMap, nil
+	return processer.symbolMap, nil
 }
