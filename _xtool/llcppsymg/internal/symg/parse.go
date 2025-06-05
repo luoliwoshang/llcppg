@@ -141,17 +141,8 @@ func (p *SymbolProcessor) isMethod(cur clang.Cursor, isArg bool) (bool, bool, st
 	isInCurPkg := p.inCurPkg(cur, isArg)
 	p.printTypeInfo(typ, isArg, "typ")
 	if typ.Kind == clang.TypePointer {
-		pointeeType := typ.PointeeType()
-		p.printTypeInfo(pointeeType, isArg, "typ.PointeeType()")
-		pointeeTypeNamedType := pointeeType.NamedType()
-		namedTypeGoString := clang.GoString(pointeeTypeNamedType.String())
-		p.printTypeInfo(pointeeTypeNamedType, isArg, "typ.PointeeType().NamedType()")
-		if len(namedTypeGoString) > 0 {
-			goName := name.GoName(namedTypeGoString, p.Prefixes, isInCurPkg)
-			printResult(isInCurPkg, true, goName, "typ.pointeeType().NamedType()")
-			return isInCurPkg, true, goName
-		}
-		return p.isMethod(pointeeType.TypeDeclaration(), isArg)
+		underTypeName := clang.GoString(typ.PointeeType().NamedType().String())
+		return isInCurPkg, true, name.GoName(underTypeName, p.Prefixes, isInCurPkg)
 	} else if typ.Kind == clang.TypeElaborated ||
 		typ.Kind == clang.TypeTypedef {
 		canonicalType := typ.CanonicalType()
