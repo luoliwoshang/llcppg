@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
@@ -77,11 +78,11 @@ func TestGetCommonSymbols(t *testing.T) {
 		{
 			name: "Lua symbols",
 			dylibSymbols: []*nm.Symbol{
-				{Name: symg.AddSymbolPrefixUnder("lua_absindex", false)},
-				{Name: symg.AddSymbolPrefixUnder("lua_arith", false)},
-				{Name: symg.AddSymbolPrefixUnder("lua_atpanic", false)},
-				{Name: symg.AddSymbolPrefixUnder("lua_callk", false)},
-				{Name: symg.AddSymbolPrefixUnder("lua_lib_nonexistent", false)},
+				{Name: addSymbolPrefixUnder("lua_absindex", false)},
+				{Name: addSymbolPrefixUnder("lua_arith", false)},
+				{Name: addSymbolPrefixUnder("lua_atpanic", false)},
+				{Name: addSymbolPrefixUnder("lua_callk", false)},
+				{Name: addSymbolPrefixUnder("lua_lib_nonexistent", false)},
 			},
 			headerSymbols: map[string]*symg.SymbolInfo{
 				"lua_absindex":           {ProtoName: "lua_absindex(lua_State *, int)", GoName: "Absindex"},
@@ -100,9 +101,9 @@ func TestGetCommonSymbols(t *testing.T) {
 		{
 			name: "INIReader and Std library symbols",
 			dylibSymbols: []*nm.Symbol{
-				{Name: symg.AddSymbolPrefixUnder("ZNK9INIReader12GetInteger64ERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_x", true)},
-				{Name: symg.AddSymbolPrefixUnder("ZNK9INIReader7GetRealERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_d", true)},
-				{Name: symg.AddSymbolPrefixUnder("ZNK9INIReader10ParseErrorEv", true)},
+				{Name: addSymbolPrefixUnder("ZNK9INIReader12GetInteger64ERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_x", true)},
+				{Name: addSymbolPrefixUnder("ZNK9INIReader7GetRealERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_d", true)},
+				{Name: addSymbolPrefixUnder("ZNK9INIReader10ParseErrorEv", true)},
 			},
 			headerSymbols: map[string]*symg.SymbolInfo{
 				"_ZNK9INIReader12GetInteger64ERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_x":  {GoName: "(*Reader).GetInteger64", ProtoName: "INIReader::GetInteger64(const std::string &, const std::string &, int64_t)"},
@@ -495,7 +496,7 @@ func TestGen(t *testing.T) {
 			// trim to nm symbols
 			var dylibsymbs []*nm.Symbol
 			for _, symb := range tc.dylibSymbols {
-				dylibsymbs = append(dylibsymbs, &nm.Symbol{Name: symg.AddSymbolPrefixUnder(symb, cfg.Cplusplus)})
+				dylibsymbs = append(dylibsymbs, &nm.Symbol{Name: addSymbolPrefixUnder(symb, cfg.Cplusplus)})
 			}
 			symbols := symg.GetCommonSymbols(dylibsymbs, headerSymbolMap)
 			if err != nil {
@@ -519,4 +520,16 @@ func TestGen(t *testing.T) {
 			}
 		})
 	}
+}
+
+// For mutiple os test,the nm output's symbol name is different.
+func addSymbolPrefixUnder(name string, isCpp bool) string {
+	prefix := ""
+	if runtime.GOOS == "darwin" {
+		prefix = prefix + "_"
+	}
+	if isCpp {
+		prefix = prefix + "_"
+	}
+	return prefix + name
 }
