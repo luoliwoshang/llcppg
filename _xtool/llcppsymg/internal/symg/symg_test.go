@@ -19,16 +19,9 @@ import (
 	"github.com/goplus/llgo/xtool/nm"
 )
 
-func TestNewSymbolProcessor(t *testing.T) {
-	process := symg.NewSymbolProcessor([]string{}, []string{"lua_", "luaL_"}, nil)
-	expect := []string{"lua_", "luaL_"}
-	if !reflect.DeepEqual(process.Prefixes, expect) {
-		t.Fatalf("expect %v, but got %v", expect, process.Prefixes)
-	}
-}
-
 func TestAddSuffix(t *testing.T) {
-	process := symg.NewSymbolProcessor([]string{}, []string{"INI"}, nil)
+	prefix := []string{"INI"}
+	process := symg.NewSymbolProcessor([]string{}, prefix, nil)
 	methods := []struct {
 		method string
 		expect string
@@ -40,8 +33,8 @@ func TestAddSuffix(t *testing.T) {
 	}
 	for _, tc := range methods {
 		t.Run(tc.method, func(t *testing.T) {
-			goName := name.GoName(tc.method, process.Prefixes, true)
-			className := name.GoName("INIReader", process.Prefixes, true)
+			goName := name.GoName(tc.method, prefix, true)
+			className := name.GoName("INIReader", prefix, true)
 			methodName := process.GenMethodName(className, goName, false, true)
 			actual := process.AddSuffix(methodName)
 			if actual != tc.expect {
