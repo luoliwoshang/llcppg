@@ -99,10 +99,16 @@ func (p *SymbolProcessor) pointerLevel(typ clang.Type) int {
 	return strings.Count(canonicalTypeGoString, "*")
 }
 
-func (p *SymbolProcessor) isMethod(cur clang.Cursor, isArg bool) (bool, bool, string) {
+// check cursor can be a receiver
+func (p *SymbolProcessor) beRecv(cur clang.Cursor, isArg bool) (ok bool, isPtr bool, typeName string) {
 	typ := cur.Type()
+
+	// Check if the type can be a receiver:
+	// - If the type is a level 1 pointer (e.g., *MyStruct), it can potentially be a pointer method receiver
+	//   like (*MyStruct).Method(), but still needs further validation for package location and type compatibility
+	// - If the type is a level 2+ pointer (e.g., **MyStruct), it can't be a receiver at all
 	if p.pointerLevel(typ) > 1 {
-		return false, false, name.GoName(clang.GoString(typ.String()), p.Prefixes, false)
+		return false, false, ""
 	}
 
 	// if is a arg,check the arg's type's location
@@ -126,13 +132,13 @@ func (p *SymbolProcessor) isMethod(cur clang.Cursor, isArg bool) (bool, bool, st
 			printResult(isInCurPkg, true, goName, "typ.pointeeType().NamedType()")
 			return isInCurPkg, true, goName
 		}
-		return p.isMethod(pointeeType.TypeDeclaration(), isArg)
+		return p.beRecv(pointeeType.TypeDeclaration(), isArg)
 	} else if typ.Kind == clang.TypeElaborated ||
 		typ.Kind == clang.TypeTypedef {
 		canonicalType := typ.CanonicalType()
 		p.printTypeInfo(canonicalType, isArg, "typ.CanonicalType()")
 		if canonicalType.Kind == clang.TypePointer {
-			return p.isMethod(canonicalType.TypeDeclaration(), isArg)
+			return p.beRecv(canonicalType.TypeDeclaration(), isArg)
 		}
 	}
 	namedType := typ.NamedType()
@@ -150,7 +156,7 @@ func (p *SymbolProcessor) isMethod(cur clang.Cursor, isArg bool) (bool, bool, st
 
 // sqlite3_finalize -> .Close -> method
 // sqlite3_open -> Open -> function
-func (p *SymbolProcessor) customGoName(mangled string) (goName string, isMethod bool, ok bool) {
+func (p *SymbolProcessor) customGoName(mangled string) (goName string, beRecv bool, ok bool) {
 	if customName, ok := p.CustomSymMap[mangled]; ok {
 		name, found := strings.CutPrefix(customName, ".")
 		return name, found, true
@@ -188,7 +194,7 @@ func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) stri
 		if isCustom && !toMethod {
 			return p.AddSuffix(customGoName)
 		}
-		if ok, isPtr, typeName := p.isMethod(cursor.Argument(0), true); ok {
+		if ok, isPtr, typeName := p.beRecv(cursor.Argument(0), true); ok {
 			if isCustom {
 				convertedName = customGoName
 			}
