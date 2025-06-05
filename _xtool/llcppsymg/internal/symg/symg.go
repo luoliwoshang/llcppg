@@ -126,13 +126,6 @@ func ParseDylibSymbols(lib string) ([]*nm.Symbol, error) {
 	var parseErrors []string
 
 	for _, dylibPath := range dylibPaths {
-		if _, err := os.Stat(dylibPath); err != nil {
-			if dbgSymbol {
-				fmt.Printf("ParseDylibSymbols:Failed to access dylib %s: %v\n", dylibPath, err)
-			}
-			continue
-		}
-
 		args := []string{"-g"}
 		if runtime.GOOS == "linux" {
 			args = append(args, "-D")
