@@ -68,23 +68,14 @@ func (p *SymbolProcessor) cursorFileName(cur clang.Cursor, isArg bool) (ret stri
 		typCursor := p.typeCursor(cur)
 		filename := ""
 		if len(clang.GoString(typCursor.String())) > 0 {
-			filename = clang.GoString(typCursor.Location().File().FileName())
+			filename = cursorFileName(typCursor)
 		}
 		return filename
 	}
-	return clang.GoString(cur.Location().File().FileName())
+	return cursorFileName(cur)
 }
 
 func (p *SymbolProcessor) inCurPkg(cur clang.Cursor, isArg bool) bool {
-	if false {
-		typ := p.typeCursor(cur)
-		fmt.Println(
-			clang.GoString(cur.DisplayName()),
-			p.cursorFileName(cur, isArg),
-			"type:", clang.GoString(typ.String()),
-			p.isSelfFile(p.cursorFileName(cur, isArg)),
-		)
-	}
 	return p.isSelfFile(p.cursorFileName(cur, isArg))
 }
 
@@ -188,16 +179,16 @@ func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) stri
 	isDestructor := cursor.Kind == clang.CursorDestructor
 	var convertedName string
 	if isDestructor {
-		convertedName = name.GoName(originName[1:], p.Prefixes, p.inCurPkg(cursor, false))
+		convertedName = name.GoName(originName[1:], p.Prefixes, p.curPkg(cursor))
 	} else {
-		convertedName = name.GoName(originName, p.Prefixes, p.inCurPkg(cursor, false))
+		convertedName = name.GoName(originName, p.Prefixes, p.curPkg(cursor))
 	}
 
 	customGoName, toMethod, isCustom := p.customGoName(symbolName)
 
 	// 1. for class method,gen method name
 	if parent := cursor.SemanticParent(); parent.Kind == clang.CursorClassDecl {
-		class := name.GoName(clang.GoString(parent.String()), p.Prefixes, p.inCurPkg(cursor, false))
+		class := name.GoName(clang.GoString(parent.String()), p.Prefixes, p.curPkg(cursor))
 		// concat method name
 		if isCustom {
 			convertedName = customGoName
@@ -281,12 +272,7 @@ func (p *SymbolProcessor) collectFuncInfo(cursor clang.Cursor) {
 }
 
 func (p *SymbolProcessor) visitTop(cursor, parent clang.Cursor) clang.ChildVisitResult {
-	// https://releases.llvm.org/19.1.0/tools/clang/docs/ReleaseNotes.html#libclang
-	// cursor.Location() in llvm@19 cannot get the fileinfo for a macro expansion,so we dirrect use PresumedLocation
-	loc := cursor.Location()
-	file, _, _ := clangutils.GetPresumedLocation(loc)
-	filename := clang.GoString(file)
-
+	filename := cursorFileName(cursor)
 	switch cursor.Kind {
 	case clang.CursorNamespace, clang.CursorClassDecl:
 		clangutils.VisitChildren(cursor, p.visitTop)
@@ -297,6 +283,18 @@ func (p *SymbolProcessor) visitTop(cursor, parent clang.Cursor) clang.ChildVisit
 		}
 	}
 	return clang.ChildVisit_Continue
+}
+
+func (p *SymbolProcessor) curPkg(cursor clang.Cursor) bool {
+	return p.isSelfFile(cursorFileName(cursor))
+}
+
+// https://releases.llvm.org/19.1.0/tools/clang/docs/ReleaseNotes.html#libclang
+// cursor.Location() in llvm@19 cannot get the fileinfo for a macro expansion,so we dirrect use PresumedLocation
+func cursorFileName(cursor clang.Cursor) string {
+	loc := cursor.Location()
+	file, _, _ := clangutils.GetPresumedLocation(loc)
+	return clang.GoString(file)
 }
 
 // processCollect processes the symbol collection queue and prioritizes custom go names.
