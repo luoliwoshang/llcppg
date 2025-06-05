@@ -19,19 +19,16 @@ import (
 type dbgFlags = int
 
 var (
-	dbgSymbol        bool
-	dbgParseIsMethod bool
+	dbgSymbol bool
 )
 
 const (
-	DbgSymbol        dbgFlags = 1 << iota
-	DbgParseIsMethod          //print parse.go isMethod debug log info
-	DbgFlagAll       = DbgSymbol | DbgParseIsMethod
+	DbgSymbol  dbgFlags = 1 << iota
+	DbgFlagAll          = DbgSymbol
 )
 
 func SetDebug(flags dbgFlags) {
 	dbgSymbol = (flags & DbgSymbol) != 0
-	dbgParseIsMethod = (flags & DbgParseIsMethod) != 0
 }
 
 type Config struct {
@@ -126,13 +123,6 @@ func ParseDylibSymbols(lib string) ([]*nm.Symbol, error) {
 	var parseErrors []string
 
 	for _, dylibPath := range dylibPaths {
-		if _, err := os.Stat(dylibPath); err != nil {
-			if dbgSymbol {
-				fmt.Printf("ParseDylibSymbols:Failed to access dylib %s: %v\n", dylibPath, err)
-			}
-			continue
-		}
-
 		args := []string{"-g"}
 		if runtime.GOOS == "linux" {
 			args = append(args, "-D")
@@ -192,16 +182,4 @@ func GetCommonSymbols(dylibSymbols []*nm.Symbol, headerSymbols map[string]*Symbo
 	})
 
 	return commonSymbols
-}
-
-// For mutiple os test,the nm output's symbol name is different.
-func AddSymbolPrefixUnder(name string, isCpp bool) string {
-	prefix := ""
-	if runtime.GOOS == "darwin" {
-		prefix = prefix + "_"
-	}
-	if isCpp {
-		prefix = prefix + "_"
-	}
-	return prefix + name
 }
