@@ -151,16 +151,8 @@ func (p *SymbolProcessor) isMethod(cur clang.Cursor, isArg bool) (bool, bool, st
 			return p.isMethod(canonicalType.TypeDeclaration(), isArg)
 		}
 	}
-	namedType := typ.NamedType()
-	namedTypeGoString := clang.GoString(namedType.String())
-	if len(namedTypeGoString) > 0 {
-		goName := name.GoName(namedTypeGoString, p.Prefixes, isInCurPkg)
-		printResult(isInCurPkg, false, goName, "typ.NamedType()")
-		return isInCurPkg, false, goName
-	}
-	typeGoString := clang.GoString(typ.String())
-	goName := name.GoName(typeGoString, p.Prefixes, isInCurPkg)
-	printResult(isInCurPkg, false, goName, "typ")
+	namedType := clang.GoString(typ.NamedType().String())
+	goName := name.GoName(namedType, p.Prefixes, isInCurPkg)
 	return isInCurPkg, false, goName
 }
 
