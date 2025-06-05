@@ -127,12 +127,9 @@ func (p *SymbolProcessor) beRecv(cur clang.Cursor, isArg bool) (ok bool, isPtr b
 		pointeeTypeNamedType := pointeeType.NamedType()
 		namedTypeGoString := clang.GoString(pointeeTypeNamedType.String())
 		p.printTypeInfo(pointeeTypeNamedType, isArg, "typ.PointeeType().NamedType()")
-		if len(namedTypeGoString) > 0 {
-			goName := name.GoName(namedTypeGoString, p.Prefixes, isInCurPkg)
-			printResult(isInCurPkg, true, goName, "typ.pointeeType().NamedType()")
-			return isInCurPkg, true, goName
-		}
-		return p.beRecv(pointeeType.TypeDeclaration(), isArg)
+		goName := name.GoName(namedTypeGoString, p.Prefixes, isInCurPkg)
+		printResult(isInCurPkg, true, goName, "typ.pointeeType().NamedType()")
+		return isInCurPkg, true, goName
 	} else if typ.Kind == clang.TypeElaborated ||
 		typ.Kind == clang.TypeTypedef {
 		canonicalType := typ.CanonicalType()
