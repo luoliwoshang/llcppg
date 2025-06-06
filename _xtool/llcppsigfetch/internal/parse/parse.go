@@ -89,10 +89,22 @@ func Do(conf *Config) error {
 	clangFlags = append(clangFlags, "-dD") // keep macro
 	clangFlags = append(clangFlags, "-fparse-all-comments")
 
+	pwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
 	ppconf := &preprocessor.Config{
 		Compiler: "clang",
 		Flags:    clangFlags,
+		BaseDir:  pwd,
 	}
+
+	fmt.Fprintln(os.Stderr, "pwd", pwd)
+	fmt.Fprintln(os.Stderr, "clangFlags", clangFlags)
+	fmt.Fprintln(os.Stderr, "conf.CombinedFile", conf.CombinedFile)
+	fmt.Fprintln(os.Stderr, "conf.PreprocessedFile", conf.PreprocessedFile)
+
 	err = preprocessor.Do(conf.CombinedFile, conf.PreprocessedFile, ppconf)
 	if err != nil {
 		return err
