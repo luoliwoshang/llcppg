@@ -1,4 +1,4 @@
-package flag
+package symg
 
 import (
 	"fmt"
@@ -35,6 +35,8 @@ func ParseLibs(libs string) *Libs {
 	return lbs
 }
 
+type LibMode = symbol.Mode
+
 // searches for each library name in the provided paths and default paths,
 // appending the appropriate file extension (.dylib for macOS, .so for Linux).
 //
@@ -43,14 +45,14 @@ func ParseLibs(libs string) *Libs {
 // - System libs like -lm are ignored and included in notFound
 //
 // So error is returned if no libraries found at all.
-func (l *Libs) GenDylibPaths(defaultPaths []string) ([]string, []string, error) {
+func (l *Libs) GenDylibPaths(defaultPaths []string, mode LibMode) ([]string, []string, error) {
 	var foundPaths []string
 	var notFound []string
 	searchPaths := append(l.Paths, defaultPaths...)
 	for _, name := range l.Names {
 		var foundPath string
 		for _, path := range searchPaths {
-			libPath, err := symbol.FindLibFile(path, name, symbol.ModeDynamic)
+			libPath, err := symbol.FindLibFile(path, name, mode)
 			if err != nil {
 				continue
 			}

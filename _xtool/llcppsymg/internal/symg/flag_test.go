@@ -1,4 +1,4 @@
-package flag_test
+package symg_test
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/goplus/llcppg/_xtool/internal/symbol"
 	"github.com/goplus/llcppg/_xtool/llcppsymg/internal/symg"
 )
 
@@ -155,7 +156,7 @@ func TestGenDylibPaths(t *testing.T) {
 	}
 	for _, tc := range testCase {
 		t.Run(tc.name, func(t *testing.T) {
-			paths, notFounds, err := tc.conf.GenDylibPaths(tc.defaultPaths)
+			paths, notFounds, err := tc.conf.GenDylibPaths(tc.defaultPaths, symbol.ModeDynamic)
 			if tc.expectErr {
 				if err == nil {
 					t.Fatalf("expected error, got nil")

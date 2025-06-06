@@ -38,10 +38,11 @@ type Config struct {
 	TrimPrefixes []string
 	SymMap       map[string]string
 	IsCpp        bool
+	libMode      LibMode
 }
 
 func Do(conf *Config) error {
-	symbols, err := ParseDylibSymbols(conf.Libs)
+	symbols, err := fetchSymbols(conf.Libs, conf.libMode)
 	if err != nil {
 		return err
 	}
@@ -89,7 +90,7 @@ func Do(conf *Config) error {
 // libraries (like standard libs) are logged as warnings.
 //
 // Returns symbols and nil error if any symbols are found, or nil and error if none found.
-func ParseDylibSymbols(lib string) ([]*nm.Symbol, error) {
+func fetchSymbols(lib string, mode LibMode) ([]*nm.Symbol, error) {
 	if dbgSymbol {
 		fmt.Println("ParseDylibSymbols:from", lib)
 	}
@@ -104,7 +105,8 @@ func ParseDylibSymbols(lib string) ([]*nm.Symbol, error) {
 		fmt.Println("libs.Names: ", lbs.Names)
 		fmt.Println("libs.Paths: ", lbs.Paths)
 	}
-	dylibPaths, notFounds, err := lbs.GenDylibPaths(sysPaths)
+
+	dylibPaths, notFounds, err := lbs.GenDylibPaths(sysPaths, mode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate some dylib paths: %v", err)
 	}
