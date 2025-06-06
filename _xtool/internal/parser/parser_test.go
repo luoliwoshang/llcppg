@@ -538,15 +538,11 @@ func getComplexType(flag ast.TypeFlag) clang.Type {
 }
 
 func TestPreprocess(t *testing.T) {
-	combinedFile, err := os.CreateTemp("", "compose_*.h")
+	combinedFile, err := os.CreateTemp("./", "compose_*.h")
 	if err != nil {
 		panic(err)
 	}
 	defer os.Remove(combinedFile.Name())
-	absPath, err := filepath.Abs("./_testdata/hfile")
-	if err != nil {
-		panic(err)
-	}
 
 	clangtool.ComposeIncludes([]string{"main.h", "compat.h"}, combinedFile.Name())
 
@@ -558,7 +554,7 @@ func TestPreprocess(t *testing.T) {
 
 	ppconf := &preprocessor.Config{
 		Compiler: "clang",
-		Flags:    []string{"-I" + absPath},
+		Flags:    []string{"-I./_testdata/hfile"},
 	}
 	err = preprocessor.Do(combinedFile.Name(), efile.Name(), ppconf)
 	if err != nil {
