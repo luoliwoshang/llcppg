@@ -27,10 +27,16 @@ func TestInclusionMap(t *testing.T) {
 			t.Fatalf("sys/types.h not found")
 		}
 	}
-	err := parse.Do(&parse.Config{
+
+	abs, err := filepath.Abs("./testdata/sysinc/hfile")
+	if err != nil {
+		panic(err)
+	}
+
+	err = parse.Do(&parse.Config{
 		Conf: &llcppg.Config{
 			Include: []string{"sys.h"},
-			CFlags:  "-I./testdata/sysinc/hfile",
+			CFlags:  "-I" + abs,
 		},
 		Exec: checkFileMap,
 	})

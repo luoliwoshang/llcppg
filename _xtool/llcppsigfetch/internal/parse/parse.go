@@ -82,6 +82,8 @@ func Do(conf *Config) error {
 	clangFlags := strings.Fields(conf.Conf.CFlags)
 	if !isCpp {
 		clangFlags = append(clangFlags, "-x", "c")
+	} else {
+		clangFlags = append(clangFlags, "-x", "c++")
 	}
 	clangFlags = append(clangFlags, "-C")  // keep comment
 	clangFlags = append(clangFlags, "-dD") // keep macro
