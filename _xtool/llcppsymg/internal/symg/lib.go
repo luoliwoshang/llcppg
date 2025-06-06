@@ -8,7 +8,7 @@ import (
 )
 
 type Libs struct {
-	Paths []string // Dylib Path
+	Paths []string
 	Names []string
 }
 
