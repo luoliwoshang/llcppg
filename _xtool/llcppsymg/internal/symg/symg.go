@@ -72,7 +72,7 @@ func Do(conf *Config) (symbolTable []*llcppg.SymbolInfo, err error) {
 	return
 }
 
-// ParseDylibSymbols parses symbols from dynamic libraries specified in the lib string.
+// fetchSymbols parses symbols from dynamic libraries specified in the lib string.
 // It handles multiple libraries (e.g., -L/opt/homebrew/lib -llua -lm) and returns
 // symbols if at least one library is successfully parsed. Errors from inaccessible
 // libraries (like standard libs) are logged as warnings.
@@ -142,14 +142,14 @@ func fetchSymbols(lib string, mode LibMode) ([]*nm.Symbol, error) {
 }
 
 // todo(zzy):only public for test,when llgo test support private package test,this function should be private
-// finds the intersection of symbols from the dynamic library's symbol table and the symbols parsed from header files.
+// GetCommonSymbols finds the intersection of symbols from the library symbol table and the symbols parsed from header files.
 // It returns a list of symbols that can be externally linked.
-func GetCommonSymbols(dylibSymbols []*nm.Symbol, headerSymbols map[string]*SymbolInfo) []*llcppg.SymbolInfo {
+func GetCommonSymbols(syms []*nm.Symbol, headerSymbols map[string]*SymbolInfo) []*llcppg.SymbolInfo {
 	var commonSymbols []*llcppg.SymbolInfo
 	processedSymbols := make(map[string]bool)
 
-	for _, dylibSym := range dylibSymbols {
-		symName := dylibSym.Name
+	for _, sym := range syms {
+		symName := sym.Name
 		if runtime.GOOS == "darwin" {
 			symName = strings.TrimPrefix(symName, "_")
 		}

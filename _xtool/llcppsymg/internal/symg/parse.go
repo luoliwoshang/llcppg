@@ -17,9 +17,9 @@ type SymbolInfo struct {
 	ProtoName string
 }
 
-type Collect struct {
-	SymName    string             // symbol name
-	GetSymInfo func() *SymbolInfo // get symbol info
+type collect struct {
+	symName    string             // symbol name
+	getSymInfo func() *SymbolInfo // get symbol info
 }
 
 type SymbolProcessor struct {
@@ -32,7 +32,7 @@ type SymbolProcessor struct {
 	// "sqlite3_open":"Open" -> function
 	customSymMap map[string]string
 	// register queue
-	collectQueue []*Collect
+	collectQueue []*collect
 }
 
 func NewSymbolProcessor(curPkgFiles []string, prefixes []string, symMap map[string]string) *SymbolProcessor {
@@ -206,9 +206,9 @@ func (p *SymbolProcessor) collectFuncInfo(cursor clang.Cursor) {
 		return
 	}
 	p.symbolMap[symbolName] = &SymbolInfo{}
-	p.collectQueue = append(p.collectQueue, &Collect{
-		SymName: symbolName,
-		GetSymInfo: func() *SymbolInfo {
+	p.collectQueue = append(p.collectQueue, &collect{
+		symName: symbolName,
+		getSymInfo: func() *SymbolInfo {
 			return &SymbolInfo{
 				GoName:    p.genGoName(cursor, symbolName),
 				ProtoName: p.genProtoName(cursor),
@@ -236,12 +236,12 @@ func (p *SymbolProcessor) visitTop(cursor, parent clang.Cursor) clang.ChildVisit
 // to ensure user-defined mappings take precedence.
 func (p *SymbolProcessor) processCollect() {
 	sort.SliceStable(p.collectQueue, func(i, j int) bool {
-		_, customI := p.customSymMap[p.collectQueue[i].SymName]
-		_, customJ := p.customSymMap[p.collectQueue[j].SymName]
+		_, customI := p.customSymMap[p.collectQueue[i].symName]
+		_, customJ := p.customSymMap[p.collectQueue[j].symName]
 		return customI && !customJ
 	})
 	for _, collect := range p.collectQueue {
-		p.symbolMap[collect.SymName] = collect.GetSymInfo()
+		p.symbolMap[collect.symName] = collect.getSymInfo()
 	}
 }
 
