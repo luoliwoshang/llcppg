@@ -8,19 +8,19 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/goplus/llcppg/_xtool/llcppsymg/internal/flag"
+	"github.com/goplus/llcppg/_xtool/llcppsymg/internal/symg"
 )
 
 func TestParseLibs(t *testing.T) {
 	testCases := []struct {
 		name   string
 		input  string
-		expect *flag.Libs
+		expect *symg.Libs
 	}{
 		{
 			name:  "Lua library",
 			input: "-L/opt/homebrew/lib -llua -lm",
-			expect: &flag.Libs{
+			expect: &symg.Libs{
 				Paths: []string{"/opt/homebrew/lib"},
 				Names: []string{"lua", "m"},
 			},
@@ -28,7 +28,7 @@ func TestParseLibs(t *testing.T) {
 		{
 			name:  "SQLite library",
 			input: "-L/opt/homebrew/opt/sqlite/lib -lsqlite3",
-			expect: &flag.Libs{
+			expect: &symg.Libs{
 				Paths: []string{"/opt/homebrew/opt/sqlite/lib"},
 				Names: []string{"sqlite3"},
 			},
@@ -36,7 +36,7 @@ func TestParseLibs(t *testing.T) {
 		{
 			name:  "INIReader library",
 			input: "-L/opt/homebrew/Cellar/inih/58/lib -lINIReader",
-			expect: &flag.Libs{
+			expect: &symg.Libs{
 				Paths: []string{"/opt/homebrew/Cellar/inih/58/lib"},
 				Names: []string{"INIReader"},
 			},
@@ -44,7 +44,7 @@ func TestParseLibs(t *testing.T) {
 		{
 			name:  "Multiple library paths",
 			input: "-L/opt/homebrew/lib -L/usr/lib -llua",
-			expect: &flag.Libs{
+			expect: &symg.Libs{
 				Paths: []string{"/opt/homebrew/lib", "/usr/lib"},
 				Names: []string{"lua"},
 			},
@@ -52,7 +52,7 @@ func TestParseLibs(t *testing.T) {
 		{
 			name:  "No valid library",
 			input: "-L/opt/homebrew/lib",
-			expect: &flag.Libs{
+			expect: &symg.Libs{
 				Paths: []string{"/opt/homebrew/lib"},
 			},
 		},
@@ -60,7 +60,7 @@ func TestParseLibs(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			conf := flag.ParseLibs(tc.input)
+			conf := symg.ParseLibs(tc.input)
 			if !reflect.DeepEqual(conf, tc.expect) {
 				t.Errorf("expected %#v, got %#v", tc.expect, conf)
 			}
@@ -95,7 +95,7 @@ func TestGenDylibPaths(t *testing.T) {
 
 	testCase := []struct {
 		name         string
-		conf         *flag.Libs
+		conf         *symg.Libs
 		defaultPaths []string
 		expectErr    bool
 		want         []string
@@ -103,7 +103,7 @@ func TestGenDylibPaths(t *testing.T) {
 	}{
 		{
 			name: "existing dylib",
-			conf: &flag.Libs{
+			conf: &symg.Libs{
 				Names: []string{"symb1"},
 				Paths: []string{tempDir},
 			},
@@ -113,7 +113,7 @@ func TestGenDylibPaths(t *testing.T) {
 		},
 		{
 			name: "existing dylibs",
-			conf: &flag.Libs{
+			conf: &symg.Libs{
 				Names: []string{"symb1", "symb2"},
 				Paths: []string{tempDir},
 			},
@@ -123,7 +123,7 @@ func TestGenDylibPaths(t *testing.T) {
 		},
 		{
 			name: "existint default paths",
-			conf: &flag.Libs{
+			conf: &symg.Libs{
 				Names: []string{"symb1", "symb3"},
 				Paths: []string{tempDir},
 			},
@@ -133,7 +133,7 @@ func TestGenDylibPaths(t *testing.T) {
 		},
 		{
 			name: "existint default paths & not found",
-			conf: &flag.Libs{
+			conf: &symg.Libs{
 				Names: []string{"symb1", "symb3", "math"},
 				Paths: []string{tempDir},
 			},
@@ -144,7 +144,7 @@ func TestGenDylibPaths(t *testing.T) {
 		},
 		{
 			name: "no existing dylib",
-			conf: &flag.Libs{
+			conf: &symg.Libs{
 				Names: []string{"notexist"},
 				Paths: []string{tempDir},
 			},
@@ -217,7 +217,7 @@ func TestParseCFlags(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			conf := flag.ParseCFlags(tc.input)
+			conf := symg.ParseCFlags(tc.input)
 			if !reflect.DeepEqual(conf.Paths, tc.expect) {
 				t.Fatalf("expected paths %v, got %v", tc.expect, conf.Paths)
 			}
@@ -283,7 +283,7 @@ func TestGenHeaderFilePath(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cflag := flag.ParseCFlags(tc.cflags)
+			cflag := symg.ParseCFlags(tc.cflags)
 			result, notFounds, err := cflag.GenHeaderFilePaths(tc.files, []string{})
 			if !reflect.DeepEqual(notFounds, tc.notFounds) {
 				t.Fatalf("expected notFounds %v, got %v", tc.notFounds, notFounds)

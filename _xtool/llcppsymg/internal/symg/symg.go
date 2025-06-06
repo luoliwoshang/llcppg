@@ -11,7 +11,6 @@ import (
 	"github.com/goplus/llcppg/_xtool/internal/clangtool"
 	"github.com/goplus/llcppg/_xtool/internal/config"
 	"github.com/goplus/llcppg/_xtool/internal/ld"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/internal/flag"
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/goplus/llgo/xtool/nm"
 )
@@ -99,7 +98,7 @@ func ParseDylibSymbols(lib string) ([]*nm.Symbol, error) {
 		fmt.Println("ParseDylibSymbols:sysPaths", sysPaths)
 	}
 
-	lbs := flag.ParseLibs(lib)
+	lbs := ParseLibs(lib)
 	if dbgSymbol {
 		fmt.Println("ParseDylibSymbols:LibConfig Parse To")
 		fmt.Println("libs.Names: ", lbs.Names)
