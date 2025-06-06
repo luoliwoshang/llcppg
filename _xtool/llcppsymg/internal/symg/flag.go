@@ -45,10 +45,10 @@ type LibMode = symbol.Mode
 // - System libs like -lm are ignored and included in notFound
 //
 // So error is returned if no libraries found at all.
-func (l *Libs) GenDylibPaths(defaultPaths []string, mode LibMode) ([]string, []string, error) {
+func (l *Libs) Files(findPaths []string, mode LibMode) ([]string, []string, error) {
 	var foundPaths []string
 	var notFound []string
-	searchPaths := append(l.Paths, defaultPaths...)
+	searchPaths := append(l.Paths, findPaths...)
 	for _, name := range l.Names {
 		var foundPath string
 		for _, path := range searchPaths {

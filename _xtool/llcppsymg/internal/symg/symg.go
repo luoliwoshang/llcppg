@@ -92,46 +92,46 @@ func Do(conf *Config) error {
 // Returns symbols and nil error if any symbols are found, or nil and error if none found.
 func fetchSymbols(lib string, mode LibMode) ([]*nm.Symbol, error) {
 	if dbgSymbol {
-		fmt.Println("ParseDylibSymbols:from", lib)
+		fmt.Println("fetchSymbols:from", lib)
 	}
 	sysPaths := ld.GetLibSearchPaths()
 	if dbgSymbol {
-		fmt.Println("ParseDylibSymbols:sysPaths", sysPaths)
+		fmt.Println("fetchSymbols:sysPaths", sysPaths)
 	}
 
 	lbs := ParseLibs(lib)
 	if dbgSymbol {
-		fmt.Println("ParseDylibSymbols:LibConfig Parse To")
+		fmt.Println("fetchSymbols:LibConfig Parse To")
 		fmt.Println("libs.Names: ", lbs.Names)
 		fmt.Println("libs.Paths: ", lbs.Paths)
 	}
 
-	dylibPaths, notFounds, err := lbs.GenDylibPaths(sysPaths, mode)
+	libFiles, notFounds, err := lbs.Files(sysPaths, mode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate some dylib paths: %v", err)
 	}
 
 	if dbgSymbol {
-		fmt.Println("ParseDylibSymbols:dylibPaths", dylibPaths)
+		fmt.Println("fetchSymbols:libFiles", libFiles)
 		if len(notFounds) > 0 {
-			fmt.Println("ParseDylibSymbols:not found libname", notFounds)
+			fmt.Println("fetchSymbols:not found libname", notFounds)
 		} else {
-			fmt.Println("ParseDylibSymbols:every library is found")
+			fmt.Println("fetchSymbols:every library is found")
 		}
 	}
 
 	var symbols []*nm.Symbol
 	var parseErrors []string
 
-	for _, dylibPath := range dylibPaths {
+	for _, libFile := range libFiles {
 		args := []string{"-g"}
 		if runtime.GOOS == "linux" {
 			args = append(args, "-D")
 		}
 
-		files, err := nm.New("llvm-nm").List(dylibPath, args...)
+		files, err := nm.New("llvm-nm").List(libFile, args...)
 		if err != nil {
-			parseErrors = append(parseErrors, fmt.Sprintf("ParseDylibSymbols:Failed to list symbols in dylib %s: %v", dylibPath, err))
+			parseErrors = append(parseErrors, fmt.Sprintf("fetchSymbols:Failed to list symbols in dylib %s: %v", libFile, err))
 			continue
 		}
 
@@ -143,14 +143,14 @@ func fetchSymbols(lib string, mode LibMode) ([]*nm.Symbol, error) {
 	if len(symbols) > 0 {
 		if dbgSymbol {
 			if len(parseErrors) > 0 {
-				fmt.Printf("ParseDylibSymbols:Some libraries could not be parsed: %v\n", parseErrors)
+				fmt.Printf("fetchSymbols:Some libraries could not be parsed: %v\n", parseErrors)
 			}
-			fmt.Println("ParseDylibSymbols:", len(symbols), "symbols")
+			fmt.Println("fetchSymbols:", len(symbols), "symbols")
 		}
 		return symbols, nil
 	}
 
-	return nil, fmt.Errorf("no symbols found in any dylib. Errors: %v", parseErrors)
+	return nil, fmt.Errorf("no symbols found in any lib. Errors: %v", parseErrors)
 }
 
 // finds the intersection of symbols from the dynamic library's symbol table and the symbols parsed from header files.

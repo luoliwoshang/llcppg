@@ -156,7 +156,7 @@ func TestGenDylibPaths(t *testing.T) {
 	}
 	for _, tc := range testCase {
 		t.Run(tc.name, func(t *testing.T) {
-			paths, notFounds, err := tc.conf.GenDylibPaths(tc.defaultPaths, symbol.ModeDynamic)
+			paths, notFounds, err := tc.conf.Files(tc.defaultPaths, symbol.ModeDynamic)
 			if tc.expectErr {
 				if err == nil {
 					t.Fatalf("expected error, got nil")
