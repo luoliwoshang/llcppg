@@ -1,7 +1,6 @@
 package symg
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"runtime"
@@ -41,10 +40,10 @@ type Config struct {
 	libMode      LibMode
 }
 
-func Do(conf *Config) error {
+func Do(conf *Config) (symbolTable []*llcppg.SymbolInfo, err error) {
 	symbols, err := fetchSymbols(conf.Libs, conf.libMode)
 	if err != nil {
-		return err
+		return
 	}
 
 	pkgHfiles := config.PkgHfileInfo(conf.Includes, strings.Fields(conf.CFlags), conf.Mix)
@@ -56,32 +55,21 @@ func Do(conf *Config) error {
 
 	tempFile, err := os.CreateTemp("", "combine*.h")
 	if err != nil {
-		return err
+		return
 	}
 	defer os.Remove(tempFile.Name())
 	err = clangtool.ComposeIncludes(conf.Includes, tempFile.Name())
 	if err != nil {
-		return err
+		return
 	}
 
 	headerInfos, err := ParseHeaderFile(tempFile.Name(), pkgHfiles.CurPkgFiles(), conf.TrimPrefixes, strings.Fields(conf.CFlags), conf.SymMap, conf.IsCpp)
 	if err != nil {
-		return err
+		return
 	}
 
-	commonSymbols := GetCommonSymbols(symbols, headerInfos)
-
-	jsonData, err := json.MarshalIndent(commonSymbols, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(llcppg.LLCPPG_SYMB, jsonData, os.ModePerm)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	symbolTable = GetCommonSymbols(symbols, headerInfos)
+	return
 }
 
 // ParseDylibSymbols parses symbols from dynamic libraries specified in the lib string.
@@ -153,6 +141,7 @@ func fetchSymbols(lib string, mode LibMode) ([]*nm.Symbol, error) {
 	return nil, fmt.Errorf("no symbols found in any lib. Errors: %v", parseErrors)
 }
 
+// todo(zzy):only public for test,when llgo test support private package test,this function should be private
 // finds the intersection of symbols from the dynamic library's symbol table and the symbols parsed from header files.
 // It returns a list of symbols that can be externally linked.
 func GetCommonSymbols(dylibSymbols []*nm.Symbol, headerSymbols map[string]*SymbolInfo) []*llcppg.SymbolInfo {
