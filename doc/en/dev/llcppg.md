@@ -81,6 +81,31 @@ LUA_API int(lua_gc)(lua_State *L, int what, ...);
 func LuaGc(L *State, what c.Int, __llgo_va_list ...interface{}) c.Int
 ```
 
+3. For function signatures where all parameters have no names, the corresponding function signature will not generate parameter names.
+
+4. Once there are named parameters in the function signature, according to Go's rules, all parameter names must be generated in the corresponding Go signature.
+
+C allows mixing named and unnamed parameters in function signatures. For this case, the rule is to generate parameter names like `__llgo_arg_N` for unnamed parameters based on their index in the parameter list.
+
+```c
+int OSSL_PROVIDER_add_builtin(OSSL_LIB_CTX *, const char *name);
+```
+```go
+//go:linkname ProviderAddBuiltin C.OSSL_PROVIDER_add_builtin
+func OSSLProviderAddBuiltin(__llgo_arg_0 *OSSLLIBCTX, name *c.Char) c.Int
+```
+
+And for cases where only variadic parameters appear, llgo requires ` __llgo_va_list ...interface{}` to describe variadic parameters, and the same placeholder name generation processing is needed for this case.
+
+```c
+char *mprintf(const char*,...);
+```
+```go
+//go:linkname Mprintf C.mprintf
+func Mprintf(__llgo_arg_0 *c.Char, __llgo_va_list ...interface{}) *c.Char
+```
+
+
 ### File Generation Rules
 
 #### Generated File Types
