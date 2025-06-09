@@ -217,3 +217,40 @@ import (
 //go:linkname GetNsProp C.xsltGetNsProp
 func GetNsProp(node libxml2.NodePtr, name *libxml2.Char, nameSpace *libxml2.Char) *libxml2.Char
 ```
+
+### Cross-Platform Difference Handling
+Use impl.files configuration to handle platform differences:
+```json
+{
+    "impl": [
+        {
+            "files": ["t1.h", "t2.h"],
+            "cond": {
+                "os": ["macos", "linux"],
+                "arch": ["arm64", "amd64"]
+            }
+        }
+    ]
+}
+```
+The generated t1.go & t2.go files will have platform-specific build tags at the beginning:
+macos arm64 t1_macos_arm64.go  t2_macos_arm64.go
+```go
+// +build macos,arm64
+package xxx
+```
+linux arm64 `t1_linux_arm64.go`  `t2_linux_arm64.go`
+```go
+// +build linux,arm64
+package xxx
+```
+macos amd64  `t1_macos_amd64.go`  `t2_macos_amd64.go`
+```go
+// +build macos,amd64
+package xxx
+```
+linux amd64 `t1_linux_amd64.go`  `t2_linux_amd64.go`
+```go
+// +build linux,amd64
+package xxx
+```
