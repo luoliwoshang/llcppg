@@ -57,6 +57,58 @@ Field names must be exportable (public) in Go to allow external access. The conv
 1. Letter-starting fields: Convert to PascalCase
 2. Underscore/digit-starting fields: Apply public processing, then convert to PascalCase while preserving case after underscores
 
+##### Param Name Conversion
+
+Parameter names are preserved in their original style without conversion, with only the following special cases being handled:
+
+1. When a parameter conflicts with a keyword, a `_` suffix is added to the parameter name
+
+```c
+void(lua_sethook)(lua_State *L, lua_Hook func, int mask, int count);
+```
+```go
+//go:linkname Sethook C.lua_sethook
+func LuaSethook(L *LuaState, func_ LuaHook, mask c.Int, count c.Int)
+```
+
+2. For variadic parameters, the parameter name is `__llgo_va_list`
+
+```c
+LUA_API int(lua_gc)(lua_State *L, int what, ...);
+```
+
+```go
+//go:linkname Gc C.lua_gc
+func LuaGc(L *State, what c.Int, __llgo_va_list ...interface{}) c.Int
+
+
+
+##### Param Name Conversion
+
+Parameter names are preserved in their original style without conversion, with only the following special cases being handled:
+
+1. When a parameter conflicts with a keyword, a `_` suffix is added to the parameter name
+
+```c
+void(lua_sethook)(lua_State *L, lua_Hook func, int mask, int count);
+```
+```go
+//go:linkname Sethook C.lua_sethook
+func LuaSethook(L *LuaState, func_ LuaHook, mask c.Int, count c.Int)
+```
+
+2. For variadic parameters, the parameter name is `__llgo_va_list`
+
+```c
+LUA_API int(lua_gc)(lua_State *L, int what, ...);
+```
+
+```go
+//go:linkname Gc C.lua_gc
+func LuaGc(L *State, what c.Int, __llgo_va_list ...interface{}) c.Int
+
+
+
 ### File Generation Rules
 
 #### Generated File Types
