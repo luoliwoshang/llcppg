@@ -1,0 +1,121 @@
+llcppg Design
+=====
+
+### Header File Concepts
+In the `llcppg.cfg`, the `include` field specifies the list of interface header files to be converted. These header files are the primary source for generating Go code, and each listed header file will generate a corresponding .go file.
+
+```json
+{
+  "name": "xslt",
+  "cflags": "$(pkg-config --cflags libxslt)",
+  "include": [
+    "libxslt/xslt.h",
+    "libxslt/security.h"
+  ]
+}
+```
+#### Package Header File Determination
+
+llcppg determines whether a header file belongs to the current package based on the following rules:
+
+1. **Interface header files**: Header files explicitly listed in the `include` field
+2. **Implementation header files**: Other header files in the same root directory as interface header files
+
+For example, if the configuration includes `libxslt/xslt.h`, and this file contains `#include "xsltexports.h"`, then:
+- `xslt.h` is an interface header file, which will generate `xslt.go`
+- `xsltexports.h` is an implementation header file, whose content will be generated into `xslt_autogen.go`
+
+Header files that don't belong to the current package (such as standard libraries or third-party dependencies) won't be directly converted but are handled through dependency relationships.
+
+#### Special Case: Mixed Header Files
+For cases where package header files are mixed with other header files in the same directory (such as system headers or third-party libraries), you can handle this by setting `mix: true`:
+
+```json
+{
+  "mix": true
+}
+```
+
+In this case, only header files explicitly declared in the `include` field are considered package header files, and all others are treated as third-party header files. Note that in this mode, implementation header files of the package also need to be explicitly declared in `include`, otherwise they will be treated as third-party header files and won't be processed. 
+
+This is particularly useful in scenarios like Linux systems where library headers might be installed in common directories (e.g., `/usr/include/sqlite3.h` alongside system headers like `/usr/include/stdio.h`).
+
+### Dependency
+llcppg does not convert header files outside of the current package, including any referenced third-party or standard library headers. Instead, it manages cross-package type references and ensures conversion consistency through the `deps` declaration in `llcppg.cfg`, which must include standard library types as well.
+```json
+{
+  "deps":["c/os","github.com/author/pkg"]
+}
+```
+
+#### Dependency Package Structure
+Each dependency package follows a unified file organization structure (using xml2 as an example):
+* Converted Go source files
+1. HTMLtree.go (generated from HTMLtree.h)
+2. HTMLparser.go (generated from HTMLparser.h)
+* Configuration files
+1. llcppg.cfg (dependency information)
+2. llcppg.pub (type mapping information)
+
+#### Dependency Handling Logic
+1. llcppg scans each dependency package's `llcppg.pub` file to obtain type mappings.
+2. If the dependency package's `llcppg.cfg` also contains deps configuration, llcppg will recursively process these dependencies.
+3. Type mappings from all dependency packages are loaded and registered into the conversion project.
+When a header file in the current project references types from third-party packages, it directly searches within the current conversion project scope
+ * If a mapped type is found, it is referenced;
+ * Otherwise, the user is notified of the missing type and its source header file for conversion.
+
+#### Special Dependency Aliases
+In llcppg, there is a consistent pattern for naming aliases related to the standard library. Any alias that starts with `c/` corresponds to a remote repository in the github.com/goplus/llgo.
+
+For example:
+* The alias `c` → `github.com/goplus/lib/c`
+* The alias `c/os` → `github.com/goplus/lib/c/os`
+* The alias `c/time` → `github.com/goplus/lib/c/time`
+
+> Note: Standard library type conversion in llgo is not comprehensive. For standard library types that cannot be found in llgo, you will need to supplement these types in the corresponding package at https://github.com/goplus/llgo.
+
+#### Example
+You can specify dependent package paths in the `deps` field of `llcppg.cfg` . For example, in the `_llcppgtest/libxslt` example, since libxslt depends on libxml2, its configuration file looks like this:
+```json
+{
+  "name": "libxslt",
+  "cflags": "$(pkg-config --cflags libxslt)",
+  "libs": "$(pkg-config --libs libxslt)",
+  "trimPrefixes": ["xslt"],
+  "deps": ["c/os","github.com/goplus/llpkg/libxml2"],
+  "includes":["libxslt/xsltutils.h","libxslt/templates.h"]
+}
+```
+
+In `libxslt/xsltutils.h`, there are dependencies on `libxml2`'s `xmlChar` and `xmlNodePtr`:
+```c
+#include <libxml/dict.h>
+#include <libxml/xmlerror.h>
+#include <libxml/xpath.h>
+xmlChar * xsltGetNsProp(xmlNodePtr node, const xmlChar *name, const xmlChar *nameSpace);
+```
+If `xmlChar` and `xmlNodePtr` mappings are not found (not declare `llcppg-libxml` in `deps`), llcppg will notify the user of these missing types and indicate they are from `libxml2` header files.
+The corresponding notification would be:
+```bash
+convert /path/to/include/libxml2/libxml/xmlstring.h first, declare its converted package in llcppg.cfg deps for load [xmlChar].
+convert /path/to/libxml2/libxml/tree.h first, declare its converted package in llcppg.cfg deps for load [xmlNodePtr].
+```
+
+For this project, `llcppg` will automatically handle type references to libxml2. During the process, `llcppg` uses the `llcppg.pub` file from the generated libxml2 package to ensure type consistency.
+You can see this in the generated code, where libxslt correctly references libxml2's types:
+```go
+package libxslt
+
+import (
+	"github.com/goplus/lib/c"
+	"github.com/goplus/llpkg/libxml2"
+	"unsafe"
+)
+
+/*
+ * Our own version of namespaced attributes lookup.
+ */
+//go:linkname GetNsProp C.xsltGetNsProp
+func GetNsProp(node libxml2.NodePtr, name *libxml2.Char, nameSpace *libxml2.Char) *libxml2.Char
+```
