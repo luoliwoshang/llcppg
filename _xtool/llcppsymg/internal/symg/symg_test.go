@@ -497,10 +497,15 @@ func TestGen(t *testing.T) {
 			defer os.Remove(tempFile.Name())
 			clangtool.ComposeIncludes(cfg.Include, tempFile.Name())
 
+			symg.SetDebug(symg.DbgFlagAll)
 			pkgHfileInfo := header.PkgHfileInfo(cfg.Include, strings.Fields(cfg.CFlags), false)
 			headerSymbolMap, err := symg.ParseHeaderFile(tempFile.Name(), pkgHfileInfo.CurPkgFiles(), cfg.TrimPrefixes, strings.Fields(cfg.CFlags), cfg.SymMap, cfg.Cplusplus)
 			if err != nil {
 				t.Fatal(err)
+			}
+
+			for mangle, info := range headerSymbolMap {
+				fmt.Println(mangle, info.GoName, info.ProtoName)
 			}
 
 			// trim to nm symbols
