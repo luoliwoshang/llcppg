@@ -57,7 +57,14 @@ Field names must be exportable (public) in Go to allow external access. The conv
 1. Letter-starting fields: Convert to PascalCase
 2. Underscore/digit-starting fields: Apply public processing, then convert to PascalCase while preserving case after underscores
 
-### Header File Concepts
+### File Generation Rules
+
+#### Generated File Types
+* Interface header files: Each header file generates a corresponding .go file
+* Implementation files: All generated in a single libname_autogen.go file
+* Third-party header files: Skip generation,only as a dependency
+
+#### Header File Concepts
 In the `llcppg.cfg`, the `include` field specifies the list of interface header files to be converted. These header files are the primary source for generating Go code, and each listed header file will generate a corresponding .go file.
 
 ```json
@@ -70,18 +77,39 @@ In the `llcppg.cfg`, the `include` field specifies the list of interface header 
   ]
 }
 ```
-#### Package Header File Determination
+##### Package Header File Determination
 
 llcppg determines whether a header file belongs to the current package based on the following rules:
 
 1. **Interface header files**: Header files explicitly listed in the `include` field
 2. **Implementation header files**: Other header files in the same root directory as interface header files
+3. **Third-party header files**: Header files that don't belong to the current package (such as standard libraries or third-party dependencies) won't be directly converted but are handled through dependency relationships.
 
 For example, if the configuration includes `libxslt/xslt.h`, and this file contains `#include "xsltexports.h"`, then:
 - `xslt.h` is an interface header file, which will generate `xslt.go`
 - `xsltexports.h` is an implementation header file, whose content will be generated into `xslt_autogen.go`
 
-Header files that don't belong to the current package (such as standard libraries or third-party dependencies) won't be directly converted but are handled through dependency relationships.
+###### Example Explanation
+
+For example, the header file paths obtained after linking with Clang in the above example:
+```
+/opt/homebrew/Cellar/libxslt/1.1.42_1/include/libxslt/xslt.h
+/opt/homebrew/Cellar/libxslt/1.1.42_1/include/libxslt/security.h
+/opt/homebrew/Cellar/libxslt/1.1.42_1/include/libexslt/exsltconfig.h
+```
+The calculated common root directory is:
+```
+/opt/homebrew/Cellar/libxslt/1.1.42_1/include/
+```
+In `libxslt/xslt.h`, the following header files are referenced:
+```c
+#include <libxml/tree.h>
+#include "xsltexports.h"
+```
+The corresponding paths are:
+`libxml/tree.h` -> `/opt/homebrew/Cellar/libxml2/2.13.5/include/libxml2/libxml/tree.h` (third-party dependency)
+`xsltexports.h` -> `/opt/homebrew/Cellar/libxslt/1.1.42_1/include/libxslt/xsltexports.h` (package implementation file)
+Since `xsltexports.h` is in the same directory as `libxslt/xslt.h`, it's considered a package implementation file, and its content is generated in `xslt_autogen.go`. Meanwhile, `libxml/tree.h` is not in the same directory and is considered a third-party dependency.
 
 #### Special Case: Mixed Header Files
 For cases where package header files are mixed with other header files in the same directory (such as system headers or third-party libraries), you can handle this by setting `mix: true`:

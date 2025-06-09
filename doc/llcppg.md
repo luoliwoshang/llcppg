@@ -86,14 +86,6 @@ gogensig ast-file
 gogensig -  # read AST from stdin
 ```
 
-## Header File Processing Basic Rules
-
-* llcppg only converts header files within the current package
-* Does not convert third-party package and standard library header files
-* For package header files, two types of mappings are generated during processing:
-  * Function mapping table `llcppg.symb.json`
-  * Type mapping table `llcppg.pub`
-
 ## Dependency Processing
 
 1. The system scans each dependency package's llcppg.pub file to obtain type mappings.
@@ -156,49 +148,6 @@ XML2 Type Mapping From Expamle
 ```
 xml_doc XmlDoc
 ```
-## File Generation Rules
-### Generated File Types
-* Interface header files: Each header file generates a corresponding .go file
-* Implementation files: All generated in a single libname_autogen.go file
-
-### Header File Classification
-
-1. Interface header files:
-* Header files explicitly declared in include
-2. Implementation header files:
-* Other header files in the same root directory as interface header files
-
-#### Example Explanation
-For example, the header file paths obtained after linking with Clang in the above example:
-```
-/opt/homebrew/Cellar/libxslt/1.1.42_1/include/libxslt/xslt.h
-/opt/homebrew/Cellar/libxslt/1.1.42_1/include/libxslt/security.h
-/opt/homebrew/Cellar/libxslt/1.1.42_1/include/libexslt/exsltconfig.h
-```
-The calculated common root directory is:
-```
-/opt/homebrew/Cellar/libxslt/1.1.42_1/include/
-```
-In `libxslt/xslt.h`, the following header files are referenced:
-```c
-#include <libxml/tree.h>
-#include "xsltexports.h"
-```
-The corresponding paths are:
-`libxml/tree.h` -> `/opt/homebrew/Cellar/libxml2/2.13.5/include/libxml2/libxml/tree.h` (third-party dependency)
-`xsltexports.h` -> `/opt/homebrew/Cellar/libxslt/1.1.42_1/include/libxslt/xsltexports.h` (package implementation file)
-Since `xsltexports.h` is in the same directory as `libxslt/xslt.h`, it's considered a package implementation file, and its content is generated in `xslt_autogen.go`. Meanwhile, `libxml/tree.h` is not in the same directory and is considered a third-party dependency.
-## Special Case Handling
-### System Path Processing
-For third-party header files mixed in system paths (common in Linux apt-installed libraries, e.g., `/usr/include/sqlite3.h` and `/usr/include/stdio.h`):
-1. Configuration method
-```json
-{
-  "mix": true
-}
-```
-2. Processing rules
-* Header files explicitly declared in include are considered package header files; all others are treated as third-party header files.
 
 ### Cross-Platform Difference Handling
 Use impl.files configuration to handle platform differences:
