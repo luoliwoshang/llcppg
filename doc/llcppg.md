@@ -86,69 +86,6 @@ gogensig ast-file
 gogensig -  # read AST from stdin
 ```
 
-## Dependency Processing
-
-1. The system scans each dependency package's llcppg.pub file to obtain type mappings.
-2. If the dependency package's llcppg.cfg also contains deps configuration, the system will recursively process these dependencies.
-3. Type mappings from all dependency packages are loaded and registered into the conversion project.
-When a header file in the current project references types from third-party packages, it directly searches within the current conversion project scope
- * If a mapped type is found, it is referenced;
- * Otherwise, the user is notified of the missing type and its source header file for conversion.
-
-### Dependency Package Structure
-Each dependency package follows a unified file organization structure (using xml2 as an example):
-* Converted Go source files
-1. HTMLtree.go (generated from HTMLtree.h)
-2. HTMLparser.go (generated from HTMLparser.h)
-* Configuration files
-1. llcppg.cfg (dependency information)
-2. llcppg.pub (type mapping information)
-
-### Example Project
-```json
-{
-  "name":"xslt",
-  "include": [
-    "libxslt/xslt.h",
-    "libxslt/security.h",
-    "libexslt/exsltconfig.h"
-  ],
-  "deps": [
-    "c",
-    "github.com/goplus/..../xml2",
-    "github.com/goplus/..../zlib"
-  ]
-}
-```
-In `libxslt/xslt.h`, there are dependencies on `libxml2`'s `xmlChar` and `xmlNodePtr`:
-```c
-#include <libxml/dict.h>
-#include <libxml/xmlerror.h>
-#include <libxml/xpath.h>
-xmlChar * xsltGetNsProp(xmlNodePtr node, const xmlChar *name, const xmlChar *nameSpace);
-```
-If `xmlChar` and `xmlNodePtr` mappings are not found, llcppg will notify the user of these missing types and indicate they are from `libxml2` header files.
-The corresponding notification would be:
-```bash
-xmlChar not found in `/path/to/libxml/dict.h`.
-xmlNodePtr not found in `/path/to/libxml/dict.h`.
-```
-### Type Mapping Examples
-
-Standard Library Type Mapping
-NOTE: "c" is an alias for "github.com/goplus/lib/c"
-`github.com/goplus/lib/c/llcppg.pub`
-```
-size_t SizeT
-intptr_t IntptrT
-FILE
-```
-XML2 Type Mapping From Expamle
-`github.com/goplus/..../xml2/llcppg.pub`
-```
-xml_doc XmlDoc
-```
-
 ### Cross-Platform Difference Handling
 Use impl.files configuration to handle platform differences:
 ```json

@@ -141,6 +141,20 @@ Each dependency package follows a unified file organization structure (using xml
 1. llcppg.cfg (dependency information)
 2. llcppg.pub (type mapping information)
 
+##### TypeMapping Examples (llcppg.pub)
+Standard Library Type Mapping
+`github.com/goplus/lib/c/llcppg.pub`
+```
+size_t SizeT
+intptr_t IntptrT
+FILE
+```
+XML2 Type Mapping From Expamle
+`github.com/goplus/..../xml2/llcppg.pub`
+```
+xml_doc XmlDoc
+```
+
 #### Dependency Handling Logic
 1. llcppg scans each dependency package's `llcppg.pub` file to obtain type mappings.
 2. If the dependency package's `llcppg.cfg` also contains deps configuration, llcppg will recursively process these dependencies.
