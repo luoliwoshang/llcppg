@@ -119,3 +119,57 @@ import (
 //go:linkname GetNsProp C.xsltGetNsProp
 func GetNsProp(node libxml2.NodePtr, name *libxml2.Char, nameSpace *libxml2.Char) *libxml2.Char
 ```
+
+#### Type Name Mapping Rules
+
+The llcppg system converts C/C++ type names to Go-compatible identifiers following specific transformation rules. These rules ensure generated Go code follows Go naming conventions while maintaining clarity and avoiding conflicts.
+
+##### Public Name Processing
+Names starting with underscore or digit are prefixed with "X" to create valid Go identifiers.
+
+##### Type Name Conversion (struct, union, typedef, enum)
+
+1. Remove configured prefixes from `trimPrefixes`
+2. Convert to PascalCase if the name starts with a letter
+3. If the name starts with an underscore, apply Public Name Processing and preserve the original case after underscores, then convert to PascalCase format
+
+Examples without `trimPrefixes` sconfiguration:
+* C: `cJSON_Hooks` → Go: `CJSONHooks`
+* C: `xmlAttrHashBucket` → Go: `XmlAttrHashBucket`
+* C: `sqlite3_destructor_type` → Go: `Sqlite3DestructorType`
+
+Examples with `trimPrefixes: ["cJSON_", "sqlite3_", "xml"]`:
+
+* C: `cJSON_Hooks` → Go: `Hooks`
+* C: `sqlite3_destructor_type` → Go: `DestructorType`
+* C: `xmlAttrHashBucket` → Go: `AttrHashBucket`
+
+Examples which is start with underscore:
+
+* C: `_gmp_err` → Go: `X_gmpErr`
+
+
+##### Macro and Enum Special Rules
+For macros and enums after prefix removal:
+
+Letter-starting names: Capitalize first letter only, preserve original format
+Underscore/digit-starting names: Apply public name processing,preserve original format
+
+##### Custom Type Mappings
+
+Types with explicit mappings in typeMap configuration bypass all other processing rules:
+```json
+{  
+  "typeMap": {  
+    "cJSON": "JSON"  
+  }  
+}
+```
+Example: C: `cJSON` → Go: `JSON`
+
+##### Field Name Conversion
+
+Field names must be exportable (public) in Go to allow external access. The conversion rules:
+
+1. Letter-starting fields: Convert to PascalCase
+2. Underscore/digit-starting fields: Apply public processing, then convert to PascalCase while preserving case after underscores
