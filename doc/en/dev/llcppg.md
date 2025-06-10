@@ -514,20 +514,24 @@ llcppsigfetch -  # read config from stdin
 It fetches information of C/C++ symbols and print to stdout. Its format is as follows:
 
 ```json
-[
-  {
-    "path": "/path/to/file.h",
-    "doc": {
-      "decls": [],
-      "macros": [],
-      "includes": [
-        {
-          "path": "incfile.h"
+{
+    "File": {
+        "decls": [],
+        "includes": [],
+        "macros": []
+    },
+    "FileMap": {
+        "usr/include/sys/_types/_rsize_t.h": {
+            "FileType": 3
+        },
+        "/opt/homebrew/include/lua/lua.h": {
+            "FileType": 1
+        },
+        "/opt/homebrew/include/lua/luaconf.h": {
+            "FileType": 2
         }
-      ]
     }
-  }
-]
+}
 ```
 
 ### gogensig
