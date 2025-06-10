@@ -491,18 +491,67 @@ llcppsymg config-file
 llcppsymg -  # read config from stdin
 ```
 
-It generates a symbol table file named `llcppg.symb.json`. Its file format is as follows:
+llcppsymg is the symbol table generator in the llcppg toolchain, responsible for analyzing C/C++ dynamic libraries and header files to generate symbol mapping tables. Its main functions are:
+
+1. Parse dynamic library symbols: Extract exported symbols from libraries using the nm tool
+2. Parse header file declarations: Analyze C/C++ header files using libclang for function declarations
+3. Find intersection: Match library symbols with header declarations and then generate symbol table named `llcppg.symb.json`.
+
+#### Symbol Table
+
+This symbol table determines whether the function appears in the generated Go code、its actual name and if it is a method. Its file format is as follows:
 
 ```json
 [
   {
-    "mangle": "_ZN9INIReaderC1EPKcm",
-    "c++": "INIReader::INIReader(char const*, unsigned long)",
-    "go": "(*Reader).Init__0"
-  }
+    "mangle": "cJSON_Delete",
+    "c++": "cJSON_Delete(cJSON *)",
+    "go": "(*CJSON).Delete"
+  },
 ]
 ```
 
+* mangle: mangled name of function
+* c++: C/C++ function prototype declaration string
+* go: corresponding Go function or method name, during the process, llcppg will automatically check if the current function can be a method
+  1. When go is "-", the function is ignored (not generated)
+  2. When go is a valid function name, the function name will be named as the mangle
+  3. When go is `(*Type).MethodName` or `Type.MethodName`, the function will be generated as a method with Receiver as Type/*Type, and Name as MethodName
+
+#### Custom Symbol Table generation
+
+Specify function mapping behavior in `llcppg.cfg` by config the `symMap` field:
+```json
+{
+    "symMap":{
+        "mangle":"<goFuncName> | <.goMethodName> | -"
+    }
+}
+```
+`mangle` is the symbol name of the function. For the value of `mangle`, you can customize it as:
+  1. `goFuncName` - generates a regular function named `goFuncName`
+  2. `.goMethodName` - generates a method named `goMethodName` (if it doesn't meet the rules for generating a method, it will be generated as a regular function)
+  3. `-` - completely ignore this function
+  
+For example, to convert `(*CJSON).PrintUnformatted` from a method to a function, you can use follow config:
+
+```json
+{
+  "symMap":{
+    "cJSON_PrintUnformatted":"PrintUnformatted"
+  }
+}
+```
+and the `llcppg.symb.json` will be:
+```json
+[
+  {
+    "mangle": "cJSON_PrintUnformatted",
+    "c++": "cJSON_PrintUnformatted(cJSON *)",
+    "go": "PrintUnformatted"
+  }
+]
+```
 
 ### llcppsigfetch
 
