@@ -476,13 +476,13 @@ If `config-file` is not specified, a `llcppg.cfg` file is used in current direct
 }
 ```
 
-## Steps
+## Process Steps
+
+The llcppg tool orchestrates a three-stage pipeline that automatically generates Go bindings for C/C++ libraries by coordinating symbol table generation, signature extraction, and Go code generation components.
 
 1. llcppsymg: Generate symbol table for a C/C++ library
-2. Manually modify the desired Go symbols in symbol table
-3. llcppsigfetch: Fetch information of C/C++ symbols
-4. gogensig: Generate a go package by information of symbols
-
+2. llcppsigfetch: Fetch information of C/C++ symbols
+3. gogensig: Generate a Go package by information of symbols
 
 ### llcppsymg
 
