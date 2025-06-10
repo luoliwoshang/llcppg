@@ -37,7 +37,7 @@ void *(luaL_testudata) (lua_State *L, int ud, const char *tname);
 ```
 ```go
 //go:linkname Testudata C.luaL_testudata
-func Testudata(L *State, ud c.Int, tname *c.Char) c.Pointer
+func LuaLTestudata(L *State, ud c.Int, tname *c.Char) c.Pointer
 ```
 
 
