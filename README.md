@@ -15,8 +15,6 @@ This project depends on LLGo's C ecosystem integration capability, and some comp
 https://github.com/goplus/llgo?tab=readme-ov-file#how-to-install
 
 ```bash
-brew install cjson # macos
-apt-get install libcjson-dev # linux
 llgo install ./_xtool/llcppsymg
 llgo install ./_xtool/llcppsigfetch
 go install ./cmd/llcppcfg
