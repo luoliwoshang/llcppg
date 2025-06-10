@@ -99,7 +99,7 @@ Due to the characteristics of LLGo, an anonymous function type cannot be directl
 
 For anonymous function pointer types, llgo will build a public function type for them and reference it,and ensure that the anonymous type is unique, the naming rule for the corresponding type will be:
 ```
-LLGO_<namespace>_<typename>_<fieldname>
+LLGO_<namespaces>_<typename>_<nested_field_typename>_<fieldname>
 ```
 
 ```c
@@ -117,6 +117,51 @@ type LLGO_Hooks_FreeFn func(c.Pointer)
 type Hooks struct {
 	MallocFn LLGO_Hooks_MallocFn
 	FreeFn   LLGO_Hooks_FreeFn
+}
+```
+
+with namespace
+
+```c
+namespace A {
+  struct Hooks {
+      void *(*malloc_fn)(size_t sz);
+      void (*free_fn)(void *ptr);
+  } Hooks;
+}
+```
+```go
+// llgo:type C
+type LLGO_A_Hooks_MallocFn func(c.SizeT) c.Pointer
+// llgo:type C
+type LLGO_A_Hooks_FreeFn func(c.Pointer)
+
+type Hooks struct {
+	MallocFn LLGO_A_Hooks_MallocFn
+	FreeFn   LLGO_A_Hooks_FreeFn
+}
+```
+with nested struct's function pointer
+```c
+struct Foo {
+    struct {
+        void *(*malloc_fn)(size_t sz);
+        void (*free_fn)(void *ptr);
+    } Hooks;
+};
+```
+```go
+// llgo:type C
+type LLGO_Foo_Hooks_MallocFn func(c.SizeT) c.Pointer
+
+// llgo:type C
+type LLGO_Foo_Hooks_FreeFn func(c.Pointer)
+
+type Foo struct {
+	Hooks struct {
+		MallocFn LLGO_Foo_Hooks_MallocFn
+		FreeFn   LLGO_Foo_Hooks_FreeFn
+	}
 }
 ```
 
