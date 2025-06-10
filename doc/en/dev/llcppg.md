@@ -109,6 +109,48 @@ type Hooks struct {
 }
 ```
 
+##### Array
+
+Arrays in C are mapped differently depending on their context - function parameters versus struct fields.
+
+###### As Function Param
+
+Arrays in function parameters are converted to pointers.
+
+```c
+void foo(unsigned int a[], double b[3]);
+```
+```go
+//go:linkname Foo C.foo
+func Foo(a *c.Uint, b *c.Double)
+```
+
+###### As Struct Field
+
+Arrays in struct fields maintain their fixed-length array form to preserve memory layout compatibility with the original C struct.
+
+```c
+typedef struct Foo {  
+    char a[4];  
+    int b[3][4];  
+} Foo;
+```
+```go
+type Foo struct {
+	A [4]c.Char
+	B [3][4]c.Int
+}
+```
+###### Multi-dimensional
+
+Multi-dimensional arrays are supported in both contexts, with the same conversion rules applying:
+
+```c
+char matrix[3][4];  // In function parameter becomes **c.Char  
+char field[3][4];   // In struct field becomes [3][4]c.Char
+```
+
+
 #### Name Mapping Rules
 
 The llcppg system converts C/C++ type names to Go-compatible identifiers following specific transformation rules. These rules ensure generated Go code follows Go naming conventions while maintaining clarity and avoiding conflicts.
