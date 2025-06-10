@@ -83,7 +83,7 @@ func (recv_ *Sqlite3) Exec(sql *c.Char, callback func(c.Pointer, c.Int, **c.Char
 }
 ```
 
-For struct fields that are function pointers(both named and anonymous), the field type is replaced with a `c.Pointer` for description.
+For struct fields that are named function pointer types, the field type is replaced with a `c.Pointer` for description.
 
 ```c
 typedef struct Stream {
@@ -95,7 +95,13 @@ type Stream struct {
 	Cb c.Pointer
 }
 ```
-anonymous function pointer
+Due to the characteristics of LLGo, an anonymous function type cannot be directly declared as a Field Type. So to preserve as much information as possible, we need to use a `c.Pointer` to describe the field type.
+
+For anonymous function pointer types, llgo will build a public function type for them and reference it,and ensure that the anonymous type is unique, the naming rule for the corresponding type will be:
+```
+LLGO_<namespace>_<typename>_<fieldname>
+```
+
 ```c
 typedef struct Hooks {
     void *(*malloc_fn)(size_t sz);
@@ -103,9 +109,14 @@ typedef struct Hooks {
 } Hooks;
 ```
 ```go
+// llgo:type C
+type LLGO_Hooks_MallocFn func(c.SizeT) c.Pointer
+// llgo:type C
+type LLGO_Hooks_FreeFn func(c.Pointer)
+
 type Hooks struct {
-	MallocFn c.Pointer
-	FreeFn   c.Pointer
+	MallocFn LLGO_Hooks_MallocFn
+	FreeFn   LLGO_Hooks_FreeFn
 }
 ```
 
