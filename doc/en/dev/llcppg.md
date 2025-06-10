@@ -150,7 +150,6 @@ char matrix[3][4];  // In function parameter becomes **c.Char
 char field[3][4];   // In struct field becomes [3][4]c.Char
 ```
 
-
 #### Name Mapping Rules
 
 The llcppg system converts C/C++ type names to Go-compatible identifiers following specific transformation rules. These rules ensure generated Go code follows Go naming conventions while maintaining clarity and avoiding conflicts.
@@ -602,6 +601,14 @@ gogensig pkg-info-file
 gogensig -  # read pkg-info-file from stdin
 ```
 
-#### Output:
-* Go binding files
-* llcppg.pub
+#### Function Generation
+During execution, gogensig only generates functions whose corresponding mangle exists in llcppg.symb.json, determining whether to generate functions/methods with specified Go names by parsing the go field corresponding to the mangle.
+
+1. Regular function format: "FunctionName"
+  * Generates regular functions, using `//go:linkname` annotation
+2. Pointer receiver method format: "(*TypeName).MethodName"
+  * Generates methods with pointer receivers, using `// llgo:link` annotation
+3. Value receiver method format: "TypeName.MethodName"
+  * Generates methods with value receivers, using `// llgo:link` annotation
+4. Ignore function format: "-"
+  * Completely ignores the function, generates no code
