@@ -150,6 +150,56 @@ char matrix[3][4];  // In function parameter becomes **c.Char
 char field[3][4];   // In struct field becomes [3][4]c.Char
 ```
 
+##### Function
+
+###### To Normal Function
+
+llgo need to add `//go:linkname <funcName> C.<mangleName>` tag to the function type.
+
+```c
+void foo(int a, int b);
+```
+```go
+//go:linkname Foo C.foo
+func Foo(a c.Int, b c.Int)
+```
+
+###### To Method
+
+When a C function could be a Go method, llcppg automatically converts the function to a Go method, moving the first parameter to the receiver position, and using recv_ as the receiver name.
+
+Since Go's `//go:linkname` directive doesn't support methods, llgo uses `// llgo:link` to mark the connection between methods and C symbols.And generated methods return zero values of their return types as placeholders.
+
+* value receiver
+
+```c
+typedef struct Vector3 {
+    int x;
+    int y;
+    int z;
+} Vector3;
+
+Vector3 Vector3Barycenter(Vector3 p, Vector3 a, Vector3 b, Vector3 c);
+```
+```go
+// llgo:link Vector3.Vector3Barycenter C.Vector3Barycenter
+func (recv_ Vector3) Vector3Barycenter(a Vector3, b Vector3, c Vector3) Vector3 {
+	return Vector3{}
+}
+```
+
+* pointer receiver
+```c
+typedef struct sqlite3 sqlite3;
+SQLITE_API int sqlite3_close(sqlite3*);
+```
+```go
+// llgo:link (*Sqlite3).Close C.sqlite3_close
+func (recv_ *Sqlite3) Close() c.Int {
+	return 0
+}
+```
+
 #### Name Mapping Rules
 
 The llcppg system converts C/C++ type names to Go-compatible identifiers following specific transformation rules. These rules ensure generated Go code follows Go naming conventions while maintaining clarity and avoiding conflicts.
