@@ -30,6 +30,8 @@ All basic types are imported from `github.com/goplus/lib/c` and mapped according
 
 #### Special Case
 
+##### void *
+
 The pointer type `void*` is mapped to `c.Pointer`.
 
 ```c
@@ -40,7 +42,72 @@ void *(luaL_testudata) (lua_State *L, int ud, const char *tname);
 func LuaLTestudata(L *State, ud c.Int, tname *c.Char) c.Pointer
 ```
 
+##### Function pointer
 
+C function pointer types are converted to Go function types with corresponding parameter and return type mappings,And llgo need to add `llgo:type C` tag to the function type.
+
+
+```c
+typedef int (*CallBack)(void *L);
+```
+```go
+// llgo:type C
+type CallBack func(c.Pointer) c.Int
+```
+
+For function pointer types referenced in function signatures, the type is replaced with the converted Go function type.
+
+```c
+void exec(void *L, CallBack cb);
+```
+```go
+// llgo:type C
+func Exec(L c.Pointer, cb CallBack)
+```
+
+For cases where a parameter in a function signature is an anonymous function pointer (meaning it does not reference a pre-defined function pointer type), it is mapped to the corresponding Go function type.
+
+```c
+int sqlite3_exec(
+  sqlite3*,                                  /* An open database */
+  const char *sql,                           /* SQL to be evaluated */
+  int (*callback)(void*,int,char**,char**),  /* Callback function */
+  void *,                                    /* 1st argument to callback */
+  char **errmsg                              /* Error msg written here */
+);
+```
+```go
+// llgo:link (*Sqlite3).Exec C.sqlite3_exec
+func (recv_ *Sqlite3) Exec(sql *c.Char, callback func(c.Pointer, c.Int, **c.Char, **c.Char) c.Int, __llgo_arg_2 c.Pointer, errmsg **c.Char) c.Int {
+	return 0
+}
+```
+
+For struct fields that are function pointers(both named and anonymous), the field type is replaced with a `c.Pointer` for description.
+
+```c
+typedef struct Stream {
+    CallBack cb;
+} Stream;
+```
+```go
+type Stream struct {
+	Cb c.Pointer
+}
+```
+anonymous function pointer
+```c
+typedef struct Hooks {
+    void *(*malloc_fn)(size_t sz);
+    void (*free_fn)(void *ptr);
+} Hooks;
+```
+```go
+type Hooks struct {
+	MallocFn c.Pointer
+	FreeFn   c.Pointer
+}
+```
 
 #### Name Mapping Rules
 
