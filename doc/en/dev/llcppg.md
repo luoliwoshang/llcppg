@@ -3,6 +3,45 @@ llcppg Design
 
 ### Type Mapping
 
+#### Basic Type Mapping
+
+All basic types are imported from `github.com/goplus/lib/c` and mapped accordingly.
+
+| C Type | Go Type |
+|--------|---------|
+| void | c.Void |
+| bool | bool |
+| char | c.Char |
+| wchar_t | int16 |
+| char16_t | int16 |
+| char32_t | int32 |
+| short | int16 |
+| unsigned short | uint16 |
+| int | c.Int |
+| unsigned int | c.Uint |
+| long | c.Long |
+| unsigned long | c.Ulong |
+| long long | c.LongLong |
+| unsigned long long | c.UlongLong |
+| float | c.Float |
+| double | c.Double |
+| float complex | complex64 |
+| double complex | complex128 |
+
+#### Special Case
+
+The pointer type `void*` is mapped to `c.Pointer`.
+
+```c
+void *(luaL_testudata) (lua_State *L, int ud, const char *tname);
+```
+```go
+//go:linkname Testudata C.luaL_testudata
+func Testudata(L *State, ud c.Int, tname *c.Char) c.Pointer
+```
+
+
+
 #### Name Mapping Rules
 
 The llcppg system converts C/C++ type names to Go-compatible identifiers following specific transformation rules. These rules ensure generated Go code follows Go naming conventions while maintaining clarity and avoiding conflicts.
