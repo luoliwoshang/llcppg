@@ -94,9 +94,10 @@ func (recv_ *Sqlite3) Exec(sql *c.Char, callback func(c.Pointer, c.Int, **c.Char
 }
 ```
 
-LLGo cannot use anonymous function types directly as field types. To preserve type information, llcppg automatically generates named function types and references them in the field and following this naming convention:
+To work around LLGo's inability to use anonymous function types directly in struct fields, llcppg automatically generates a corresponding named function type. This generated type is intentionally made unexported (private) to mirror C/C++ semantics, where anonymous function types are not externally accessible. Crucially, even though the type itself is private, this does not affect the ability to assign a compatible function to the field during normal use in Go. All such function types follow the specific naming convention: 
+
 ```
-LLGO_<namespaces>_<typename>_<nested_field_typename>_<fieldname>
+llgo_<namespaces>_<typename>_<nested_field_typename>_<fieldname>
 ```
 
 ```c
@@ -107,13 +108,13 @@ typedef struct Hooks {
 ```
 ```go
 // llgo:type C
-type LLGO_Hooks_MallocFn func(c.SizeT) c.Pointer
+type llgo_Hooks_MallocFn func(c.SizeT) c.Pointer
 // llgo:type C
-type LLGO_Hooks_FreeFn func(c.Pointer)
+type llgo_Hooks_FreeFn func(c.Pointer)
 
 type Hooks struct {
-	MallocFn LLGO_Hooks_MallocFn
-	FreeFn   LLGO_Hooks_FreeFn
+	MallocFn llgo_Hooks_MallocFn
+	FreeFn   llgo_Hooks_FreeFn
 }
 ```
 
@@ -129,13 +130,13 @@ namespace A {
 ```
 ```go
 // llgo:type C
-type LLGO_A_Hooks_MallocFn func(c.SizeT) c.Pointer
+type llgo_A_Hooks_MallocFn func(c.SizeT) c.Pointer
 // llgo:type C
-type LLGO_A_Hooks_FreeFn func(c.Pointer)
+type llgo_A_Hooks_FreeFn func(c.Pointer)
 
 type Hooks struct {
-	MallocFn LLGO_A_Hooks_MallocFn
-	FreeFn   LLGO_A_Hooks_FreeFn
+	MallocFn llgo_A_Hooks_MallocFn
+	FreeFn   llgo_A_Hooks_FreeFn
 }
 ```
 in nested struct
@@ -150,15 +151,15 @@ struct Foo {
 ```
 ```go
 // llgo:type C
-type LLGO_Foo_Hooks_MallocFn func(c.SizeT) c.Pointer
+type llgo_Foo_Hooks_MallocFn func(c.SizeT) c.Pointer
 
 // llgo:type C
-type LLGO_Foo_Hooks_FreeFn func(c.Pointer)
+type llgo_Foo_Hooks_FreeFn func(c.Pointer)
 
 type Foo struct {
 	Hooks struct {
-		MallocFn LLGO_Foo_Hooks_MallocFn
-		FreeFn   LLGO_Foo_Hooks_FreeFn
+		MallocFn llgo_Foo_Hooks_MallocFn
+		FreeFn   llgo_Foo_Hooks_FreeFn
 	}
 }
 ```
