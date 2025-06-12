@@ -19,51 +19,51 @@ type cfgTestCase struct {
 }
 
 var cfgTestCases = []cfgTestCase{
-	// {
-	// 	cfgDir: "./cfgdata/cjson",
-	// 	pkg:    upstream.Package{Name: "cjson", Version: "1.7.18"},
-	// 	config: map[string]string{
-	// 		"options": "utils=True",
-	// 	},
-	// },
-	// {
-	// 	cfgDir: "./cfgdata/cjson",
-	// 	pkg:    upstream.Package{Name: "cjson", Version: "1.7.17"},
-	// 	config: map[string]string{
-	// 		"options": "utils=True",
-	// 	},
-	// },
-	// {
-	// 	cfgDir: "./cfgdata/libxml2",
-	// 	pkg:    upstream.Package{Name: "libxml2", Version: "2.13.6"},
-	// 	config: map[string]string{
-	// 		"options": "iconv=False",
-	// 	},
-	// },
-	// {
-	// 	cfgDir: "./cfgdata/sqlite3",
-	// 	pkg:    upstream.Package{Name: "sqlite3", Version: "3.49.1"},
-	// },
-	// {
-	// 	cfgDir: "./cfgdata/zlib",
-	// 	pkg:    upstream.Package{Name: "zlib", Version: "1.3.1"},
-	// },
-	// {
-	// 	cfgDir: "./cfgdata/bzip3",
-	// 	pkg:    upstream.Package{Name: "bzip3", Version: "1.5.1"},
-	// },
-	// {
-	// 	cfgDir: "./cfgdata/cargs",
-	// 	pkg:    upstream.Package{Name: "cargs", Version: "1.2.0"},
-	// },
-	// {
-	// 	cfgDir: "./cfgdata/bzip2",
-	// 	pkg:    upstream.Package{Name: "bzip2", Version: "1.0.8"},
-	// },
-	// {
-	// 	cfgDir: "./cfgdata/libtool",
-	// 	pkg:    upstream.Package{Name: "libtool", Version: "2.4.7"},
-	// },
+	{
+		cfgDir: "./cfgdata/cjson",
+		pkg:    upstream.Package{Name: "cjson", Version: "1.7.18"},
+		config: map[string]string{
+			"options": "utils=True",
+		},
+	},
+	{
+		cfgDir: "./cfgdata/cjson",
+		pkg:    upstream.Package{Name: "cjson", Version: "1.7.17"},
+		config: map[string]string{
+			"options": "utils=True",
+		},
+	},
+	{
+		cfgDir: "./cfgdata/libxml2",
+		pkg:    upstream.Package{Name: "libxml2", Version: "2.13.6"},
+		config: map[string]string{
+			"options": "iconv=False",
+		},
+	},
+	{
+		cfgDir: "./cfgdata/sqlite3",
+		pkg:    upstream.Package{Name: "sqlite3", Version: "3.49.1"},
+	},
+	{
+		cfgDir: "./cfgdata/zlib",
+		pkg:    upstream.Package{Name: "zlib", Version: "1.3.1"},
+	},
+	{
+		cfgDir: "./cfgdata/bzip3",
+		pkg:    upstream.Package{Name: "bzip3", Version: "1.5.1"},
+	},
+	{
+		cfgDir: "./cfgdata/cargs",
+		pkg:    upstream.Package{Name: "cargs", Version: "1.2.0"},
+	},
+	{
+		cfgDir: "./cfgdata/bzip2",
+		pkg:    upstream.Package{Name: "bzip2", Version: "1.0.8"},
+	},
+	{
+		cfgDir: "./cfgdata/libtool",
+		pkg:    upstream.Package{Name: "libtool", Version: "2.4.7"},
+	},
 }
 
 /*
