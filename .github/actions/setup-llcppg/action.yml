@@ -43,7 +43,7 @@ runs:
       echo "deb http://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-${{inputs.llvm}} main" | sudo tee /etc/apt/sources.list.d/llvm.list
       wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
       sudo apt-get update
-      sudo apt-get install -y llvm-${{inputs.llvm}}-dev clang-${{inputs.llvm}} libunwind-dev libclang-${{inputs.llvm}}-dev lld-${{inputs.llvm}} pkg-config libgc-dev libssl-dev zlib1g-dev libffi-dev libcjson-dev libuv1-dev
+      sudo apt-get install -y llvm-${{inputs.llvm}}-dev clang-${{inputs.llvm}} libclang-${{inputs.llvm}}-dev lld-${{inputs.llvm}} libunwind-${{inputs.llvm}}-dev libc++-${{inputs.llvm}}-dev pkg-config libgc-dev libssl-dev zlib1g-dev libffi-dev libcjson-dev libuv1-dev
       echo "/usr/lib/llvm-${{inputs.llvm}}/bin" >> $GITHUB_PATH
   - name: Install LLGo
     shell: bash
