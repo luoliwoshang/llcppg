@@ -60,6 +60,10 @@ var cfgTestCases = []cfgTestCase{
 		cfgDir: "./cfgdata/bzip2",
 		pkg:    upstream.Package{Name: "bzip2", Version: "1.0.8"},
 	},
+	{
+		cfgDir: "./cfgdata/libtool",
+		pkg:    upstream.Package{Name: "libtool", Version: "2.4.7"},
+	},
 }
 
 /*

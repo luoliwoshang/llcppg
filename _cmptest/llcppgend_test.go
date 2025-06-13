@@ -2,6 +2,7 @@ package _cmptest
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -19,8 +20,6 @@ const llcppgGoVersion = "1.20.14"
 var (
 	// avoid conan install race condition
 	conanInstallMutex sync.Mutex
-	// avoid llgo run race condition
-	llgoRunMutex sync.Mutex
 )
 
 type testCase struct {
@@ -94,6 +93,13 @@ var testCases = []testCase{
 		dir:      "./testdata/libxslt/1.1.42",
 		pkg:      upstream.Package{Name: "libxslt", Version: "1.1.42"},
 		demosDir: "./testdata/libxslt/demo",
+	},
+
+	{
+		modpath:  "github.com/goplus/llcppg/_cmptest/testdata/libtool/2.4.7/libtool",
+		dir:      "./testdata/libtool/2.4.7",
+		pkg:      upstream.Package{Name: "libtool", Version: "2.4.7"},
+		demosDir: "./testdata/libtool/demo",
 	},
 }
 
@@ -226,9 +232,10 @@ func runDemos(t *testing.T, logFile *os.File, demosPath string, pkgname, pkgpath
 		t.Fatal(err)
 	}
 
-	// only can lock out of loop,will got ld64.lld: error: undefined symbol: math.Float32bits
-	llgoRunMutex.Lock()
-	defer llgoRunMutex.Unlock()
+	llgoRunTempDir, err := os.MkdirTemp("", "llgo-run")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	for _, demo := range demos {
 		if !demo.IsDir() {
@@ -238,6 +245,8 @@ func runDemos(t *testing.T, logFile *os.File, demosPath string, pkgname, pkgpath
 		demoCmd := command(logFile, demoPath, "llgo", "run", ".")
 		demoCmd.Env = append(demoCmd.Env, llgoEnv()...)
 		demoCmd.Env = append(demoCmd.Env, pcPathEnv(pcPath)...)
+		demoCmd.Env = append(demoCmd.Env, tempDirEnv(llgoRunTempDir)...)
+
 		err = demoCmd.Run()
 		if err != nil {
 			t.Fatal(err)
@@ -272,12 +281,35 @@ func goVerEnv() string {
 	return fmt.Sprintf("GOTOOLCHAIN=go%s", llcppgGoVersion)
 }
 
+func tempDirEnv(tempDir string) []string {
+	return []string{
+		fmt.Sprintf("TMPDIR=%s", tempDir),
+		fmt.Sprintf("TEMP=%s", tempDir),
+		fmt.Sprintf("TMP=%s", tempDir),
+		fmt.Sprintf("GOTMPDIR=%s", tempDir),
+		fmt.Sprintf("GOCACHE=%s", tempDir),
+	}
+}
+
 func copyFile(src, dst string) error {
-	data, err := os.ReadFile(src)
+	srcFile, err := os.Open(src)
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(dst, data, os.ModePerm)
+	defer srcFile.Close()
+
+	fi, err := srcFile.Stat()
+	if err != nil {
+		return err
+	}
+	dstFile, err := os.OpenFile(dst, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, fi.Mode())
+	if err != nil {
+		return err
+	}
+	defer dstFile.Close()
+
+	_, err = io.Copy(dstFile, srcFile)
+	return err
 }
 
 func command(logFile *os.File, dir string, app string, args ...string) *exec.Cmd {
