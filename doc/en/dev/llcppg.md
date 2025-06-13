@@ -583,9 +583,43 @@ import (
 )
 ```
 
-#### Type Mapping File
+### Type Mapping File
 
 * Generates an llcppg.pub file containing a mapping table from C types to Go type names, is used for package dependency handling, example and concept see [Dependency](#Dependency)
+
+### Go Module Files (Optional)
+
+* When using the `-mod` flag, go.mod and go.sum files are generated with the specified module name.
+
+for example: `llcppg -mod github.com/author/cjson` will generate a go.mod file with the module name `github.com/author/cjson` and a go.sum file in the result directory.
+
+### Example
+
+```json
+{
+  "name": "cjson",
+  "cflags": "$(pkg-config --cflags libcjson)",
+  "include": ["cJSON.h","cJSON_Utils.h"],
+  "libs": "$(pkg-config --libs libcjson libcjson_utils)",
+  "trimPrefixes": ["cJSONUtils_","cJSON_"],
+  "cplusplus": false,
+  "deps": ["c"],
+  "mix": false,
+  "typeMap":{}
+}
+```
+
+Using the cjson configuration as an example, the generated directory structure would be:
+
+```bash
+cjson/  
+├── cJSON.go                    # Bindings generated from cJSON.h  
+├── cJSON_Utils.go             # Bindings generated from cJSON_Utils.h    
+├── cjson_autogen_link.go      # Auto-generated link file  
+├── llcppg.pub                 # Type mapping information  
+├── go.mod                     # Go module file (when using -mod flag)  
+└── go.sum                     # Dependency checksums (when using -mod flag)  
+```
 
 ## Process Steps
 
