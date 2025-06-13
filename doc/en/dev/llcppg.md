@@ -388,6 +388,10 @@ Each dependency package follows a unified file organization structure (using xml
 2. llcppg.pub (type mapping information)
 
 ##### TypeMapping Examples (llcppg.pub)
+
+* C types on the left and corresponding Go type names on the right
+* If the Go Name is same with C type name,only need keep one column
+
 Standard Library Type Mapping
 `github.com/goplus/lib/c/llcppg.pub`
 ```
@@ -553,7 +557,7 @@ After running llcppg, LLGo bindings will be generated in a directory named by `n
 #### Auto generated Link File
 
 * Generates a `{name}_autogen_link.go` file containing linking information and necessary imports
-* This file includes the `LLGoPackage` constant to specify the lib link flags from `libs` field in `llcppg.cfg`. for example: `"libs": "$(pkg-config --libs libxslt)"`,will generate:
+* This file includes the `LLGoPackage` constant to specify the lib link flags from `libs` field in `llcppg.cfg`. for example: `"libs": "$(pkg-config --libs libxslt)"`, will generate:
 
 ```json
 {
@@ -578,6 +582,10 @@ import (
 	_ "github.com/goplus/llpkg/libxml2"
 )
 ```
+
+#### Type Mapping File
+
+* Generates an llcppg.pub file containing a mapping table from C types to Go type names, is used for package dependency handling, example and concept see [Dependency](#Dependency)
 
 ## Process Steps
 
