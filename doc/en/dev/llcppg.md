@@ -525,6 +525,19 @@ If `config-file` is not specified, a `llcppg.cfg` file is used in current direct
 }
 ```
 
+The configuration file supports the following options:
+
+- `name`: The name of the generated package
+- `cflags`: Compiler flags for the C/C++ library
+- `include`: Header files to include in the binding generation
+- `libs`: Library flags for linking
+- `trimPrefixes`: Prefixes to remove from function names & type names
+- `cplusplus`: Set to true for C++ libraries(not support)
+- `deps`: Dependencies (other packages & standard libraries)
+- `mix`: Set to true when package header files are mixed with other header files in the same directory. In this mode, only files explicitly listed in `include` are processed as package files.
+- `typeMap`: Custom name mapping from C types to Go types.
+- `symMap`: Custom name mapping from C function names to Go function names.
+
 ## Process Steps
 
 The llcppg tool orchestrates a three-stage pipeline that automatically generates Go bindings for C/C++ libraries by coordinating symbol table generation, signature extraction, and Go code generation components.
@@ -650,6 +663,8 @@ gogensig is the final component in the pipeline, responsible for converting C/C+
 gogensig pkg-info-file
 gogensig -  # read pkg-info-file from stdin
 ```
+
+### Output
 
 #### Function Generation
 During execution, gogensig only generates functions whose corresponding mangle exists in llcppg.symb.json, determining whether to generate functions/methods with specified Go names by parsing the go field corresponding to the mangle.

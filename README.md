@@ -62,6 +62,7 @@ The configuration file supports the following options:
 - `deps`: Dependencies (other packages & standard libraries)
 - `mix`: Set to true when package header files are mixed with other header files in the same directory. In this mode, only files explicitly listed in `include` are processed as package files.
 - `typeMap`: Custom name mapping from C types to Go types.
+- `symMap`: Custom name mapping from C function names to Go function names.
 
 After creating the configuration file, run:
 
