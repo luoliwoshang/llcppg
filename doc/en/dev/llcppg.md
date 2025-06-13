@@ -501,7 +501,7 @@ linux amd64 `t1_linux_amd64.go`  `t2_linux_amd64.go`
 package xxx
 ```
 
-## Usage
+## Input
 
 ```sh
 llcppg [config-file]
@@ -537,6 +537,46 @@ The configuration file supports the following options:
 - `mix`: Set to true when package header files are mixed with other header files in the same directory. In this mode, only files explicitly listed in `include` are processed as package files.
 - `typeMap`: Custom name mapping from C types to Go types.
 - `symMap`: Custom name mapping from C function names to Go function names.
+
+## Output
+
+After running llcppg, LLGo bindings will be generated in a directory named by `name` field in `llcppg.cfg`,and the `name` field is also the package name of all Go files. The generated file structure is as follows:
+
+### Go Source Files
+
+#### C Header File Corresponding Go File
+
+* A corresponding .go file is generated for each header file listed in the `include` field in `llcppg.cfg`.
+* File names are based on header file names, e.g., cJSON.h generates cJSON.go, cJSON_Utils.h generates cJSON_Utils.go
+
+#### Auto-generated Link File
+
+* Generates a `{name}_autogen_link.go` file containing linking information and necessary imports
+* This file includes the `LLGoPackage` constant to specify the lib link flags from `libs` field in `llcppg.cfg`. for example: `"libs": "$(pkg-config --libs libxslt)"`,will generate:
+
+```json
+{
+  "libs": "$(pkg-config --libs libxslt)"
+}
+```
+```go
+const LLGoPackage string = "link: $(pkg-config --libs libxslt);"
+```
+
+* blank import for every dependency package in `deps` field in `llcppg.cfg`, for example:
+
+```json
+{
+  "deps": ["c/os","github.com/goplus/llpkg/libxml2@v1.0.1"]
+}
+```
+```go
+import (
+	_ "github.com/goplus/lib/c"
+	_ "github.com/goplus/lib/c/os"
+	_ "github.com/goplus/llpkg/libxml2"
+)
+```
 
 ## Process Steps
 
@@ -663,8 +703,6 @@ gogensig is the final component in the pipeline, responsible for converting C/C+
 gogensig pkg-info-file
 gogensig -  # read pkg-info-file from stdin
 ```
-
-### Output
 
 #### Function Generation
 During execution, gogensig only generates functions whose corresponding mangle exists in llcppg.symb.json, determining whether to generate functions/methods with specified Go names by parsing the go field corresponding to the mangle.
