@@ -548,8 +548,9 @@ After running llcppg, LLGo bindings will be generated in a directory named by `n
 
 * A corresponding .go file is generated for each header file listed in the `include` field in `llcppg.cfg`.
 * File names are based on header file names, e.g., cJSON.h generates cJSON.go, cJSON_Utils.h generates cJSON_Utils.go
+* Implementation files are all generated at `{name}_autogen.go` file,determined file type by [Package Header File Determination](#Package-Header-File-Determination)
 
-#### Auto-generated Link File
+#### Auto generated Link File
 
 * Generates a `{name}_autogen_link.go` file containing linking information and necessary imports
 * This file includes the `LLGoPackage` constant to specify the lib link flags from `libs` field in `llcppg.cfg`. for example: `"libs": "$(pkg-config --libs libxslt)"`,will generate:
