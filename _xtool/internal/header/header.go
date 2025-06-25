@@ -11,10 +11,10 @@ import (
 )
 
 type PkgHfilesInfo struct {
-	Inters   []string // From types.Config.Include
-	Impls    []string // From same root of types.Config.Include
-	Thirds   []string // Not Current Pkg's Files
-	PlatDiff []string // Platform Difference Files
+	Inters []string // From types.Config.Include
+	Impls  []string // From same root of types.Config.Include
+	Thirds []string // Not Current Pkg's Files
+	Plats  []string // Platform Difference Files
 }
 
 func (p *PkgHfilesInfo) CurPkgFiles() []string {
@@ -22,8 +22,12 @@ func (p *PkgHfilesInfo) CurPkgFiles() []string {
 }
 
 type Config struct {
+	// Includes specifies the header file include paths to be processed.
+	// These are the paths used in #include directives, such as:
+	// - "zlib.h"
+	// - "openssl/ssl.h"
 	Includes []string
-	// todo(zzy):support platform difference files
+	// PlatDiff specifies header file include paths that differ between platforms,these are include paths in Includes.
 	PlatDiff []string
 	Args     []string
 	Mix      bool
