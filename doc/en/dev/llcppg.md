@@ -469,6 +469,35 @@ func GetNsProp(node libxml2.NodePtr, name *libxml2.Char, nameSpace *libxml2.Char
 ```
 
 ### Cross-Platform Difference Handling
+
+C/C++ libraries often use conditional compilation to provide different implementations for different platforms. This creates platform-specific differences in header file content that must be handled correctly during binding generation.
+
+Consider a simple C library header file that adapts to different platforms:
+
+```c
+// mock_platform.h - Simple cross-platform example
+typedef struct PlatformData {
+    int common_field;
+#ifdef __APPLE__ 
+    int mac_field;
+#elif defined(__linux__)
+    int linux_field;
+#endif
+} PlatformData;
+
+#ifdef __APPLE__
+void mac_function(int x);
+#else  
+void other_function(int x);
+#endif
+```
+
+When llcppg processes this header file, the actual content varies between platforms:
+- **macOS**: The struct contains `mac_field` and `mac_function` is available
+- **Linux**: The struct contains `linux_field` and `other_function` is available
+
+#### Configuration Solution
+
 Use impl.files configuration to handle platform differences:
 ```json
 {
@@ -483,6 +512,11 @@ Use impl.files configuration to handle platform differences:
     ]
 }
 ```
+
+This configuration tells llcppg to generate platform-specific versions of the specified header files, ensuring that the correct platform-specific definitions are used for each target platform.
+
+#### Generated Platform-Specific Files
+
 The generated t1.go & t2.go files will have platform-specific build tags at the beginning:
 macos arm64 t1_macos_arm64.go  t2_macos_arm64.go
 ```go
