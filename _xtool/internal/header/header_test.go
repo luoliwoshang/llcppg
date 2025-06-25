@@ -41,7 +41,11 @@ func TestPkgHfileInfo(t *testing.T) {
 
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
-			info := header.PkgHfileInfo(tc.conf.Include, strings.Fields(tc.conf.CFlags), tc.conf.Mix)
+			info := header.PkgHfileInfo(&header.Config{
+				Includes: tc.conf.Include,
+				Args:     strings.Fields(tc.conf.CFlags),
+				Mix:      tc.conf.Mix,
+			})
 			if !reflect.DeepEqual(info.Inters, tc.want.Inters) {
 				t.Fatalf("inter expected %v, but got %v", tc.want.Inters, info.Inters)
 			}

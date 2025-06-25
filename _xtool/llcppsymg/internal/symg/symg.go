@@ -46,7 +46,11 @@ func Do(conf *Config) (symbolTable []*llcppg.SymbolInfo, err error) {
 		return
 	}
 
-	pkgHfiles := header.PkgHfileInfo(conf.Includes, strings.Fields(conf.CFlags), conf.Mix)
+	pkgHfiles := header.PkgHfileInfo(&header.Config{
+		Includes: conf.Includes,
+		Args:     strings.Fields(conf.CFlags),
+		Mix:      conf.Mix,
+	})
 	if dbgSymbol {
 		fmt.Println("interfaces", pkgHfiles.Inters)
 		fmt.Println("implements", pkgHfiles.Impls)

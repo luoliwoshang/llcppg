@@ -487,7 +487,11 @@ func TestGen(t *testing.T) {
 			defer os.Remove(tempFile.Name())
 			clangtool.ComposeIncludes(cfg.Include, tempFile.Name())
 
-			pkgHfileInfo := header.PkgHfileInfo(cfg.Include, strings.Fields(cfg.CFlags), false)
+			pkgHfileInfo := header.PkgHfileInfo(&header.Config{
+				Includes: cfg.Include,
+				Args:     strings.Fields(cfg.CFlags),
+				Mix:      false,
+			})
 			headerSymbolMap, err := symg.ParseHeaderFile(tempFile.Name(), pkgHfileInfo.CurPkgFiles(), cfg.TrimPrefixes, strings.Fields(cfg.CFlags), cfg.SymMap, cfg.Cplusplus)
 			if err != nil {
 				t.Fatal(err)

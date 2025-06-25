@@ -51,6 +51,7 @@ const (
 	Inter FileType = iota + 1
 	Impl
 	Third
+	Plat
 )
 
 type FileInfo struct {
