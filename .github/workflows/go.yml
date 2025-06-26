@@ -39,14 +39,23 @@ jobs:
       if: startsWith(matrix.os, 'ubuntu')
       run: sudo apt install libcjson-dev
 
+    # only can compile with llgo
     - name: Test xtool
       run: |
         llgo test ./_xtool/internal/...
 
+    # only can compile with llgo
     - name: Test llcppsymg & llcppsigfetch
       run: |
         llgo test ./_xtool/llcppsigfetch/internal/...
         llgo test ./_xtool/llcppsymg/internal/...
+
+    - name: Test For llgo and go
+      run: |
+        llgo test ./config
+        llgo test ./internal/arg
+        llgo test ./internal/name
+
     - name: Test
       if: ${{!startsWith(matrix.os, 'macos')}}
       run: go test -v ./...
