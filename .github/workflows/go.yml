@@ -41,15 +41,7 @@ jobs:
 
     - name: Test xtool
       run: |
-        # llgo test ./_xtool/internal/parser/...
-        # got go/bin/parser.test: exit code -1
-
-        # check exit code outout for temporary fix
-        # with the latest update can exit in llgo test
-        # only with llgo test ./... with llgo update
-        # https://github.com/goplus/llgo/pull/1128
         llgo test ./_xtool/internal/...
-        llgo test ./config
 
     - name: Test llcppsymg & llcppsigfetch
       run: |
