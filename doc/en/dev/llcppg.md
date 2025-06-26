@@ -200,7 +200,7 @@ func (recv_ *Sqlite3) Close() c.Int {
 }
 ```
 
-#### Name Mapping Rules
+### Type Name Mapping
 
 The llcppg name mapping system follows three core principles:
 
@@ -208,11 +208,11 @@ The llcppg name mapping system follows three core principles:
 2. **C Compatibility Preservation**: Maintain clear traceability between C symbols and their Go counterparts
 3. **Conflict Resolution**: Provide deterministic rules for handling naming conflicts and edge cases
 
-##### Mapping Hierarchy
+#### Mapping Hierarchy
 
 The name mapping system applies transformations in a strict priority order:
 
-###### 1. Custom Mappings (Highest Priority)
+##### 1. Custom Mappings (Highest Priority)
 
 Custom mappings in configuration files override all automatic transformations:
 
@@ -227,11 +227,11 @@ Custom mappings in configuration files override all automatic transformations:
 }
 ```
 
-###### 2. Context-Based Mapping
+##### 2. Context-Based Mapping
 
 Different naming contexts require different transformation strategies:
 
-####### Type Name (struct, union, typedef, enum)
+###### Type Name (struct, union, typedef, enum)
 
 1. Remove configured prefixes from `trimPrefixes`
 2. Convert to PascalCase if the name starts with a letter
@@ -252,16 +252,16 @@ Examples which is start with underscore:
 
 * C: `_gmp_err` → Go: `X_gmpErr`
 
-####### Function Name
+###### Function Name
 Follow the same rules as type names, with additional method conversion logic based on symbol table configuration.
 
-####### Field Name
+###### Field Name
 Field names must be exportable (public) in Go to allow external access. The conversion rules:
 
 1. Letter-starting fields: Convert to PascalCase
 2. Underscore/digit-starting fields: Apply public processing, then convert to PascalCase while preserving case after underscores
 
-####### Parameter Name
+###### Parameter Name
 
 Parameter names are preserved in their original style without conversion, with only the following special cases being handled:
 
@@ -309,14 +309,14 @@ char *mprintf(const char*,...);
 func Mprintf(__llgo_arg_0 *c.Char, __llgo_va_list ...interface{}) *c.Char
 ```
 
-###### 3. Automatic Transformations (Lowest Priority)
+##### 3. Automatic Transformations (Lowest Priority)
 
-####### Public Name Processing
+###### Public Name Processing
 Names starting with underscore or digit are prefixed with "X" to create valid Go identifiers.
 
 - `_gmp_err` → `X_gmpErr`
 
-####### Prefix Trimming
+###### Prefix Trimming
 Remove configured prefixes before other transformations:
 ```json
 {
@@ -324,9 +324,12 @@ Remove configured prefixes before other transformations:
 }
 ```
 
+###### Case Conversion
+- **PascalCase**: For exported types and fields
+- **Original preservation**: For parameters and special contexts
 
-######  Special Cases
-#######  Macros and Enums
+#####  Special Cases
+######  Macros and Enums
 For macros and enums after prefix removal:
 
 Letter-starting names: Capitalize first letter only, preserve original format
