@@ -165,7 +165,7 @@ func TestGenDylibPaths(t *testing.T) {
 			}
 
 			if err != nil {
-				t.Fatalf("expected no error, got %w", err)
+				t.Fatalf("expected no error, got %v", err)
 			}
 
 			if !reflect.DeepEqual(notFounds, tc.wantNotFound) {
@@ -187,4 +187,86 @@ func TestGenDylibPaths(t *testing.T) {
 		})
 
 	}
+}
+
+func TestLibModeConfiguration(t *testing.T) {
+	testCases := []struct {
+		name     string
+		libName  string
+		mode     symbol.Mode
+		expected string // expected file extension
+	}{
+		{
+			name:     "Dynamic library mode",
+			libName:  "test",
+			mode:     symbol.ModeDynamic,
+			expected: getExpectedDynamicExt(),
+		},
+		{
+			name:     "Static library mode",
+			libName:  "test",
+			mode:     symbol.ModeStatic,
+			expected: ".a",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tempDir, err := os.MkdirTemp("", "libmode_test")
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer os.RemoveAll(tempDir)
+
+			// Create the expected library file
+			expectedFileName := fmt.Sprintf("lib%s%s", tc.libName, tc.expected)
+			expectedPath := filepath.Join(tempDir, expectedFileName)
+			
+			file, err := os.Create(expectedPath)
+			if err != nil {
+				t.Fatalf("Failed to create test file %s: %v", expectedPath, err)
+			}
+			file.Close()
+
+			// Test that the library can be found with the correct mode
+			foundPath, err := symbol.FindLibFile(tempDir, tc.libName, tc.mode)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if foundPath != expectedPath {
+				t.Errorf("Expected path %s, got %s", expectedPath, foundPath)
+			}
+
+			// Test that the Libs.Files method respects the mode
+			libs := &symg.Libs{
+				Paths: []string{tempDir},
+				Names: []string{tc.libName},
+			}
+
+			foundPaths, notFound, err := libs.Files([]string{}, tc.mode)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if len(notFound) > 0 {
+				t.Errorf("Expected no missing libraries, but found: %v", notFound)
+			}
+
+			if len(foundPaths) != 1 {
+				t.Errorf("Expected 1 library path, got %d", len(foundPaths))
+			}
+
+			if foundPaths[0] != expectedPath {
+				t.Errorf("Expected path %s, got %s", expectedPath, foundPaths[0])
+			}
+		})
+	}
+}
+
+func getExpectedDynamicExt() string {
+	if runtime.GOOS == "linux" {
+		return ".so"
+	}
+	return ".dylib"
 }

@@ -37,11 +37,11 @@ type Config struct {
 	TrimPrefixes []string
 	SymMap       map[string]string
 	IsCpp        bool
-	libMode      LibMode
+	LibMode      LibMode
 }
 
 func Do(conf *Config) (symbolTable []*llcppg.SymbolInfo, err error) {
-	symbols, err := fetchSymbols(conf.Libs, conf.libMode)
+	symbols, err := fetchSymbols(conf.Libs, conf.LibMode)
 	if err != nil {
 		return
 	}
