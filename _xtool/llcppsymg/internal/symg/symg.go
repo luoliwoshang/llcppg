@@ -10,6 +10,7 @@ import (
 	"github.com/goplus/llcppg/_xtool/internal/clangtool"
 	"github.com/goplus/llcppg/_xtool/internal/header"
 	"github.com/goplus/llcppg/_xtool/internal/ld"
+	"github.com/goplus/llcppg/_xtool/internal/symbol"
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/goplus/llgo/xtool/nm"
 )
@@ -117,7 +118,7 @@ func fetchSymbols(lib string, mode LibMode) ([]*nm.Symbol, error) {
 
 	for _, libFile := range libFiles {
 		args := []string{"-g"}
-		if runtime.GOOS == "linux" {
+		if runtime.GOOS == "linux" && mode == symbol.ModeDynamic {
 			args = append(args, "-D")
 		}
 
