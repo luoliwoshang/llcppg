@@ -2,36 +2,36 @@ package main
 
 import (
 	"unsafe"
-	"zlib-static"
+	"zlibstatic"
 
 	"github.com/goplus/lib/c"
 )
 
 func main() {
 	txt := []byte("zlib is a software library used for data compression. It was created by Jean-loup Gailly and Mark Adler and first released in 1995. zlib is designed to be a free, legally unencumbered—that is, not covered by any patents—alternative to the proprietary DEFLATE compression algorithm, which is often used in software applications for data compression.The library provides functions to compress and decompress data using the DEFLATE algorithm, which is a combination of the LZ77 algorithm and Huffman coding. zlib is notable for its versatility; it can be used in a wide range of applications, from web servers and web clients compressing HTTP data, to the compression of data for storage or transmission in various file formats, such as PNG, ZIP, and GZIP.")
-	txtLen := zlib_static.ULong(len(txt))
+	txtLen := zlibstatic.ULong(len(txt))
 
-	cmpSize := zlib_static.ULongf(zlib_static.CompressBound(txtLen))
+	cmpSize := zlibstatic.ULongf(zlibstatic.CompressBound(txtLen))
 	cmpData := make([]byte, int(cmpSize))
-	data := (*zlib_static.Bytef)(unsafe.Pointer(unsafe.SliceData(cmpData)))
-	txtData := (*zlib_static.Bytef)(unsafe.Pointer(unsafe.SliceData(txt)))
+	data := (*zlibstatic.Bytef)(unsafe.Pointer(unsafe.SliceData(cmpData)))
+	txtData := (*zlibstatic.Bytef)(unsafe.Pointer(unsafe.SliceData(txt)))
 
-	res := zlib_static.Compress(data, &cmpSize, txtData, txtLen)
-	if res != zlib_static.OK {
+	res := zlibstatic.Compress(data, &cmpSize, txtData, txtLen)
+	if res != zlibstatic.OK {
 		c.Printf(c.Str("\nCompression failed: %d\n"), res)
 		return
 	}
 
 	c.Printf(c.Str("Text length = %d, Compressed size = %d\n"), txtLen, cmpSize)
 
-	ucmpSize := zlib_static.ULongf(txtLen)
+	ucmpSize := zlibstatic.ULongf(txtLen)
 	ucmp := make([]byte, int(ucmpSize))
-	ucmpPtr := (*zlib_static.Bytef)(unsafe.Pointer(unsafe.SliceData(ucmp)))
+	ucmpPtr := (*zlibstatic.Bytef)(unsafe.Pointer(unsafe.SliceData(ucmp)))
 
-	unRes := zlib_static.Uncompress(ucmpPtr, &ucmpSize, data, zlib_static.ULong(cmpSize))
+	unRes := zlibstatic.Uncompress(ucmpPtr, &ucmpSize, data, zlibstatic.ULong(cmpSize))
 	c.Printf(c.Str("Decompression result = %d, Decompressed size %d\n"), unRes, ucmpSize)
 
-	if unRes != zlib_static.OK {
+	if unRes != zlibstatic.OK {
 		c.Printf(c.Str("\nDecompression failed: %d\n"), unRes)
 		return
 	}
