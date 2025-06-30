@@ -127,14 +127,14 @@ func TestGetConfByByte(t *testing.T) {
 		  "cflags": "-I/opt/homebrew/include",
 		  "include": ["mylib.h"],
 		  "libs": "-L/opt/homebrew/lib -lmylib",
-		  "libstatic": true
+		  "staticLib": true
 		}`,
 			expect: llconfig.Config{
 				Name:      "mylib",
 				CFlags:    "-I/opt/homebrew/include",
 				Include:   []string{"mylib.h"},
 				Libs:      "-L/opt/homebrew/lib -lmylib",
-				LibStatic: true,
+				StaticLib: true,
 			},
 			mode: useFile,
 		},

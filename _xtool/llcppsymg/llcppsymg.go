@@ -66,7 +66,7 @@ func main() {
 	}
 
 	libMode := symbol.ModeDynamic
-	if conf.LibStatic {
+	if conf.StaticLib {
 		libMode = symbol.ModeStatic
 	}
 

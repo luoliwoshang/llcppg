@@ -176,7 +176,7 @@ func testFrom(t *testing.T, tc testCase, isStatic bool, gen bool) {
 	cfgPath := filepath.Join(wd, tc.dir, tc.pkg.Name, config.LLCPPG_CFG)
 	processCfgPath := filepath.Join(resultDir, config.LLCPPG_CFG)
 
-	// when isStatic is true, replace the libstatic=False to libstatic=True
+	// when isStatic is true, replace the staticLib=False to staticLib=True
 	if !isStatic {
 		copyFile(cfgPath, processCfgPath)
 	} else {
@@ -189,7 +189,7 @@ func testFrom(t *testing.T, tc testCase, isStatic bool, gen bool) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		cfg["libstatic"] = true
+		cfg["staticLib"] = true
 		cfgContent, err = json.Marshal(cfg)
 		if err != nil {
 			t.Fatal(err)
