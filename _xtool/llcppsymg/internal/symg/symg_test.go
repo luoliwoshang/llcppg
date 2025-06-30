@@ -569,57 +569,103 @@ const char* test_function_3(void) {
 	}
 	defer os.Remove(cSourcePath)
 
-	var libPath string
-	var compileCmd []string
+	testCases := []struct {
+		name   string
+		mode   symbol.Mode
+		libExt string
+	}{
+		{
+			name:   "Dynamic Library",
+			mode:   symbol.ModeDynamic,
+			libExt: getDynamicLibExt(),
+		},
+		{
+			name:   "Static Library",
+			mode:   symbol.ModeStatic,
+			libExt: ".a",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			libPath := filepath.Join(tempDir, "libtest"+tc.libExt)
+			var compileCmd []string
+
+			if tc.mode == symbol.ModeDynamic {
+				if runtime.GOOS == "darwin" {
+					compileCmd = []string{"clang", "-shared", "-fPIC", "-o", libPath, cSourcePath}
+				} else if runtime.GOOS == "linux" {
+					compileCmd = []string{"gcc", "-shared", "-fPIC", "-o", libPath, cSourcePath}
+				} else {
+					t.Fatal("Unsupported platform for this test")
+				}
+			} else { // ModeStatic
+				objPath := filepath.Join(tempDir, "test.o")
+				if runtime.GOOS == "darwin" {
+					compileCmd = []string{"clang", "-c", "-o", objPath, cSourcePath}
+				} else if runtime.GOOS == "linux" {
+					compileCmd = []string{"gcc", "-c", "-o", objPath, cSourcePath}
+				} else {
+					t.Fatal("Unsupported platform for this test")
+				}
+
+				cmd := exec.Command(compileCmd[0], compileCmd[1:]...)
+				output, err := cmd.CombinedOutput()
+				if err != nil {
+					t.Fatalf("Failed to compile object file: %v\nOutput: %s", err, output)
+				}
+
+				compileCmd = []string{"ar", "rcs", libPath, objPath}
+			}
+
+			cmd := exec.Command(compileCmd[0], compileCmd[1:]...)
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				t.Fatalf("Failed to compile test library: %v\nOutput: %s", err, output)
+			}
+
+			if _, err := os.Stat(libPath); os.IsNotExist(err) {
+				t.Fatalf("%s library was not created", tc.name)
+			}
+
+			libDir := tempDir
+			libFlag := fmt.Sprintf("-L%s -ltest", libDir)
+
+			symbols, err := symg.FetchSymbols(libFlag, tc.mode)
+			if err != nil {
+				t.Fatalf("FetchSymbols failed: %v", err)
+			}
+
+			if len(symbols) == 0 {
+				t.Fatal("No symbols found")
+			}
+
+			expectedSymbols := []string{"test_function_1", "test_function_2", "test_function_3"}
+			foundSymbols := make(map[string]bool)
+
+			for _, sym := range symbols {
+				// On Darwin, symbols have '_' prefix, so trim it
+				symName := sym.Name
+				if runtime.GOOS == "darwin" {
+					symName = strings.TrimPrefix(symName, "_")
+				}
+				foundSymbols[symName] = true
+			}
+
+			for _, expected := range expectedSymbols {
+				if !foundSymbols[expected] {
+					t.Errorf("Expected symbol %s not found in library symbols", expected)
+				}
+			}
+
+			fmt.Printf("Successfully found %d symbols including expected test functions\n", len(symbols))
+		})
+	}
+}
+
+func getDynamicLibExt() string {
 	if runtime.GOOS == "darwin" {
-		libPath = filepath.Join(tempDir, "libtest.dylib")
-		compileCmd = []string{"clang", "-shared", "-fPIC", "-o", libPath, cSourcePath}
-	} else if runtime.GOOS == "linux" {
-		libPath = filepath.Join(tempDir, "libtest.so")
-		compileCmd = []string{"gcc", "-shared", "-fPIC", "-o", libPath, cSourcePath}
-	} else {
-		t.Skip("Unsupported platform for this test")
+		return ".dylib"
 	}
-
-	cmd := exec.Command(compileCmd[0], compileCmd[1:]...)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("Failed to compile test library: %v\nOutput: %s", err, output)
-	}
-
-	if _, err := os.Stat(libPath); os.IsNotExist(err) {
-		t.Fatal("Dynamic library was not created")
-	}
-
-	libDir := tempDir
-	libFlag := fmt.Sprintf("-L%s -ltest", libDir)
-
-	symbols, err := symg.FetchSymbols(libFlag, symbol.ModeDynamic)
-	if err != nil {
-		t.Fatalf("FetchSymbols failed: %v", err)
-	}
-
-	if len(symbols) == 0 {
-		t.Fatal("No symbols found")
-	}
-
-	expectedSymbols := []string{"test_function_1", "test_function_2", "test_function_3"}
-	foundSymbols := make(map[string]bool)
-
-	for _, sym := range symbols {
-		// On Darwin, symbols have '_' prefix, so trim it
-		symName := sym.Name
-		if runtime.GOOS == "darwin" {
-			symName = strings.TrimPrefix(symName, "_")
-		}
-		foundSymbols[symName] = true
-	}
-
-	for _, expected := range expectedSymbols {
-		if !foundSymbols[expected] {
-			t.Errorf("Expected symbol %s not found in library symbols", expected)
-		}
-	}
-
-	t.Logf("Successfully found %d symbols including expected test functions", len(symbols))
+	return ".so"
 }
