@@ -1,8 +1,10 @@
 package _cmptest
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -114,7 +116,7 @@ var mkdirTempLazily = sync.OnceValue(func() string {
 	return dir
 })
 
-func logFile(tc testCase) (*os.File, error) {
+func logFile(tc testCase, isStatic bool) (*os.File, error) {
 	caseName := fmt.Sprintf("%s-%s-llcppg-%s-%s", runtime.GOOS, runtime.GOARCH, tc.pkg.Name, tc.pkg.Version)
 	dirPath := filepath.Join(mkdirTempLazily(), caseName)
 
@@ -123,6 +125,9 @@ func logFile(tc testCase) (*os.File, error) {
 		return nil, err
 	}
 
+	if isStatic {
+		return os.Create(filepath.Join(dirPath, fmt.Sprintf("%s-static.log", caseName)))
+	}
 	return os.Create(filepath.Join(dirPath, fmt.Sprintf("%s.log", caseName)))
 }
 
@@ -131,13 +136,23 @@ func TestEnd2End(t *testing.T) {
 		tc := tc
 		t.Run(fmt.Sprintf("%s/%s", tc.pkg.Name, tc.pkg.Version), func(t *testing.T) {
 			t.Parallel()
-			testFrom(t, tc, false)
+			testFrom(t, tc, false, false)
+		})
+		t.Run(fmt.Sprintf("%s/%s-static", tc.pkg.Name, tc.pkg.Version), func(t *testing.T) {
+			t.Parallel()
+			testFrom(t, tc, true, false)
 		})
 	}
 }
 
-func testFrom(t *testing.T, tc testCase, gen bool) {
-	logFile, err := logFile(tc)
+func testFrom(t *testing.T, tc testCase, isStatic bool, gen bool) {
+	null, err := os.OpenFile(os.DevNull, os.O_RDWR, 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer null.Close()
+
+	logFile, err := logFile(tc, isStatic)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -160,10 +175,42 @@ func testFrom(t *testing.T, tc testCase, gen bool) {
 
 	cfgPath := filepath.Join(wd, tc.dir, tc.pkg.Name, config.LLCPPG_CFG)
 	processCfgPath := filepath.Join(resultDir, config.LLCPPG_CFG)
-	copyFile(cfgPath, processCfgPath)
+
+	// when isStatic is true, replace the libstatic=False to libstatic=True
+	if !isStatic {
+		copyFile(cfgPath, processCfgPath)
+	} else {
+		cfgContent, err := os.ReadFile(cfgPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var cfg map[string]interface{}
+		err = json.Unmarshal(cfgContent, &cfg)
+		if err != nil {
+			t.Fatal(err)
+		}
+		cfg["libstatic"] = true
+		cfgContent, err = json.Marshal(cfg)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = os.WriteFile(processCfgPath, cfgContent, os.ModePerm)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if tc.config == nil {
+		tc.config = make(map[string]string)
+	}
+
+	conanOpt := maps.Clone(tc.config)
+	if isStatic {
+		conanOpt["options"] = "*:shared=False " + conanOpt["options"]
+	}
 
 	conanInstallMutex.Lock()
-	_, err = conan.NewConanInstaller(tc.config).Install(tc.pkg, conanDir)
+	_, err = conan.NewConanInstaller(conanOpt).Install(tc.pkg, conanDir)
 	conanInstallMutex.Unlock()
 	if err != nil {
 		t.Fatal(err)
@@ -180,7 +227,7 @@ func testFrom(t *testing.T, tc testCase, gen bool) {
 
 	// llcppg.symb.json is a middle file
 	os.Remove(filepath.Join(resultDir, config.LLCPPG_SYMB))
-	copyFile(processCfgPath, filepath.Join(resultDir, tc.pkg.Name, config.LLCPPG_CFG))
+	copyFile(cfgPath, filepath.Join(resultDir, tc.pkg.Name, config.LLCPPG_CFG))
 
 	if gen {
 		os.RemoveAll(dir)
