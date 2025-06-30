@@ -559,7 +559,8 @@ If `config-file` is not specified, a `llcppg.cfg` file is used in current direct
   "trimPrefixes": ["Ini", "INI"],
   "cplusplus":true,
   "deps":["c","github.com/..../third"],
-  "mix":false 
+  "mix":false,
+  "staticLib": false
 }
 ```
 
@@ -575,6 +576,7 @@ The configuration file supports the following options:
 - `mix`: Set to true when package header files are mixed with other header files in the same directory. In this mode, only files explicitly listed in `include` are processed as package files.
 - `typeMap`: Custom name mapping from C types to Go types.
 - `symMap`: Custom name mapping from C function names to Go function names.
+- `staticLib`: Set to true to enable static library symbol reading instead of dynamic library linking. When enabled, llcppg will read symbols from static libraries (.a files) rather than dynamic libraries (.so/.dylib files).
 
 ## Output
 
@@ -670,11 +672,18 @@ llcppsymg config-file
 llcppsymg -  # read config from stdin
 ```
 
-llcppsymg is the symbol table generator in the llcppg toolchain, responsible for analyzing C/C++ dynamic libraries and header files to generate symbol mapping tables. Its main functions are:
+llcppsymg is the symbol table generator in the llcppg toolchain, responsible for analyzing C/C++ libraries (dynamic or static) and header files to generate symbol mapping tables. Its main functions are:
 
-1. Parse dynamic library symbols: Extract exported symbols from libraries using the nm tool
+1. Parse library symbols: Extract exported symbols from libraries using the nm tool
 2. Parse header file declarations: Analyze C/C++ header files using libclang for function declarations
 3. Find intersection: Match library symbols with header declarations and then generate symbol table named `llcppg.symb.json`.
+
+#### Static Library Support
+
+When `staticLib: true` is configured in `llcppg.cfg`, llcppsymg switches to static library mode:
+
+- **Dynamic Library Mode (default)**: Uses nm tool to extract symbols from .so/.dylib files
+- **Static Library Mode**: Uses nm tool to extract symbols from .a files
 
 #### Symbol Table
 

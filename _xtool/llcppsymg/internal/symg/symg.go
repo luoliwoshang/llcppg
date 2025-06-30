@@ -42,7 +42,7 @@ type Config struct {
 }
 
 func Do(conf *Config) (symbolTable []*llcppg.SymbolInfo, err error) {
-	symbols, err := fetchSymbols(conf.Libs, conf.LibMode)
+	symbols, err := FetchSymbols(conf.Libs, conf.LibMode)
 	if err != nil {
 		return
 	}
@@ -83,7 +83,7 @@ func Do(conf *Config) (symbolTable []*llcppg.SymbolInfo, err error) {
 // libraries (like standard libs) are logged as warnings.
 //
 // Returns symbols and nil error if any symbols are found, or nil and error if none found.
-func fetchSymbols(lib string, mode LibMode) ([]*nm.Symbol, error) {
+func FetchSymbols(lib string, mode LibMode) ([]*nm.Symbol, error) {
 	if dbgSymbol {
 		fmt.Println("fetchSymbols:from", lib)
 	}
@@ -101,7 +101,7 @@ func fetchSymbols(lib string, mode LibMode) ([]*nm.Symbol, error) {
 
 	libFiles, notFounds, err := lbs.Files(sysPaths, mode)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate some dylib paths: %v", err)
+		return nil, fmt.Errorf("failed to generate some lib paths: %v", err)
 	}
 
 	if dbgSymbol {
@@ -124,7 +124,7 @@ func fetchSymbols(lib string, mode LibMode) ([]*nm.Symbol, error) {
 
 		files, err := nm.New("llvm-nm").List(libFile, args...)
 		if err != nil {
-			parseErrors = append(parseErrors, fmt.Sprintf("fetchSymbols:Failed to list symbols in dylib %s: %v", libFile, err))
+			parseErrors = append(parseErrors, fmt.Sprintf("fetchSymbols:Failed to list symbols in lib %s: %v", libFile, err))
 			continue
 		}
 
