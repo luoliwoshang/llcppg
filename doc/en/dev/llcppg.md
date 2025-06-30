@@ -559,7 +559,8 @@ If `config-file` is not specified, a `llcppg.cfg` file is used in current direct
   "trimPrefixes": ["Ini", "INI"],
   "cplusplus":true,
   "deps":["c","github.com/..../third"],
-  "mix":false 
+  "mix":false,
+  "staticLib": false
 }
 ```
 
@@ -575,6 +576,7 @@ The configuration file supports the following options:
 - `mix`: Set to true when package header files are mixed with other header files in the same directory. In this mode, only files explicitly listed in `include` are processed as package files.
 - `typeMap`: Custom name mapping from C types to Go types.
 - `symMap`: Custom name mapping from C function names to Go function names.
+- `staticLib`: Set to true to enable static library symbol reading instead of dynamic library linking. When enabled, llcppg will read symbols from static libraries (.a files) rather than dynamic libraries (.so/.dylib files).
 
 ## Output
 
