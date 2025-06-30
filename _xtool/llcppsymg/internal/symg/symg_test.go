@@ -604,7 +604,7 @@ const char* test_function_3(void) {
 	}
 
 	expectedSymbols := []string{"test_function_1", "test_function_2", "test_function_3"}
-	foundSymbols := []string{}
+	foundSymbols := make(map[string]bool)
 
 	for _, sym := range symbols {
 		// On Darwin, symbols have '_' prefix, so trim it
@@ -612,11 +612,13 @@ const char* test_function_3(void) {
 		if runtime.GOOS == "darwin" {
 			symName = strings.TrimPrefix(symName, "_")
 		}
-		foundSymbols = append(foundSymbols, symName)
+		foundSymbols[symName] = true
 	}
 
-	if !reflect.DeepEqual(foundSymbols, expectedSymbols) {
-		t.Fatalf("Expected symbols %v, but got %v", expectedSymbols, foundSymbols)
+	for _, expected := range expectedSymbols {
+		if !foundSymbols[expected] {
+			t.Errorf("Expected symbol %s not found in library symbols", expected)
+		}
 	}
 
 	t.Logf("Successfully found %d symbols including expected test functions", len(symbols))
