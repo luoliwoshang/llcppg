@@ -672,11 +672,18 @@ llcppsymg config-file
 llcppsymg -  # read config from stdin
 ```
 
-llcppsymg is the symbol table generator in the llcppg toolchain, responsible for analyzing C/C++ dynamic libraries and header files to generate symbol mapping tables. Its main functions are:
+llcppsymg is the symbol table generator in the llcppg toolchain, responsible for analyzing C/C++ libraries (dynamic or static) and header files to generate symbol mapping tables. Its main functions are:
 
-1. Parse dynamic library symbols: Extract exported symbols from libraries using the nm tool
+1. Parse library symbols: Extract exported symbols from libraries using the nm tool
 2. Parse header file declarations: Analyze C/C++ header files using libclang for function declarations
 3. Find intersection: Match library symbols with header declarations and then generate symbol table named `llcppg.symb.json`.
+
+#### Static Library Support
+
+When `staticLib: true` is configured in `llcppg.cfg`, llcppsymg switches to static library mode:
+
+- **Dynamic Library Mode (default)**: Uses nm tool to extract symbols from .so/.dylib files
+- **Static Library Mode**: Uses nm tool to extract symbols from .a files
 
 #### Symbol Table
 
