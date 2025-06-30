@@ -470,7 +470,7 @@ func TestGen(t *testing.T) {
 		{
 			name: "include",
 			path: "./testdata/include",
-			dylibSymbols: []string{
+			libSymbols: []string{
 				"Foo",
 				"Foo_Bar",
 				"Foo_Conf",
