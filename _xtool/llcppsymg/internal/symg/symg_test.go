@@ -73,13 +73,13 @@ func TestGenMethodName(t *testing.T) {
 func TestGetCommonSymbols(t *testing.T) {
 	testCases := []struct {
 		name          string
-		dylibSymbols  []*nm.Symbol
+		libSymbols    []*nm.Symbol
 		headerSymbols map[string]*symg.SymbolInfo
 		expect        []*llcppg.SymbolInfo
 	}{
 		{
 			name: "Lua symbols",
-			dylibSymbols: []*nm.Symbol{
+			libSymbols: []*nm.Symbol{
 				{Name: addSymbolPrefixUnder("lua_absindex", false)},
 				{Name: addSymbolPrefixUnder("lua_arith", false)},
 				{Name: addSymbolPrefixUnder("lua_atpanic", false)},
@@ -102,7 +102,7 @@ func TestGetCommonSymbols(t *testing.T) {
 		},
 		{
 			name: "INIReader and Std library symbols",
-			dylibSymbols: []*nm.Symbol{
+			libSymbols: []*nm.Symbol{
 				{Name: addSymbolPrefixUnder("ZNK9INIReader12GetInteger64ERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_x", true)},
 				{Name: addSymbolPrefixUnder("ZNK9INIReader7GetRealERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEES8_d", true)},
 				{Name: addSymbolPrefixUnder("ZNK9INIReader10ParseErrorEv", true)},
@@ -124,7 +124,7 @@ func TestGetCommonSymbols(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			commonSymbols := symg.GetCommonSymbols(tc.dylibSymbols, tc.headerSymbols)
+			commonSymbols := symg.GetCommonSymbols(tc.libSymbols, tc.headerSymbols)
 			if !reflect.DeepEqual(commonSymbols, tc.expect) {
 				t.Fatalf("expect %v, but got %v", tc.expect, commonSymbols)
 			}
@@ -381,14 +381,14 @@ class INIReader {
 func TestGen(t *testing.T) {
 	gen := false
 	testCases := []struct {
-		name         string
-		path         string
-		dylibSymbols []string
+		name       string
+		path       string
+		libSymbols []string
 	}{
 		{
 			name: "c",
 			path: "./testdata/c",
-			dylibSymbols: []string{
+			libSymbols: []string{
 				"Foo_Print",
 				"Foo_ParseWithLength",
 				"Foo_Delete",
@@ -410,7 +410,7 @@ func TestGen(t *testing.T) {
 		{
 			name: "cpp",
 			path: "./testdata/cpp",
-			dylibSymbols: []string{
+			libSymbols: []string{
 				"ZN3FooC1EPKc",
 				"ZN3FooC1EPKcl",
 				"ZN3FooD1Ev",
@@ -422,7 +422,7 @@ func TestGen(t *testing.T) {
 		{
 			name: "inireader",
 			path: "./testdata/inireader",
-			dylibSymbols: []string{
+			libSymbols: []string{
 				"ZN9INIReaderC1EPKc",
 				"ZN9INIReaderC1EPKcl",
 				"ZN9INIReaderD1Ev",
@@ -433,7 +433,7 @@ func TestGen(t *testing.T) {
 		{
 			name: "lua",
 			path: "./testdata/lua",
-			dylibSymbols: []string{
+			libSymbols: []string{
 				"lua_error",
 				"lua_next",
 				"lua_concat",
@@ -443,7 +443,7 @@ func TestGen(t *testing.T) {
 		{
 			name: "cjson",
 			path: "./testdata/cjson",
-			dylibSymbols: []string{
+			libSymbols: []string{
 				"cJSON_Print",
 				"cJSON_ParseWithLength",
 				"cJSON_Delete",
@@ -454,14 +454,14 @@ func TestGen(t *testing.T) {
 		{
 			name: "isl",
 			path: "./testdata/isl",
-			dylibSymbols: []string{
+			libSymbols: []string{
 				"isl_pw_qpolynomial_get_ctx",
 			},
 		},
 		{
 			name: "gpgerror",
 			path: "./testdata/gpgerror",
-			dylibSymbols: []string{
+			libSymbols: []string{
 				"gpg_strsource",
 				"gpg_strerror_r",
 				"gpg_strerror",
@@ -500,11 +500,11 @@ func TestGen(t *testing.T) {
 			}
 
 			// trim to nm symbols
-			var dylibsymbs []*nm.Symbol
-			for _, symb := range tc.dylibSymbols {
-				dylibsymbs = append(dylibsymbs, &nm.Symbol{Name: addSymbolPrefixUnder(symb, cfg.Cplusplus)})
+			var libSymbols []*nm.Symbol
+			for _, symb := range tc.libSymbols {
+				libSymbols = append(libSymbols, &nm.Symbol{Name: addSymbolPrefixUnder(symb, cfg.Cplusplus)})
 			}
-			symbols := symg.GetCommonSymbols(dylibsymbs, headerSymbolMap)
+			symbols := symg.GetCommonSymbols(libSymbols, headerSymbolMap)
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -28,9 +28,9 @@ func ParseLibs(libs string) *Libs {
 type LibMode = symbol.Mode
 
 // searches for each library name in the provided paths and default paths,
-// appending the appropriate file extension (.dylib for macOS, .so for Linux).
+// appending the appropriate file extension (.dylib for macOS, .so for Linux at dylib mode, .a for static mode).
 //
-// Example: For "-L/opt/homebrew/lib -llua -lm":
+// Example: For "-L/opt/homebrew/lib -llua -lm" and at dylib mode:
 // - It will search for liblua.dylib (on macOS) or liblua.so (on Linux)
 // - System libs like -lm are ignored and included in notFound
 //
