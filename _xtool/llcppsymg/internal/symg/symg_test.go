@@ -549,10 +549,8 @@ func TestFetchSymbols(t *testing.T) {
 	// defer os.RemoveAll(tempDir)
 
 	cSource := `
-#include <stdio.h>
-
 void test_function_1(void) {
-    printf("test function 1\n");
+	return;
 }
 
 int test_function_2(int x) {
@@ -606,7 +604,7 @@ const char* test_function_3(void) {
 	}
 
 	expectedSymbols := []string{"test_function_1", "test_function_2", "test_function_3"}
-	foundSymbols := make(map[string]bool)
+	foundSymbols := []string{}
 
 	for _, sym := range symbols {
 		// On Darwin, symbols have '_' prefix, so trim it
@@ -614,13 +612,11 @@ const char* test_function_3(void) {
 		if runtime.GOOS == "darwin" {
 			symName = strings.TrimPrefix(symName, "_")
 		}
-		foundSymbols[symName] = true
+		foundSymbols = append(foundSymbols, symName)
 	}
 
-	for _, expected := range expectedSymbols {
-		if !foundSymbols[expected] {
-			t.Errorf("Expected symbol %s not found in library symbols", expected)
-		}
+	if !reflect.DeepEqual(foundSymbols, expectedSymbols) {
+		t.Fatalf("Expected symbols %v, but got %v", expectedSymbols, foundSymbols)
 	}
 
 	t.Logf("Successfully found %d symbols including expected test functions", len(symbols))
