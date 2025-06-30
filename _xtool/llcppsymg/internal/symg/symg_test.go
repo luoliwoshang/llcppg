@@ -571,14 +571,14 @@ const char* test_function_3(void) {
 	}
 	defer os.Remove(cSourcePath)
 
-	var dylibPath string
+	var libPath string
 	var compileCmd []string
 	if runtime.GOOS == "darwin" {
-		dylibPath = filepath.Join(tempDir, "libtest.dylib")
-		compileCmd = []string{"clang", "-shared", "-fPIC", "-o", dylibPath, cSourcePath}
+		libPath = filepath.Join(tempDir, "libtest.dylib")
+		compileCmd = []string{"clang", "-shared", "-fPIC", "-o", libPath, cSourcePath}
 	} else if runtime.GOOS == "linux" {
-		dylibPath = filepath.Join(tempDir, "libtest.so")
-		compileCmd = []string{"gcc", "-shared", "-fPIC", "-o", dylibPath, cSourcePath}
+		libPath = filepath.Join(tempDir, "libtest.so")
+		compileCmd = []string{"gcc", "-shared", "-fPIC", "-o", libPath, cSourcePath}
 	} else {
 		t.Skip("Unsupported platform for this test")
 	}
@@ -589,7 +589,7 @@ const char* test_function_3(void) {
 		t.Fatalf("Failed to compile test library: %v\nOutput: %s", err, output)
 	}
 
-	if _, err := os.Stat(dylibPath); os.IsNotExist(err) {
+	if _, err := os.Stat(libPath); os.IsNotExist(err) {
 		t.Fatal("Dynamic library was not created")
 	}
 
