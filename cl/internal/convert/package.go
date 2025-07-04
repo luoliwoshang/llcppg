@@ -98,9 +98,7 @@ func NewPackage(pnc nc.NodeConverter, config *PackageConfig) (*Package, error) {
 
 	// allow have not lib command
 	if p.conf.LibCommand != "" {
-		if err := p.initLink(p.conf.LibCommand); err != nil {
-			return nil, fmt.Errorf("failed to init link: %w", err)
-		}
+		p.initLink(p.conf.LibCommand)
 	}
 
 	p.markUseDeps(pkgManager)
@@ -711,14 +709,10 @@ func (p *Package) autoLinkFile() string {
 	return p.conf.Name + "_autogen_link.go"
 }
 
-func (p *Package) initLink(lib string) (err error) {
-	_, err = p.p.SetCurFile(p.autoLinkFile(), true)
-	if err != nil {
-		return fmt.Errorf("failed to set current file: %w", err)
-	}
+func (p *Package) initLink(lib string) {
+	p.p.SetCurFile(p.autoLinkFile(), true)
 	linkString := fmt.Sprintf("link: %s;", lib)
 	p.p.CB().NewConstStart(types.Typ[types.String], "LLGoPackage").Val(linkString).EndInit(1)
-	return
 }
 
 func (p *Package) deferTypeBuild() error {
