@@ -116,7 +116,7 @@ func (p *Package) Pkg() *gogen.Package {
 
 func (p *Package) markUseDeps(pkgMgr *PkgDepLoader) {
 	defer p.p.RestoreCurFile(p.p.CurFile())
-	p.p.SetCurFile(p.autoLinkFile(), true)
+	p.setCurFile(p.autoLinkFile())
 	pkgs, err := pkgMgr.Imports(p.conf.Deps)
 	if err != nil {
 		log.Panicf("failed to import deps: %s", err.Error())
@@ -133,8 +133,7 @@ func (p *Package) LookupFunc(goName string, fn *ast.FuncDecl) (*GoFuncSpec, erro
 
 // to keep the unsafe package load to use go:linkname command
 func (p *Package) setGoFile(goFile string) {
-	p.p.SetCurFile(goFile, true)
-	// todo(zzy):avoid remark
+	p.setCurFile(goFile)
 	p.p.Unsafe().MarkForceUsed(p.p)
 }
 
@@ -710,9 +709,16 @@ func (p *Package) autoLinkFile() string {
 }
 
 func (p *Package) initLink(lib string) {
-	p.p.SetCurFile(p.autoLinkFile(), true)
+	p.setCurFile(p.autoLinkFile())
 	linkString := fmt.Sprintf("link: %s;", lib)
 	p.p.CB().NewConstStart(types.Typ[types.String], "LLGoPackage").Val(linkString).EndInit(1)
+}
+
+func (p *Package) setCurFile(goFile string) {
+	_, err := p.p.SetCurFile(goFile, true)
+	if err != nil {
+		log.Panicf("setCurFile: %s fail: %v", goFile, err)
+	}
 }
 
 func (p *Package) deferTypeBuild() error {
