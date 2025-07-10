@@ -297,6 +297,11 @@ func (ct *Converter) ProcessType(t clang.Type) ast.Expr {
 	typeName, typeKind := getTypeDesc(t)
 	ct.logln("ProcessType: TypeName:", typeName, "TypeKind:", typeKind)
 
+	if t.Kind == clang.TypeUnexposed {
+		// https://github.com/goplus/llcppg/issues/497
+		return ct.ProcessType(t.CanonicalType())
+	}
+
 	if t.Kind >= clang.TypeFirstBuiltin && t.Kind <= clang.TypeLastBuiltin {
 		return ct.ProcessBuiltinType(t)
 	}
