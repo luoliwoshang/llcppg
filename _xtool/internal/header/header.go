@@ -1,7 +1,6 @@
 package header
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -69,7 +68,6 @@ func PkgHfileInfo(conf *Config) *PkgHfilesInfo {
 		if depth > 1 && !inter {
 			others = append(others, filename)
 		}
-		fmt.Println(filename, depth)
 	}
 
 	for _, f := range conf.Includes {
