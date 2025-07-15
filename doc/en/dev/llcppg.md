@@ -170,6 +170,8 @@ When a C function could be a Go method, llcppg automatically converts the functi
 
 Since Go's `//go:linkname` directive doesn't support methods, llgo uses `// llgo:link` to mark the connection between methods and C symbols.And generated methods return zero values of their return types as placeholders.
 
+And LLGo should not treat C functions with variable parameters as methods. Variadic functions (those using ... in their parameter list) will be generated as regular Go functions rather than methods, even if they otherwise meet the criteria for method conversion.
+
 * value receiver
 
 ```c
