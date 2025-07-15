@@ -196,10 +196,13 @@ func (p *Package) handleFuncDecl(fnSpec *GoFuncSpec, beMethod bool, sig *types.S
 		// we need to use the actual receiver name in link comment
 		// both for value receiver and pointer receiver
 		fnPubName = pubMethodName(sig.Recv().Type(), fnSpec)
-	} else if fnSpec.IsMethod {
-		decl = p.p.NewFuncDecl(token.NoPos, fnSpec.FnName, sig)
 	} else {
-		decl = p.p.NewFuncDecl(token.NoPos, fnPubName, sig)
+		if fnSpec.IsMethod {
+			// which is want to is method but not can be method
+			// https://github.com/goplus/llcppg/issues/510
+			fnPubName = fnSpec.FnName
+		}
+		decl = p.p.NewFuncDecl(token.NoPos, fnSpec.FnName, sig)
 	}
 
 	doc := NewCommentGroupFromC(funcDecl.Doc)
