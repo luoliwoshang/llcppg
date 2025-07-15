@@ -206,7 +206,7 @@ func TestFuncDecl(t *testing.T) {
 				},
 				MangledName: "foo",
 				Type: &ast.FuncType{
-					Params: nil,
+					Params: &ast.FieldList{List: []*ast.Field{}},
 					Ret:    &ast.BuiltinType{Kind: ast.Void},
 				},
 			},
@@ -292,7 +292,7 @@ func Foo(__llgo_va_list ...interface{})
 				},
 				MangledName: "foo",
 				Type: &ast.FuncType{
-					Params: nil,
+					Params: &ast.FieldList{List: []*ast.Field{}},
 					Ret:    &ast.BuiltinType{Kind: ast.Void},
 				},
 			},
@@ -635,7 +635,7 @@ func Foo(a *c.Uint, b *c.Double) **c.Char
 				},
 				MangledName: "foo",
 				Type: &ast.FuncType{
-					Params: nil,
+					Params: &ast.FieldList{List: []*ast.Field{}},
 					Ret:    &ast.BuiltinType{Kind: ast.Bool, Flags: ast.Double},
 				},
 			},
@@ -1131,6 +1131,7 @@ func TestRedef(t *testing.T) {
 			Ret: &ast.BuiltinType{
 				Kind: ast.Void,
 			},
+			Params: &ast.FieldList{List: []*ast.Field{}},
 		},
 	})
 	if err != nil {
@@ -1142,7 +1143,9 @@ func TestRedef(t *testing.T) {
 			Name: &ast.Ident{Name: "Bar"},
 		},
 		MangledName: "Bar",
-		Type:        &ast.FuncType{},
+		Type: &ast.FuncType{
+			Params: &ast.FieldList{List: []*ast.Field{}},
+		},
 	})
 	if err != nil {
 		t.Fatal("unexpect redefine err")
@@ -1153,7 +1156,9 @@ func TestRedef(t *testing.T) {
 			Name: &ast.Ident{Name: "Bar"},
 		},
 		MangledName: "Bar",
-		Type:        &ast.FuncType{},
+		Type: &ast.FuncType{
+			Params: &ast.FieldList{List: []*ast.Field{}},
+		},
 	})
 	if err != nil {
 		t.Fatal("unexpect redefine err")
@@ -1335,7 +1340,9 @@ func TestRedefineFunc(t *testing.T) {
 			Name: &ast.Ident{Name: "Foo"},
 		},
 		MangledName: "Foo",
-		Type:        &ast.FuncType{},
+		Type: &ast.FuncType{
+			Params: &ast.FieldList{List: []*ast.Field{}},
+		},
 	})
 	if err == nil {
 		t.Fatal("expect a redefine error")
@@ -1891,7 +1898,7 @@ func TestTypeClean(t *testing.T) {
 						Name: &ast.Ident{Name: "Func1"},
 					},
 					MangledName: "Func1",
-					Type:        &ast.FuncType{Params: nil, Ret: &ast.BuiltinType{Kind: ast.Void}},
+					Type:        &ast.FuncType{Params: &ast.FieldList{List: []*ast.Field{}}, Ret: &ast.BuiltinType{Kind: ast.Void}},
 				})
 			},
 			headerFile: "/path/to/file3.h",

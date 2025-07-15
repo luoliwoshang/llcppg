@@ -196,10 +196,6 @@ func (p *TypeConv) ToSignature(funcType *ast.FuncType, recv *types.Var) (*types.
 
 // Convert ast.FieldList to types.Tuple (Function Param)
 func (p *TypeConv) fieldListToParams(params *ast.FieldList) (*types.Tuple, bool, error) {
-	if params == nil {
-		return types.NewTuple(), false, nil
-	}
-
 	hasNamedParam := false
 	for _, field := range params.List {
 		if field == nil {
