@@ -127,10 +127,6 @@ func (p *Package) markUseDeps(pkgMgr *PkgDepLoader) {
 	}
 }
 
-func (p *Package) LookupFunc(goName string, fn *ast.FuncDecl) (*GoFuncSpec, error) {
-	return NewGoFuncSpec(goName), nil
-}
-
 // to keep the unsafe package load to use go:linkname command
 func (p *Package) setGoFile(goFile string) {
 	p.setCurFile(goFile)
@@ -184,10 +180,10 @@ func (p *Package) bodyStart(decl *gogen.Func, ret ast.Expr) error {
 	return nil
 }
 
-func (p *Package) handleFuncDecl(fnSpec *GoFuncSpec, beMethod bool, sig *types.Signature, funcDecl *ast.FuncDecl) error {
+func (p *Package) handleFuncDecl(fnSpec *GoFuncSpec, sig *types.Signature, funcDecl *ast.FuncDecl) error {
 	var decl *gogen.Func
 	fnPubName := fnSpec.GoSymbName
-	if beMethod {
+	if fnSpec.IsMethod {
 		decl = p.p.NewFuncDecl(token.NoPos, fnSpec.FnName, sig)
 		err := p.bodyStart(decl, funcDecl.Type.Ret)
 		if err != nil {
@@ -197,12 +193,7 @@ func (p *Package) handleFuncDecl(fnSpec *GoFuncSpec, beMethod bool, sig *types.S
 		// both for value receiver and pointer receiver
 		fnPubName = pubMethodName(sig.Recv().Type(), fnSpec)
 	} else {
-		if fnSpec.IsMethod {
-			// which is want to is method but not can be method
-			// https://github.com/goplus/llcppg/issues/510
-			fnPubName = fnSpec.FnName
-		}
-		decl = p.p.NewFuncDecl(token.NoPos, fnSpec.FnName, sig)
+		decl = p.p.NewFuncDecl(token.NoPos, fnPubName, sig)
 	}
 
 	doc := NewCommentGroupFromC(funcDecl.Doc)
@@ -266,17 +257,13 @@ func (p *Package) NewFuncDecl(goName string, funcDecl *ast.FuncDecl) error {
 		log.Printf("NewFuncDecl: %v\n", funcDecl.Name)
 	}
 
-	fnSpec, err := p.LookupFunc(goName, funcDecl)
-	if err != nil {
-		return fmt.Errorf("NewFuncDecl: %s fail: %w", funcDecl.Name.Name, err)
-	}
+	fnSpec := NewGoFuncSpec(goName, funcDecl.Type.Params.List)
 	if fnSpec.IsIgnore() {
 		log.Printf("NewFuncDecl: %v is ignored\n", funcDecl.Name)
 		return nil
 	}
 
-	beMethod := fnSpec.IsMethod && canBeMethod(funcDecl.Type.Params.List)
-	recv, exist, err := p.funcIsDefined(fnSpec, beMethod, funcDecl)
+	recv, exist, err := p.funcIsDefined(fnSpec, funcDecl)
 	if err != nil {
 		return fmt.Errorf("NewFuncDecl: %s fail: %w", funcDecl.Name.Name, err)
 	}
@@ -291,19 +278,10 @@ func (p *Package) NewFuncDecl(goName string, funcDecl *ast.FuncDecl) error {
 	if err != nil {
 		return fmt.Errorf("NewFuncDecl: fail convert signature %s: %w", funcDecl.Name.Name, err)
 	}
-	return p.handleFuncDecl(fnSpec, beMethod, sig, funcDecl)
+	return p.handleFuncDecl(fnSpec, sig, funcDecl)
 }
 
-func canBeMethod(fieldList []*ast.Field) bool {
-	if len(fieldList) == 0 {
-		return false
-	}
-	lastField := fieldList[len(fieldList)-1]
-	_, isVar := lastField.Type.(*ast.Variadic)
-	return !isVar
-}
-
-func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, beMethod bool, funcDecl *ast.FuncDecl) (recv *types.Var, exist bool, err error) {
+func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (recv *types.Var, exist bool, err error) {
 	node := Node{
 		name: funcDecl.Name.Name,
 		kind: FuncDecl,
@@ -313,7 +291,7 @@ func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, beMethod bool, funcDecl *ast
 	if exist {
 		return nil, true, nil
 	}
-	if beMethod {
+	if fnSpec.IsMethod {
 		recv, err = p.newReceiver(funcDecl.Type)
 		if err != nil {
 			return nil, false, err
