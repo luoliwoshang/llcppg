@@ -184,10 +184,10 @@ func (p *Package) bodyStart(decl *gogen.Func, ret ast.Expr) error {
 	return nil
 }
 
-func (p *Package) handleFuncDecl(fnSpec *GoFuncSpec, sig *types.Signature, funcDecl *ast.FuncDecl) error {
+func (p *Package) handleFuncDecl(fnSpec *GoFuncSpec, beMethod bool, sig *types.Signature, funcDecl *ast.FuncDecl) error {
 	var decl *gogen.Func
 	fnPubName := fnSpec.GoSymbName
-	if fnSpec.IsMethod {
+	if beMethod {
 		decl = p.p.NewFuncDecl(token.NoPos, fnSpec.FnName, sig)
 		err := p.bodyStart(decl, funcDecl.Type.Ret)
 		if err != nil {
@@ -196,6 +196,8 @@ func (p *Package) handleFuncDecl(fnSpec *GoFuncSpec, sig *types.Signature, funcD
 		// we need to use the actual receiver name in link comment
 		// both for value receiver and pointer receiver
 		fnPubName = pubMethodName(sig.Recv().Type(), fnSpec)
+	} else if fnSpec.IsMethod {
+		decl = p.p.NewFuncDecl(token.NoPos, fnSpec.FnName, sig)
 	} else {
 		decl = p.p.NewFuncDecl(token.NoPos, fnPubName, sig)
 	}
@@ -270,7 +272,8 @@ func (p *Package) NewFuncDecl(goName string, funcDecl *ast.FuncDecl) error {
 		return nil
 	}
 
-	recv, exist, err := p.funcIsDefined(fnSpec, funcDecl)
+	beMethod := fnSpec.IsMethod && canBeMethod(funcDecl.Type.Params.List)
+	recv, exist, err := p.funcIsDefined(fnSpec, beMethod, funcDecl)
 	if err != nil {
 		return fmt.Errorf("NewFuncDecl: %s fail: %w", funcDecl.Name.Name, err)
 	}
@@ -285,19 +288,19 @@ func (p *Package) NewFuncDecl(goName string, funcDecl *ast.FuncDecl) error {
 	if err != nil {
 		return fmt.Errorf("NewFuncDecl: fail convert signature %s: %w", funcDecl.Name.Name, err)
 	}
-	return p.handleFuncDecl(fnSpec, sig, funcDecl)
+	return p.handleFuncDecl(fnSpec, beMethod, sig, funcDecl)
 }
 
-func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (recv *types.Var, exist bool, err error) {
-	canBeMethod := func(fieldList []*ast.Field) (beMethod bool) {
-		if len(fieldList) == 0 {
-			return false
-		}
-		lastField := fieldList[len(fieldList)-1]
-		_, isVar := lastField.Type.(*ast.Variadic)
-		return !isVar
+func canBeMethod(fieldList []*ast.Field) bool {
+	if len(fieldList) == 0 {
+		return false
 	}
+	lastField := fieldList[len(fieldList)-1]
+	_, isVar := lastField.Type.(*ast.Variadic)
+	return !isVar
+}
 
+func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, beMethod bool, funcDecl *ast.FuncDecl) (recv *types.Var, exist bool, err error) {
 	node := Node{
 		name: funcDecl.Name.Name,
 		kind: FuncDecl,
@@ -307,7 +310,7 @@ func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (rec
 	if exist {
 		return nil, true, nil
 	}
-	if fnSpec.IsMethod && canBeMethod(funcDecl.Type.Params.List) {
+	if beMethod {
 		recv, err = p.newReceiver(funcDecl.Type)
 		if err != nil {
 			return nil, false, err

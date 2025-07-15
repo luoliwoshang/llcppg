@@ -46,7 +46,23 @@ func (recv_ *AresAddr) AresDnsAddrToPtr() *c.Char {
 	return nil
 }
 
+type EspLogLevelT c.Int
+
+const (
+	ESP_LOG_NONE    EspLogLevelT = 0
+	ESP_LOG_ERROR   EspLogLevelT = 1
+	ESP_LOG_WARN    EspLogLevelT = 2
+	ESP_LOG_INFO    EspLogLevelT = 3
+	ESP_LOG_DEBUG   EspLogLevelT = 4
+	ESP_LOG_VERBOSE EspLogLevelT = 5
+	ESP_LOG_MAX     EspLogLevelT = 6
+)
+
+// llgo:link (EspLogLevelT).EspLogWrite C.esp_log_write
+func EspLogWrite(level EspLogLevelT, tag *c.Char, format *c.Char, __llgo_va_list ...interface{})
+
 ===== llcppg.pub =====
 ares_addr AresAddr
 ares_in6_addr AresIn6Addr
+esp_log_level_t EspLogLevelT
 in_addr1 InAddr1
