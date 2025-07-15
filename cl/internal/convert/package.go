@@ -289,6 +289,15 @@ func (p *Package) NewFuncDecl(goName string, funcDecl *ast.FuncDecl) error {
 }
 
 func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (recv *types.Var, exist bool, err error) {
+	canBeMethod := func(fieldList []*ast.Field) (beMethod bool) {
+		if len(fieldList) == 0 {
+			return false
+		}
+		lastField := fieldList[len(fieldList)-1]
+		_, isVar := lastField.Type.(*ast.Variadic)
+		return !isVar
+	}
+
 	node := Node{
 		name: funcDecl.Name.Name,
 		kind: FuncDecl,
@@ -298,9 +307,7 @@ func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (rec
 	if exist {
 		return nil, true, nil
 	}
-	if fnSpec.IsMethod &&
-		funcDecl.Type.Params.List != nil &&
-		len(funcDecl.Type.Params.List) > 0 {
+	if fnSpec.IsMethod && canBeMethod(funcDecl.Type.Params.List) {
 		recv, err = p.newReceiver(funcDecl.Type)
 		if err != nil {
 			return nil, false, err
