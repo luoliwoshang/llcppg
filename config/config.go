@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/goplus/llcppg/ast"
 )
@@ -56,6 +57,7 @@ func (c *Config) UnmarshalJSON(data []byte) error {
 
 	*c = Config(config)
 
+	c.Name = strings.ReplaceAll(c.Name, "-", "_")
 	// do some check
 
 	// when headeronly mode is disabled, libs must not be empty.

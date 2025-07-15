@@ -50,10 +50,14 @@ func PkgHfileInfo(conf *Config) *PkgHfilesInfo {
 	if err != nil {
 		panic(err)
 	}
-	defer os.Remove(outfile.Name())
+	// defer os.Remove(outfile.Name())
 
 	inters := make(map[string]struct{})
 	others := []string{} // impl & third
+
+	if env := os.Getenv("TARGET"); env != "" {
+		conf.Args = append(conf.Args, strings.Fields(env)...)
+	}
 
 	retrieveInterfaceFn := func(filename string, depth int) {
 		if depth == 1 {

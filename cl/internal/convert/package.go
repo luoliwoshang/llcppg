@@ -368,7 +368,7 @@ func (p *Package) NewTypeDecl(goName string, typeDecl *ast.TypeDecl, pnc nc.Node
 		log.Printf("NewTypeDecl: %s\n", typeDecl.Name.Name)
 	}
 
-	if typeDecl.Name.Name == "__darwin_va_list" || typeDecl.Name.Name == "__gnuc_va_list" || typeDecl.Name.Name == "spi_flash_ll_clock_reg_t" {
+	if typeDecl.Name.Name == "__darwin_va_list" || typeDecl.Name.Name == "__gnuc_va_list" {
 		typeDecl.Type = &ast.RecordType{}
 	}
 
@@ -477,7 +477,7 @@ func (p *Package) NewTypedefDecl(goName string, typedefDecl *ast.TypedefDecl, pn
 		log.Printf("NewTypedefDecl: %s\n", typedefDecl.Name.Name)
 	}
 
-	if typedefDecl.Name.Name == "__darwin_va_list" || typedefDecl.Name.Name == "__gnuc_va_list" || typedefDecl.Name.Name == "spi_flash_ll_clock_reg_t" {
+	if typedefDecl.Name.Name == "__darwin_va_list" || typedefDecl.Name.Name == "__gnuc_va_list" || typedefDecl.Name.Name == "__va_list" {
 		typedefDecl.Type = &ast.PointerType{
 			X: &ast.BuiltinType{
 				Kind: ast.Void,
