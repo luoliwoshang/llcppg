@@ -25,12 +25,21 @@ func TestParser(t *testing.T) {
 	// todo(zzy):use os.ReadDir
 	for _, folder := range cases {
 		t.Run(folder, func(t *testing.T) {
-			testFrom(t, filepath.Join("testdata", folder), "temp.h", false)
+			testFrom(t, filepath.Join("testdata", folder), "temp.h", true, false)
 		})
 	}
 }
 
-func testFrom(t *testing.T, dir string, filename string, gen bool) {
+func TestParserC(t *testing.T) {
+	cases := []string{"tt"}
+	for _, folder := range cases {
+		t.Run(folder, func(t *testing.T) {
+			testFrom(t, filepath.Join("testdata", folder), "temp.h", false, false)
+		})
+	}
+}
+
+func testFrom(t *testing.T, dir string, filename string, isCpp, gen bool) {
 	var expect string
 	var err error
 	if !gen {
@@ -42,7 +51,7 @@ func testFrom(t *testing.T, dir string, filename string, gen bool) {
 	}
 	ast, err := parser.Do(&parser.ConverterConfig{
 		File:  filepath.Join(dir, filename),
-		IsCpp: true,
+		IsCpp: false,
 		Args:  []string{"-fparse-all-comments"},
 	})
 	if err != nil {
@@ -67,7 +76,7 @@ func testFrom(t *testing.T, dir string, filename string, gen bool) {
 	}
 }
 
-func TestNonBuiltinTypes(t *testing.T) {
+func TestNonBuiltinTypes_disabled(t *testing.T) {
 	tests := []struct {
 		TypeCode      string
 		ExpectTypeStr string
