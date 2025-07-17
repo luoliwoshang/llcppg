@@ -106,6 +106,9 @@ C/C++ Headers → llcppsigfetch → JSON AST → gogensig → Go Bindings
 - Test data in `testdata/` subdirectories
 - Conversion tests in `cl/internal/convert/_testdata/`
 
+#### Key Test Cases
+- `cl/internal/convert/_testdata/nested/`: Tests anonymous nested struct/union handling - verifies that anonymous nested structs become inline Go struct types and unions have overlapping fields flattened
+
 ## Common Patterns
 
 ### Configuration Loading
