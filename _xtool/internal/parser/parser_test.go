@@ -25,7 +25,7 @@ func TestParser(t *testing.T) {
 	// todo(zzy):use os.ReadDir
 	for _, folder := range cases {
 		t.Run(folder, func(t *testing.T) {
-			testFrom(t, filepath.Join("testdata", folder), "temp.h", true, false)
+			testFrom(t, filepath.Join("testdata", folder), "temp.h", true, true)
 		})
 	}
 }
@@ -51,7 +51,7 @@ func testFrom(t *testing.T, dir string, filename string, isCpp, gen bool) {
 	}
 	ast, err := parser.Do(&parser.ConverterConfig{
 		File:  filepath.Join(dir, filename),
-		IsCpp: false,
+		IsCpp: isCpp,
 		Args:  []string{"-fparse-all-comments"},
 	})
 	if err != nil {

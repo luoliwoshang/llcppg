@@ -33,7 +33,7 @@ type Converter struct {
 	index  *clang.Index
 	unit   *clang.TranslationUnit
 	indent int // for verbose debug
-	
+
 	// For collecting extracted named nested struct declarations
 	extractedDecls []ast.Decl
 }
@@ -250,12 +250,12 @@ func (ct *Converter) visitTop(cursor, parent clang.Cursor) clang.ChildVisitResul
 		ct.logln("visitTop: ProcessClassDecl END", classDecl.Name.Name)
 	case clang.CursorStructDecl:
 		structDecl := ct.ProcessStructDecl(cursor)
-		
+
 		// Add extracted nested struct declarations first
 		for _, extractedDecl := range ct.extractedDecls {
 			ct.file.Decls = append(ct.file.Decls, extractedDecl)
 		}
-		
+
 		ct.file.Decls = append(ct.file.Decls, structDecl)
 		ct.logf("visitTop: ProcessStructDecl END")
 		if structDecl.Name != nil {
@@ -265,12 +265,12 @@ func (ct *Converter) visitTop(cursor, parent clang.Cursor) clang.ChildVisitResul
 		}
 	case clang.CursorUnionDecl:
 		unionDecl := ct.ProcessUnionDecl(cursor)
-		
+
 		// Add extracted nested struct declarations first
 		for _, extractedDecl := range ct.extractedDecls {
 			ct.file.Decls = append(ct.file.Decls, extractedDecl)
 		}
-		
+
 		ct.file.Decls = append(ct.file.Decls, unionDecl)
 		ct.logf("visitTop: ProcessUnionDecl END")
 		if unionDecl.Name != nil {
@@ -777,24 +777,24 @@ func (ct *Converter) ProcessMethods(cursor clang.Cursor) []*ast.FuncDecl {
 // extractNestedStructs extracts named nested struct declarations from a record cursor
 func (ct *Converter) extractNestedStructs(cursor clang.Cursor) {
 	extractedNames := make(map[string]bool)
-	
+
 	clangutils.VisitChildren(cursor, func(child, parent clang.Cursor) clang.ChildVisitResult {
 		if child.Kind == clang.CursorStructDecl || child.Kind == clang.CursorUnionDecl {
 			// Check if this is a named nested struct/union
-			if child.IsAnonymousRecordDecl() == 0 {
+			if child.IsAnonymous() == 0 {
 				childName := clang.GoString(child.String())
-				
+
 				// Avoid duplicates
 				if !extractedNames[childName] {
 					extractedNames[childName] = true
 					ct.logln("extractNestedStructs: Found named nested struct:", childName)
-					
+
 					// Create a separate TypeDecl for this nested struct
 					nestedDecl := &ast.TypeDecl{
 						Object: ct.CreateObject(child, &ast.Ident{Name: childName}),
 						Type:   ct.ProcessRecordType(child),
 					}
-					
+
 					// Add to extracted declarations
 					ct.extractedDecls = append(ct.extractedDecls, nestedDecl)
 				}
@@ -812,7 +812,7 @@ func (ct *Converter) ProcessRecordDecl(cursor clang.Cursor) *ast.TypeDecl {
 
 	// Clear extracted decls before processing this record
 	ct.extractedDecls = ct.extractedDecls[:0]
-	
+
 	// Extract nested struct declarations first
 	ct.extractNestedStructs(cursor)
 
