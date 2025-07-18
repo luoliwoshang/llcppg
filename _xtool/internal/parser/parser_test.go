@@ -19,19 +19,19 @@ import (
 	"github.com/goplus/llgo/xtool/clang/preprocessor"
 )
 
-func TestParser(t *testing.T) {
+func TestParserCppMode(t *testing.T) {
 	cases := []string{"class", "comment", "enum", "func", "scope", "struct", "typedef", "union", "macro", "forwarddecl1", "forwarddecl2", "include", "typeof"}
 	// https://github.com/goplus/llgo/issues/1114
 	// todo(zzy):use os.ReadDir
 	for _, folder := range cases {
 		t.Run(folder, func(t *testing.T) {
-			testFrom(t, filepath.Join("testdata", folder), "temp.h", true, true)
+			testFrom(t, filepath.Join("testdata", folder), "temp.h", true, false)
 		})
 	}
 }
 
-func TestParserC(t *testing.T) {
-	cases := []string{"tt"}
+func TestParserCMode(t *testing.T) {
+	cases := []string{"named_nested_struct"}
 	for _, folder := range cases {
 		t.Run(folder, func(t *testing.T) {
 			testFrom(t, filepath.Join("testdata", folder), "temp.h", false, false)
@@ -628,7 +628,7 @@ func compareOutput(t *testing.T, expected, actual string) {
 	}
 }
 
-func TestNest(t *testing.T) {
+func TestGetChilds(t *testing.T) {
 	config := &clangutils.Config{
 		File:  "./testdata/named_nested_struct/temp.h",
 		Temp:  false,
