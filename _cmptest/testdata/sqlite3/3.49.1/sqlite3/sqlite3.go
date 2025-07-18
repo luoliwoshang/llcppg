@@ -5689,15 +5689,22 @@ type Module struct {
 }
 
 type IndexConstraint struct {
-	Unused [8]uint8
+	IColumn     c.Int
+	Op          c.Char
+	Usable      c.Char
+	ITermOffset c.Int
 }
 
 type IndexOrderby struct {
-	Unused [8]uint8
+	IColumn c.Int
+	Desc    c.Char
 }
 
+/* Outputs */
+
 type IndexConstraintUsage struct {
-	Unused [8]uint8
+	ArgvIndex c.Int
+	Omit      c.Char
 }
 
 /*

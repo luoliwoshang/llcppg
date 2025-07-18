@@ -46,8 +46,8 @@
               ],
               "Type": {
                 "Elt": {
-                  "Flags": 2,
-                  "Kind": 2,
+                  "Flags": 0,
+                  "Kind": 6,
                   "_Type": "BuiltinType"
                 },
                 "Len": {
@@ -95,8 +95,8 @@
               ],
               "Type": {
                 "X": {
-                  "Flags": 2,
-                  "Kind": 2,
+                  "Flags": 0,
+                  "Kind": 6,
                   "_Type": "BuiltinType"
                 },
                 "_Type": "PointerType"

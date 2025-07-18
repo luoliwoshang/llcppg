@@ -22,10 +22,6 @@ type File struct {
 	PMethods *IoMethods
 }
 
-type IoMethods struct {
-	XUnfetch c.Pointer
-}
-
 ===== temp.go =====
 package forwarddecl
 
@@ -38,6 +34,10 @@ const IDSIZE = 60
 
 type Bar struct {
 	A *Foo
+}
+
+type IoMethods struct {
+	XUnfetch c.Pointer
 }
 
 type PcachePage struct {
@@ -130,6 +130,7 @@ type XmlParserCtxt X_xmlParserCtxt
 type HtmlParserCtxt XmlParserCtxt
 
 ===== llcppg.pub =====
+CallInfo
 Fts5Context
 Fts5ExtensionApi
 Fts5PhraseIter

@@ -8,6 +8,28 @@
         "_Type": "Location"
       },
       "Name": {
+        "Name": "bar",
+        "_Type": "Ident"
+      },
+      "Parent": null,
+      "Type": {
+        "Fields": {
+          "List": null,
+          "_Type": "FieldList"
+        },
+        "Methods": null,
+        "Tag": 0,
+        "_Type": "RecordType"
+      },
+      "_Type": "TypeDecl"
+    },
+    {
+      "Doc": null,
+      "Loc": {
+        "File": "testdata/forwarddecl1/temp.h",
+        "_Type": "Location"
+      },
+      "Name": {
         "Name": "Foo",
         "_Type": "Ident"
       },
@@ -384,6 +406,28 @@
         "_Type": "Location"
       },
       "Name": {
+        "Name": "sqlite3_io_methods",
+        "_Type": "Ident"
+      },
+      "Parent": null,
+      "Type": {
+        "Fields": {
+          "List": null,
+          "_Type": "FieldList"
+        },
+        "Methods": null,
+        "Tag": 0,
+        "_Type": "RecordType"
+      },
+      "_Type": "TypeDecl"
+    },
+    {
+      "Doc": null,
+      "Loc": {
+        "File": "testdata/forwarddecl1/temp.h",
+        "_Type": "Location"
+      },
+      "Name": {
         "Name": "sqlite3_file",
         "_Type": "Ident"
       },
@@ -660,6 +704,28 @@
         "_Type": "FuncType"
       },
       "_Type": "FuncDecl"
+    },
+    {
+      "Doc": null,
+      "Loc": {
+        "File": "testdata/forwarddecl1/temp.h",
+        "_Type": "Location"
+      },
+      "Name": {
+        "Name": "CallInfo",
+        "_Type": "Ident"
+      },
+      "Parent": null,
+      "Type": {
+        "Fields": {
+          "List": null,
+          "_Type": "FieldList"
+        },
+        "Methods": null,
+        "Tag": 0,
+        "_Type": "RecordType"
+      },
+      "_Type": "TypeDecl"
     },
     {
       "Doc": null,
