@@ -33,9 +33,6 @@ type Converter struct {
 	index  *clang.Index
 	unit   *clang.TranslationUnit
 	indent int // for verbose debug
-
-	// For collecting extracted named nested struct declarations
-	extractedDecls []ast.Decl
 }
 
 var tagMap = map[string]ast.Tag{
@@ -753,35 +750,6 @@ func (ct *Converter) ProcessMethods(cursor clang.Cursor) []*ast.FuncDecl {
 	return methods
 }
 
-// extractNestedStructs extracts named nested struct declarations from a record cursor
-func (ct *Converter) extractNestedStructs(cursor clang.Cursor) {
-	extractedNames := make(map[string]bool)
-
-	clangutils.VisitChildren(cursor, func(child, parent clang.Cursor) clang.ChildVisitResult {
-		if child.Kind == clang.CursorStructDecl || child.Kind == clang.CursorUnionDecl {
-			// Check if this is a named nested struct/union
-			typ := ct.ProcessRecordType(child)
-			// use len(typ.Fields.List) to ensure it has fields not a forward declaration
-			// but maybe make the forward decl in to AST is also good.
-			if child.IsAnonymous() == 0 && len(typ.Fields.List) > 0 {
-				childName := clang.GoString(child.String())
-				if !extractedNames[childName] {
-					extractedNames[childName] = true
-					ct.logln("extractNestedStructs: Found named nested struct:", childName, child.Type().Kind)
-
-					nestedDecl := &ast.TypeDecl{
-						Object: ct.CreateObject(child, &ast.Ident{Name: childName}),
-						Type:   ct.ProcessRecordType(child),
-					}
-
-					ct.extractedDecls = append(ct.extractedDecls, nestedDecl)
-				}
-			}
-		}
-		return clang.ChildVisit_Recurse
-	})
-}
-
 func (ct *Converter) ProcessRecordDecl(cursor clang.Cursor) []ast.Decl {
 	var decls []ast.Decl
 	ct.incIndent()
@@ -794,14 +762,13 @@ func (ct *Converter) ProcessRecordDecl(cursor clang.Cursor) []ast.Decl {
 	})
 
 	for _, child := range childs {
-
 		// Check if this is a named nested struct/union
 		typ := ct.ProcessRecordType(child)
 		// note(zzy):use len(typ.Fields.List) to ensure it has fields not a forward declaration
 		// but maybe make the forward decl in to AST is also good.
 		if child.IsAnonymous() == 0 && len(typ.Fields.List) > 0 {
 			childName := clang.GoString(child.String())
-			ct.logln("Found named nested struct:", childName, child.Type().Kind)
+			ct.logln("ProcessRecordDecl: Found named nested struct:", childName)
 			decls = append(decls, &ast.TypeDecl{
 				Object: ct.CreateObject(child, &ast.Ident{Name: childName}),
 				Type:   ct.ProcessRecordType(child),
@@ -823,7 +790,6 @@ func (ct *Converter) ProcessRecordDecl(cursor clang.Cursor) []ast.Decl {
 	}
 
 	decls = append(decls, decl)
-
 	return decls
 }
 
