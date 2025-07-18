@@ -628,7 +628,7 @@ func compareOutput(t *testing.T, expected, actual string) {
 	}
 }
 
-func TestGetChilds(t *testing.T) {
+func TestPostOrderVisitChildren(t *testing.T) {
 	config := &clangutils.Config{
 		File:  "./testdata/named_nested_struct/temp.h",
 		Temp:  false,
@@ -655,7 +655,7 @@ func TestGetChilds(t *testing.T) {
 	defer unit.Dispose()
 
 	childStr := make([]string, 6)
-	childs := parser.GetChilds(unit.Cursor(), func(child, parent clang.Cursor) bool {
+	childs := parser.PostOrderVisitChildren(unit.Cursor(), func(child, parent clang.Cursor) bool {
 		return child.Kind == clang.CursorStructDecl
 	})
 	for i, child := range childs {

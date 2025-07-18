@@ -757,7 +757,7 @@ func (ct *Converter) ProcessRecordDecl(cursor clang.Cursor) []ast.Decl {
 	cursorName, cursorKind := getCursorDesc(cursor)
 	ct.logln("ProcessRecordDecl: CursorName:", cursorName, "CursorKind:", cursorKind)
 
-	childs := GetChilds(cursor, func(child, parent clang.Cursor) bool {
+	childs := PostOrderVisitChildren(cursor, func(child, parent clang.Cursor) bool {
 		return (child.Kind == clang.CursorStructDecl || child.Kind == clang.CursorUnionDecl) && child.IsAnonymous() == 0
 	})
 
@@ -971,11 +971,11 @@ func (ct *Converter) BuildScopingExpr(cursor clang.Cursor) ast.Expr {
 	return buildScopingFromParts(parts)
 }
 
-func GetChilds(cursor clang.Cursor, collect func(c, p clang.Cursor) bool) []clang.Cursor {
+func PostOrderVisitChildren(cursor clang.Cursor, collect func(c, p clang.Cursor) bool) []clang.Cursor {
 	var children []clang.Cursor
 	clangutils.VisitChildren(cursor, func(child, parent clang.Cursor) clang.ChildVisitResult {
 		if collect(child, parent) {
-			childs := GetChilds(child, collect)
+			childs := PostOrderVisitChildren(child, collect)
 			children = append(children, childs[:]...)
 			children = append(children, child)
 		}
