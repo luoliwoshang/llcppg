@@ -654,22 +654,15 @@ func TestNest(t *testing.T) {
 	defer index.Dispose()
 	defer unit.Dispose()
 
-	childs := getChild(unit.Cursor())
-	expect := []string{"c", "d", "b", "f", "e", "a"}
-	if !reflect.DeepEqual(expect, childs) {
-		fmt.Println("Unexpected child order:", childs)
-	}
-}
-
-func getChild(cursor clang.Cursor) []string {
-	var children []string
-	clangutils.VisitChildren(cursor, func(child, parent clang.Cursor) clang.ChildVisitResult {
-		if child.Kind == clang.CursorStructDecl {
-			childs := getChild(child)
-			children = append(children, childs[:]...)
-			children = append(children, clang.GoString(child.String()))
-		}
-		return clang.ChildVisit_Continue
+	childStr := make([]string, 6)
+	childs := parser.GetChilds(unit.Cursor(), func(child, parent clang.Cursor) bool {
+		return child.Kind == clang.CursorStructDecl
 	})
-	return children
+	for i, child := range childs {
+		childStr[i] = clang.GoString(child.String())
+	}
+	expect := []string{"c", "d", "b", "f", "e", "a"}
+	if !reflect.DeepEqual(expect, childStr) {
+		fmt.Println("Unexpected child order:", childStr)
+	}
 }

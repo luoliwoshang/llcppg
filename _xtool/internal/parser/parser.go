@@ -1009,6 +1009,19 @@ func (ct *Converter) BuildScopingExpr(cursor clang.Cursor) ast.Expr {
 	return buildScopingFromParts(parts)
 }
 
+func GetChilds(cursor clang.Cursor, collect func(c, p clang.Cursor) bool) []clang.Cursor {
+	var children []clang.Cursor
+	clangutils.VisitChildren(cursor, func(child, parent clang.Cursor) clang.ChildVisitResult {
+		if collect(child, parent) {
+			childs := GetChilds(child, collect)
+			children = append(children, childs[:]...)
+			children = append(children, child)
+		}
+		return clang.ChildVisit_Continue
+	})
+	return children
+}
+
 func IsExplicitSigned(t clang.Type) bool {
 	return t.Kind == clang.TypeCharS || t.Kind == clang.TypeSChar
 }
