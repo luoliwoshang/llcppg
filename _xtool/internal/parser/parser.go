@@ -781,21 +781,20 @@ func (ct *Converter) extractNestedStructs(cursor clang.Cursor) {
 	clangutils.VisitChildren(cursor, func(child, parent clang.Cursor) clang.ChildVisitResult {
 		if child.Kind == clang.CursorStructDecl || child.Kind == clang.CursorUnionDecl {
 			// Check if this is a named nested struct/union
-			if child.IsAnonymous() == 0 {
+			typ := ct.ProcessRecordType(child)
+			// use len(typ.Fields.List) to ensure it has fields not a forward declaration
+			// but maybe make the forward decl in to AST is also good.
+			if child.IsAnonymous() == 0 && len(typ.Fields.List) > 0 {
 				childName := clang.GoString(child.String())
-
-				// Avoid duplicates
 				if !extractedNames[childName] {
 					extractedNames[childName] = true
-					ct.logln("extractNestedStructs: Found named nested struct:", childName)
+					ct.logln("extractNestedStructs: Found named nested struct:", childName, child.Type().Kind)
 
-					// Create a separate TypeDecl for this nested struct
 					nestedDecl := &ast.TypeDecl{
 						Object: ct.CreateObject(child, &ast.Ident{Name: childName}),
 						Type:   ct.ProcessRecordType(child),
 					}
 
-					// Add to extracted declarations
 					ct.extractedDecls = append(ct.extractedDecls, nestedDecl)
 				}
 			}

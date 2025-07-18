@@ -695,7 +695,6 @@ func Package(L *State) c.Int
 func Openlibs(L *State)
 
 ===== llcppg.pub =====
-CallInfo
 luaL_Buffer Buffer
 luaL_Reg Reg
 luaL_Stream Stream
