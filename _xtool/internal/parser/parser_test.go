@@ -76,7 +76,7 @@ func testFrom(t *testing.T, dir string, filename string, isCpp, gen bool) {
 	}
 }
 
-func TestNonBuiltinTypes_disabled(t *testing.T) {
+func TestNonBuiltinTypes(t *testing.T) {
 	tests := []struct {
 		TypeCode      string
 		ExpectTypeStr string
@@ -626,4 +626,50 @@ func compareOutput(t *testing.T, expected, actual string) {
 	if expected != actual {
 		t.Fatalf("Test failed: expected \n%s \ngot \n%s", expected, actual)
 	}
+}
+
+func TestNest(t *testing.T) {
+	config := &clangutils.Config{
+		File:  "./testdata/named_nested_struct/temp.h",
+		Temp:  false,
+		IsCpp: false,
+	}
+
+	name := make(map[string]bool)
+	visit(config, func(cursor, parent clang.Cursor) clang.ChildVisitResult {
+		if cursor.Kind == clang.CursorStructDecl {
+			if !name[clang.GoString(cursor.String())] {
+				name[clang.GoString(cursor.String())] = true
+				file, line, column := clangutils.GetPresumedLocation(cursor.Location())
+				fmt.Println("StructDecl Name:", clang.GoString(cursor.String()), file, line, column)
+			}
+		}
+		return clang.ChildVisit_Recurse
+	})
+
+	index, unit, err := clangutils.CreateTranslationUnit(config)
+	if err != nil {
+		panic(err)
+	}
+	defer index.Dispose()
+	defer unit.Dispose()
+
+	childs := getChild(unit.Cursor())
+	expect := []string{"c", "d", "b", "f", "e", "a"}
+	if !reflect.DeepEqual(expect, childs) {
+		fmt.Println("Unexpected child order:", childs)
+	}
+}
+
+func getChild(cursor clang.Cursor) []string {
+	var children []string
+	clangutils.VisitChildren(cursor, func(child, parent clang.Cursor) clang.ChildVisitResult {
+		if child.Kind == clang.CursorStructDecl {
+			childs := getChild(child)
+			children = append(children, childs[:]...)
+			children = append(children, clang.GoString(child.String()))
+		}
+		return clang.ChildVisit_Continue
+	})
+	return children
 }
