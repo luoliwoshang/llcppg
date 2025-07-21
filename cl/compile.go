@@ -68,6 +68,7 @@ func NewPackage(pkgPath, pkgName string, file *ast.File, conf *Config) (pkg Pack
 		CanImplicitCast: nil, // TODO(xsw): check
 		DefaultGoFile:   headerGoFile,
 	}
+
 	pkg.Package = gogen.NewPackage(pkgPath, pkgName, confGox)
 	pkg.SetRedeclarable(true)
 	err = loadFile(pkg.Package, conf, file)

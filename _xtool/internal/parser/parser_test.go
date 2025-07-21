@@ -19,18 +19,27 @@ import (
 	"github.com/goplus/llgo/xtool/clang/preprocessor"
 )
 
-func TestParser(t *testing.T) {
-	cases := []string{"class", "comment", "enum", "func", "scope", "struct", "typedef", "union", "macro", "forwarddecl1", "forwarddecl2", "include"}
+func TestParserCppMode(t *testing.T) {
+	cases := []string{"class", "comment", "enum", "func", "scope", "struct", "typedef", "union", "macro", "forwarddecl1", "forwarddecl2", "include", "typeof"}
 	// https://github.com/goplus/llgo/issues/1114
 	// todo(zzy):use os.ReadDir
 	for _, folder := range cases {
 		t.Run(folder, func(t *testing.T) {
-			testFrom(t, filepath.Join("testdata", folder), "temp.h", false)
+			testFrom(t, filepath.Join("testdata", folder), "temp.h", true, false)
 		})
 	}
 }
 
-func testFrom(t *testing.T, dir string, filename string, gen bool) {
+func TestParserCMode(t *testing.T) {
+	cases := []string{"named_nested_struct"}
+	for _, folder := range cases {
+		t.Run(folder, func(t *testing.T) {
+			testFrom(t, filepath.Join("testdata", folder), "temp.h", false, false)
+		})
+	}
+}
+
+func testFrom(t *testing.T, dir string, filename string, isCpp, gen bool) {
 	var expect string
 	var err error
 	if !gen {
@@ -42,7 +51,7 @@ func testFrom(t *testing.T, dir string, filename string, gen bool) {
 	}
 	ast, err := parser.Do(&parser.ConverterConfig{
 		File:  filepath.Join(dir, filename),
-		IsCpp: true,
+		IsCpp: isCpp,
 		Args:  []string{"-fparse-all-comments"},
 	})
 	if err != nil {
@@ -616,5 +625,44 @@ func compareOutput(t *testing.T, expected, actual string) {
 	actual = strings.TrimSpace(actual)
 	if expected != actual {
 		t.Fatalf("Test failed: expected \n%s \ngot \n%s", expected, actual)
+	}
+}
+
+func TestPostOrderVisitChildren(t *testing.T) {
+	config := &clangutils.Config{
+		File:  "./testdata/named_nested_struct/temp.h",
+		Temp:  false,
+		IsCpp: false,
+	}
+
+	name := make(map[string]bool)
+	visit(config, func(cursor, parent clang.Cursor) clang.ChildVisitResult {
+		if cursor.Kind == clang.CursorStructDecl {
+			if !name[clang.GoString(cursor.String())] {
+				name[clang.GoString(cursor.String())] = true
+				file, line, column := clangutils.GetPresumedLocation(cursor.Location())
+				fmt.Println("StructDecl Name:", clang.GoString(cursor.String()), file, line, column)
+			}
+		}
+		return clang.ChildVisit_Recurse
+	})
+
+	index, unit, err := clangutils.CreateTranslationUnit(config)
+	if err != nil {
+		panic(err)
+	}
+	defer index.Dispose()
+	defer unit.Dispose()
+
+	childStr := make([]string, 6)
+	childs := parser.PostOrderVisitChildren(unit.Cursor(), func(child, parent clang.Cursor) bool {
+		return child.Kind == clang.CursorStructDecl
+	})
+	for i, child := range childs {
+		childStr[i] = clang.GoString(child.String())
+	}
+	expect := []string{"c", "d", "b", "f", "e", "a"}
+	if !reflect.DeepEqual(expect, childStr) {
+		fmt.Println("Unexpected child order:", childStr)
 	}
 }

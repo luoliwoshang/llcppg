@@ -79,7 +79,13 @@ func Do(conf *Config) error {
 	}
 
 	// prepare clang flags to preprocess the combined file
-	clangFlags := strings.Fields(conf.Conf.CFlags)
+	var clangFlags []string
+
+	if env := os.Getenv("TARGET"); env != "" {
+		clangFlags = append(clangFlags, strings.Fields(env)...)
+	}
+
+	clangFlags = append(clangFlags, strings.Fields(conf.Conf.CFlags)...)
 	if !isCpp {
 		clangFlags = append(clangFlags, "-x", "c")
 	} else {

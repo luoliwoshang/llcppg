@@ -127,10 +127,6 @@ func (p *Package) markUseDeps(pkgMgr *PkgDepLoader) {
 	}
 }
 
-func (p *Package) LookupFunc(goName string, fn *ast.FuncDecl) (*GoFuncSpec, error) {
-	return NewGoFuncSpec(goName), nil
-}
-
 // to keep the unsafe package load to use go:linkname command
 func (p *Package) setGoFile(goFile string) {
 	p.setCurFile(goFile)
@@ -260,12 +256,8 @@ func (p *Package) NewFuncDecl(goName string, funcDecl *ast.FuncDecl) error {
 	if debugLog {
 		log.Printf("NewFuncDecl: %v\n", funcDecl.Name)
 	}
-	// not need check , symbol not found will not generate
 
-	fnSpec, err := p.LookupFunc(goName, funcDecl)
-	if err != nil {
-		return fmt.Errorf("NewFuncDecl: %s fail: %w", funcDecl.Name.Name, err)
-	}
+	fnSpec := NewGoFuncSpec(goName, funcDecl.Type.Params.List)
 	if fnSpec.IsIgnore() {
 		log.Printf("NewFuncDecl: %v is ignored\n", funcDecl.Name)
 		return nil
@@ -299,9 +291,7 @@ func (p *Package) funcIsDefined(fnSpec *GoFuncSpec, funcDecl *ast.FuncDecl) (rec
 	if exist {
 		return nil, true, nil
 	}
-	if fnSpec.IsMethod &&
-		funcDecl.Type.Params.List != nil &&
-		len(funcDecl.Type.Params.List) > 0 {
+	if fnSpec.IsMethod {
 		recv, err = p.newReceiver(funcDecl.Type)
 		if err != nil {
 			return nil, false, err
@@ -365,6 +355,10 @@ func (p *Package) lookupType(name string, pnc nc.NodeConverter) (types.Type, err
 func (p *Package) NewTypeDecl(goName string, typeDecl *ast.TypeDecl, pnc nc.NodeConverter) error {
 	if debugLog {
 		log.Printf("NewTypeDecl: %s\n", typeDecl.Name.Name)
+	}
+
+	if typeDecl.Name.Name == "__darwin_va_list" || typeDecl.Name.Name == "__gnuc_va_list" {
+		typeDecl.Type = &ast.RecordType{}
 	}
 
 	if p.lookupOrigin(typeDecl.Name.Name, goName) != nil {
@@ -472,7 +466,7 @@ func (p *Package) NewTypedefDecl(goName string, typedefDecl *ast.TypedefDecl, pn
 		log.Printf("NewTypedefDecl: %s\n", typedefDecl.Name.Name)
 	}
 
-	if typedefDecl.Name.Name == "__darwin_va_list" || typedefDecl.Name.Name == "__gnuc_va_list" {
+	if typedefDecl.Name.Name == "__darwin_va_list" || typedefDecl.Name.Name == "__gnuc_va_list" || typedefDecl.Name.Name == "__va_list" {
 		typedefDecl.Type = &ast.PointerType{
 			X: &ast.BuiltinType{
 				Kind: ast.Void,

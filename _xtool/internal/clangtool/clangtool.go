@@ -74,8 +74,16 @@ func defaultArgs(isCpp bool) []string {
 func sysRoot() ([]string, error) {
 	var output bytes.Buffer
 
+	cmds := []string{"-E", "-v", "-x", "c"}
+
+	env := os.Getenv("TARGET")
+	if env != "" {
+		cmds = append(cmds, strings.Fields(env)...)
+	}
+
+	cmds = append(cmds, "/dev/null")
 	// -x dones't matter, we don't care, just get the isysroot
-	cmd := exec.Command("clang", "-E", "-v", "-x", "c", "/dev/null")
+	cmd := exec.Command("clang", cmds...)
 	cmd.Stderr = &output
 
 	cmd.Run()
@@ -105,5 +113,5 @@ func ParseSystemPath(output string) ([]string, error) {
 		return nil, fmt.Errorf("failed to find any sysRoot path")
 	}
 
-	return result, nil
+	return append(result, "-nostdlibinc", "-nostdlib"), nil
 }

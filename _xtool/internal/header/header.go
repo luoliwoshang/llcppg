@@ -5,8 +5,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/goplus/lib/c/clang"
-	clangutils "github.com/goplus/llcppg/_xtool/internal/clang"
 	"github.com/goplus/llcppg/_xtool/internal/clangtool"
 )
 
@@ -52,50 +50,48 @@ func PkgHfileInfo(conf *Config) *PkgHfilesInfo {
 	if err != nil {
 		panic(err)
 	}
-	defer os.Remove(outfile.Name())
+	// defer os.Remove(outfile.Name())
 
 	inters := make(map[string]struct{})
 	others := []string{} // impl & third
+
+	if env := os.Getenv("TARGET"); env != "" {
+		conf.Args = append(conf.Args, strings.Fields(env)...)
+	}
+
+	retrieveInterfaceFn := func(filename string, depth int) {
+		if depth == 1 {
+			info.Inters = append(info.Inters, filename)
+			inters[filename] = struct{}{}
+		}
+	}
+
+	retrieveComposedHeadersFn := func(filename string, depth int) {
+		// not in the first level include maybe impl or third hfile
+		_, inter := inters[filename]
+		if depth > 1 && !inter {
+			others = append(others, filename)
+		}
+	}
+
 	for _, f := range conf.Includes {
-		content := "#include <" + f + ">"
-		index, unit, err := clangutils.CreateTranslationUnit(&clangutils.Config{
-			File: content,
-			Temp: true,
-			Args: conf.Args,
-		})
+		err := clangtool.GetInclusions(&clangtool.Config{
+			HeaderFileName: f,
+			CompileArgs:    conf.Args,
+		}, retrieveInterfaceFn)
 		if err != nil {
 			panic(err)
 		}
-		clangutils.GetInclusions(unit, func(inced clang.File, incins []clang.SourceLocation) {
-			if len(incins) == 1 {
-				filename := filepath.Clean(clang.GoString(inced.FileName()))
-				info.Inters = append(info.Inters, filename)
-				inters[filename] = struct{}{}
-			}
-		})
-		unit.Dispose()
-		index.Dispose()
 	}
 
 	clangtool.ComposeIncludes(conf.Includes, outfile.Name())
-	index, unit, err := clangutils.CreateTranslationUnit(&clangutils.Config{
-		File: outfile.Name(),
-		Temp: false,
-		Args: conf.Args,
-	})
-	defer unit.Dispose()
-	defer index.Dispose()
+	err = clangtool.GetInclusions(&clangtool.Config{
+		ComposedHeaderFile: outfile.Name(),
+		CompileArgs:        conf.Args,
+	}, retrieveComposedHeadersFn)
 	if err != nil {
 		panic(err)
 	}
-	clangutils.GetInclusions(unit, func(inced clang.File, incins []clang.SourceLocation) {
-		// not in the first level include maybe impl or third hfile
-		filename := filepath.Clean(clang.GoString(inced.FileName()))
-		_, inter := inters[filename]
-		if len(incins) > 1 && !inter {
-			others = append(others, filename)
-		}
-	})
 
 	if conf.Mix {
 		info.Thirds = others
