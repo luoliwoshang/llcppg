@@ -150,6 +150,71 @@ char matrix[3][4];  // In function parameter becomes **c.Char
 char field[3][4];   // In struct field becomes [3][4]c.Char
 ```
 
+##### Nested Struct
+
+###### Anonymous Nested Struct
+
+Anonymous nested structs/unions are converted to inline Go struct types within the parent struct.
+
+```c
+struct outer {
+    struct {
+        int x;
+        int y;
+    } inner;
+};
+```
+
+```go
+type Outer struct {
+    Inner struct {
+        X c.Int
+        Y c.Int
+    }
+}
+```
+
+###### Named Nested Struct
+
+Named nested structs in C are accessible in the global scope, not just as anonymous nested types. llcppg handles this by creating separate type declarations for both the outer and inner structs.
+
+**Reason**: In C, named nested structs are declared in the global scope and can be used independently. This means `struct inner_struct` can be used anywhere in the code, not just within the context of the outer struct.
+
+```c
+typedef struct struct2 {
+    char *b;
+    struct inner_struct {
+        long l;
+    } init;
+} struct2;
+
+// This is valid C - inner_struct is in global scope
+struct inner_struct inner = {123};
+```
+
+**Generated Go code**:
+```go
+type InnerStruct struct {
+    L c.Long
+}
+
+type Struct2 struct {
+    B    *c.Char
+    Init InnerStruct
+}
+```
+
+This is equivalent to:
+```c
+struct inner_struct {
+    long l;
+};
+struct struct2 {
+    char *b;
+    struct inner_struct init;
+};
+```
+
 ##### Function
 
 ###### To Normal Function

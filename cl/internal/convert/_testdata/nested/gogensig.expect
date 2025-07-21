@@ -21,6 +21,16 @@ type Struct1 struct {
 	}
 }
 
+type InnerStruct struct {
+	L c.Long
+}
+
+// https://github.com/goplus/llcppg/issues/514
+// named nested struct
+type StructWithNested struct {
+	Init InnerStruct
+}
+
 type Struct2 struct {
 	B    *c.Char
 	Size c.SizeT
@@ -46,8 +56,43 @@ type Union2 struct {
 	}
 }
 
+type C struct {
+	A c.Int
+}
+
+type D struct {
+	B c.Int
+}
+
+type B struct {
+	CField C
+	DField D
+}
+
+type F struct {
+	B c.Int
+}
+
+type E struct {
+	FField F
+}
+
+// https://github.com/goplus/llcppg/issues/514
+type A struct {
+	BField B
+	EField E
+}
+
 ===== llcppg.pub =====
+a A
+b B
+c C
+d D
+e E
+f F
+inner_struct InnerStruct
 struct1 Struct1
 struct2 Struct2
+struct_with_nested StructWithNested
 union1 Union1
 union2 Union2

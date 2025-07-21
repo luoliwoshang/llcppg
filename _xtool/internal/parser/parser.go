@@ -242,27 +242,18 @@ func (ct *Converter) visitTop(cursor, parent clang.Cursor) clang.ChildVisitResul
 
 	case clang.CursorClassDecl:
 		classDecl := ct.ProcessClassDecl(cursor)
+		// todo(zzy):class need consider nested struct situation
 		ct.file.Decls = append(ct.file.Decls, classDecl)
 		// class havent anonymous situation
 		ct.logln("visitTop: ProcessClassDecl END", classDecl.Name.Name)
 	case clang.CursorStructDecl:
-		structDecl := ct.ProcessStructDecl(cursor)
-		ct.file.Decls = append(ct.file.Decls, structDecl)
+		decls := ct.ProcessStructDecl(cursor)
+		ct.file.Decls = append(ct.file.Decls, decls...)
 		ct.logf("visitTop: ProcessStructDecl END")
-		if structDecl.Name != nil {
-			ct.logln(structDecl.Name.Name)
-		} else {
-			ct.logln("ANONY")
-		}
 	case clang.CursorUnionDecl:
-		unionDecl := ct.ProcessUnionDecl(cursor)
-		ct.file.Decls = append(ct.file.Decls, unionDecl)
+		decls := ct.ProcessUnionDecl(cursor)
+		ct.file.Decls = append(ct.file.Decls, decls...)
 		ct.logf("visitTop: ProcessUnionDecl END")
-		if unionDecl.Name != nil {
-			ct.logln(unionDecl.Name.Name)
-		} else {
-			ct.logln("ANONY")
-		}
 	case clang.CursorFunctionDecl, clang.CursorCXXMethod, clang.CursorConstructor, clang.CursorDestructor:
 		// Handle functions and class methods (including out-of-class method)
 		// Example: void MyClass::myMethod() { ... } out-of-class method
@@ -759,11 +750,31 @@ func (ct *Converter) ProcessMethods(cursor clang.Cursor) []*ast.FuncDecl {
 	return methods
 }
 
-func (ct *Converter) ProcessRecordDecl(cursor clang.Cursor) *ast.TypeDecl {
+func (ct *Converter) ProcessRecordDecl(cursor clang.Cursor) []ast.Decl {
+	var decls []ast.Decl
 	ct.incIndent()
 	defer ct.decIndent()
 	cursorName, cursorKind := getCursorDesc(cursor)
 	ct.logln("ProcessRecordDecl: CursorName:", cursorName, "CursorKind:", cursorKind)
+
+	childs := PostOrderVisitChildren(cursor, func(child, parent clang.Cursor) bool {
+		return (child.Kind == clang.CursorStructDecl || child.Kind == clang.CursorUnionDecl) && child.IsAnonymous() == 0
+	})
+
+	for _, child := range childs {
+		// Check if this is a named nested struct/union
+		typ := ct.ProcessRecordType(child)
+		// note(zzy):use len(typ.Fields.List) to ensure it has fields not a forward declaration
+		// but maybe make the forward decl in to AST is also good.
+		if child.IsAnonymous() == 0 && len(typ.Fields.List) > 0 {
+			childName := clang.GoString(child.String())
+			ct.logln("ProcessRecordDecl: Found named nested struct:", childName)
+			decls = append(decls, &ast.TypeDecl{
+				Object: ct.CreateObject(child, &ast.Ident{Name: childName}),
+				Type:   ct.ProcessRecordType(child),
+			})
+		}
+	}
 
 	decl := &ast.TypeDecl{
 		Object: ct.CreateObject(cursor, nil),
@@ -778,14 +789,15 @@ func (ct *Converter) ProcessRecordDecl(cursor clang.Cursor) *ast.TypeDecl {
 		ct.logln("ProcessRecordDecl: is anonymous")
 	}
 
-	return decl
+	decls = append(decls, decl)
+	return decls
 }
 
-func (ct *Converter) ProcessStructDecl(cursor clang.Cursor) *ast.TypeDecl {
+func (ct *Converter) ProcessStructDecl(cursor clang.Cursor) []ast.Decl {
 	return ct.ProcessRecordDecl(cursor)
 }
 
-func (ct *Converter) ProcessUnionDecl(cursor clang.Cursor) *ast.TypeDecl {
+func (ct *Converter) ProcessUnionDecl(cursor clang.Cursor) []ast.Decl {
 	return ct.ProcessRecordDecl(cursor)
 }
 
@@ -957,6 +969,19 @@ func (ct *Converter) ProcessBuiltinType(t clang.Type) *ast.BuiltinType {
 func (ct *Converter) BuildScopingExpr(cursor clang.Cursor) ast.Expr {
 	parts := clangutils.BuildScopingParts(cursor)
 	return buildScopingFromParts(parts)
+}
+
+func PostOrderVisitChildren(cursor clang.Cursor, collect func(c, p clang.Cursor) bool) []clang.Cursor {
+	var children []clang.Cursor
+	clangutils.VisitChildren(cursor, func(child, parent clang.Cursor) clang.ChildVisitResult {
+		if collect(child, parent) {
+			childs := PostOrderVisitChildren(child, collect)
+			children = append(children, childs[:]...)
+			children = append(children, child)
+		}
+		return clang.ChildVisit_Continue
+	})
+	return children
 }
 
 func IsExplicitSigned(t clang.Type) bool {
