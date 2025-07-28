@@ -153,6 +153,39 @@ cd _llcppgtest/cjson
 llcppg llcppg.cfg
 ```
 
+## Code Update Workflow
+
+### Making Improvements
+When updating code in this repository, follow this workflow:
+
+1. **Create Feature Branch from Main**
+   ```bash
+   git checkout main
+   git checkout -b feature/your-improvement-name
+   ```
+
+2. **Make Changes and Test**
+   ```bash
+   # Run relevant tests
+   go test ./config
+   go test ./cl/internal/convert
+   ```
+
+3. **Commit and Push**
+   ```bash
+   git add .
+   git commit -m "scope: brief description"
+   git push -u origin feature/your-improvement-name
+   ```
+
+4. **Create PR with Description**
+
+### Code Quality Guidelines
+- Follow Uber Go Style Guide: https://github.com/uber-go/guide/blob/master/style.md
+- Use `errors.New` for static error messages, `fmt.Errorf` for dynamic ones
+- Follow Go naming conventions (e.g., `ErrConfig` not `ErrConfigError`)
+- Prefer returning errors over `panic()` in library code
+
 ## Important Notes
 
 - The `_xtool/` components must be compiled with LLGo, not regular Go
