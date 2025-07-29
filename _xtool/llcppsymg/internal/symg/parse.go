@@ -130,12 +130,15 @@ func (p *SymbolProcessor) beRecv(cur clang.Cursor) (ok bool, isPtr bool, typeNam
 
 // sqlite3_finalize -> .Close -> method
 // sqlite3_open -> Open -> function
-func (p *SymbolProcessor) customGoName(mangled string) (goName string, isMethod bool, ok bool) {
+func (p *SymbolProcessor) customGoName(mangled string) (goName string, isMethod bool, isIgnore bool, ok bool) {
 	if customName, ok := p.customSymMap[mangled]; ok {
+		if customName == "-" {
+			return "-", false, true, true
+		}
 		name, found := strings.CutPrefix(customName, ".")
-		return name, found, true
+		return name, found, false, true
 	}
-	return "", false, false
+	return "", false, false, false
 }
 
 func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) string {
@@ -148,7 +151,12 @@ func (p *SymbolProcessor) genGoName(cursor clang.Cursor, symbolName string) stri
 		convertedName = name.GoName(originName, p.prefixes, p.inCurPkg(cursor))
 	}
 
-	customGoName, toMethod, isCustom := p.customGoName(symbolName)
+	customGoName, toMethod, isIgnore, isCustom := p.customGoName(symbolName)
+	
+	// Early return if symbol should be ignored
+	if isIgnore {
+		return customGoName
+	}
 
 	// 1. for class method,gen method name
 	if parent := cursor.SemanticParent(); parent.Kind == clang.CursorClassDecl {
