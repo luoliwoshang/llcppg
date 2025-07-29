@@ -73,5 +73,10 @@
     "mangle": "Foo_ignoreFunc",
     "c++": "Foo_ignoreFunc()",
     "go": "-"
+  },
+  {
+    "mangle": "Foo_ignoreFunc2",
+    "c++": "Foo_ignoreFunc2()",
+    "go": "-"
   }
 ]
