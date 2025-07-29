@@ -1,5 +1,5 @@
 package config
 
-import "fmt"
+import "errors"
 
-var ErrConfigError = fmt.Errorf("failed to unmarshal config")
+var ErrConfig = errors.New("failed to unmarshal config")

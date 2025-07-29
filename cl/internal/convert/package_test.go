@@ -1984,7 +1984,7 @@ func TestImport(t *testing.T) {
 		loader := convert.NewPkgDepLoader(mod, genPkg)
 		depPkgs, err := loader.LoadDeps(p.PkgInfo)
 		p.PkgInfo.Deps = depPkgs
-		if err != nil && !errors.Is(err, llcppg.ErrConfigError) {
+		if err != nil && !errors.Is(err, llcppg.ErrConfig) {
 			t.Fatal(err)
 		}
 		_, err = loader.Import("github.com/goplus/invalidpkg")
@@ -2028,7 +2028,7 @@ func TestImport(t *testing.T) {
 				},
 			},
 		})
-		if err != nil && !errors.Is(err, llcppg.ErrConfigError) {
+		if err != nil && !errors.Is(err, llcppg.ErrConfig) {
 			t.Fatal("NewPackage failed:", err)
 		}
 	})
