@@ -666,3 +666,31 @@ func TestPostOrderVisitChildren(t *testing.T) {
 		fmt.Println("Unexpected child order:", childStr)
 	}
 }
+
+func TestEmptyDeclVsForwardDecl(t *testing.T) {
+	config := &clangutils.Config{
+		File:  "./testdata/forward_vs_empty/temp.h",
+		Temp:  false,
+		IsCpp: false,
+	}
+
+	type isDefinition = bool
+	var decl map[string]isDefinition = map[string]isDefinition{
+		"ForwardOnly": false,
+		"EmptyStruct": true,
+	}
+
+	visit(config, func(cursor, parent clang.Cursor) clang.ChildVisitResult {
+		if cursor.Kind == clang.CursorStructDecl {
+			sdecl := clang.GoString(cursor.String())
+			if _, ok := decl[sdecl]; ok {
+				isDefine := parser.IsCursorDefinition(cursor) != 0
+				if isDefine != decl[sdecl] {
+					t.Fatalf("StructDecl %s isDefinition expect %v, got %v", sdecl, decl[sdecl], isDefine)
+				}
+			}
+			fmt.Println("StructDecl Name:", clang.GoString(cursor.String()), "isDefinition:", parser.IsCursorDefinition(cursor))
+		}
+		return clang.ChildVisit_Recurse
+	})
+}
