@@ -826,23 +826,26 @@ func (ct *Converter) ProcessRecordType(cursor clang.Cursor) *ast.RecordType {
 	ct.incIndent()
 	defer ct.decIndent()
 
+	typ := &ast.RecordType{}
+
 	cursorName, cursorKind := getCursorDesc(cursor)
 	ct.logln("ProcessRecordType: CursorName:", cursorName, "CursorKind:", cursorKind)
 
-	tag := toTag(cursor.Kind)
-	ct.logln("ProcessRecordType: toTag", tag)
+	typ.Tag = toTag(cursor.Kind)
+	ct.logln("ProcessRecordType: toTag", typ.Tag)
+
+	// will cause exit -1
+	// if cursor.IsCursorDefinition() == 0 {
+	// 	return typ
+	// }
 
 	ct.logln("ProcessRecordType: ProcessFieldList")
-	fields := ct.ProcessFieldList(cursor)
+	typ.Fields = ct.ProcessFieldList(cursor)
 
 	ct.logln("ProcessRecordType: ProcessMethods")
-	methods := ct.ProcessMethods(cursor)
+	typ.Methods = ct.ProcessMethods(cursor)
 
-	return &ast.RecordType{
-		Tag:     tag,
-		Fields:  fields,
-		Methods: methods,
-	}
+	return typ
 }
 
 // process ElaboratedType Reference
