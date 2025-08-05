@@ -1,5 +1,5 @@
 // NOTE(zzy):temp define in current directory, need to be removed when support libclang at llpkg
-package clang
+package parser
 
 import (
 	_ "unsafe"
