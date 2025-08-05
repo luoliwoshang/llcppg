@@ -684,12 +684,12 @@ func TestEmptyDeclVsForwardDecl(t *testing.T) {
 		if cursor.Kind == clang.CursorStructDecl {
 			sdecl := clang.GoString(cursor.String())
 			if _, ok := decl[sdecl]; ok {
-				isDefine := parser.IsCursorDefinition(cursor) != 0
+				isDefine := cursor.IsCursorDefinition() != 0
 				if isDefine != decl[sdecl] {
 					t.Fatalf("StructDecl %s isDefinition expect %v, got %v", sdecl, decl[sdecl], isDefine)
 				}
 			}
-			fmt.Println("StructDecl Name:", clang.GoString(cursor.String()), "isDefinition:", parser.IsCursorDefinition(cursor))
+			fmt.Println("StructDecl Name:", clang.GoString(cursor.String()), "isDefinition:", cursor.IsCursorDefinition() != 0)
 		}
 		return clang.ChildVisit_Recurse
 	})
