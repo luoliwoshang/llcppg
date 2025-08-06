@@ -768,7 +768,7 @@ func (ct *Converter) ProcessRecordDecl(cursor clang.Cursor) []ast.Decl {
 		typ := ct.ProcessRecordType(child)
 		// note(zzy):use len(typ.Fields.List) to ensure it has fields not a forward declaration
 		// but maybe make the forward decl in to AST is also good.
-		if child.IsAnonymous() == 0 && len(typ.Fields.List) > 0 {
+		if child.IsAnonymous() == 0 && typ.Fields != nil {
 			childName := clang.GoString(child.String())
 			ct.logln("ProcessRecordDecl: Found named nested struct:", childName)
 			decls = append(decls, &ast.TypeDecl{
@@ -834,10 +834,10 @@ func (ct *Converter) ProcessRecordType(cursor clang.Cursor) *ast.RecordType {
 	typ.Tag = toTag(cursor.Kind)
 	ct.logln("ProcessRecordType: toTag", typ.Tag)
 
-	// will cause exit -1
-	// if cursor.IsCursorDefinition() == 0 {
-	// 	return typ
-	// }
+	if cursor.IsCursorDefinition() == 0 {
+		ct.logln("ProcessRecordType: forward declaration, no definition")
+		return typ
+	}
 
 	ct.logln("ProcessRecordType: ProcessFieldList")
 	typ.Fields = ct.ProcessFieldList(cursor)
