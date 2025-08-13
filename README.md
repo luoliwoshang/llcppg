@@ -69,13 +69,13 @@ The configuration file supports the following options:
 After creating the configuration file, run:
 
 ```bash
-llcppg `llcppg.cfg`
+llcppg llcppg.cfg
 ```
 
 If you're not in a Go module or want to create a separate module, you can use the `-mod` flag to create a new Go module for the generated package:
 
 ```bash
-llcppg -mod github.com/author/cjson `llcppg.cfg`
+llcppg -mod github.com/author/cjson llcppg.cfg
 ```
 
 After execution,LLGo Binding will be generated in a directory named after the config name (which is also the package name). For example, with the cjson configuration above, you'll see:
@@ -85,7 +85,7 @@ cjson/
 ├── cJSON.go
 ├── cJSON_Utils.go
 ├── cjson_autogen_link.go
-├── `llcppg.pub`
+├── llcppg.pub
 ├── go.mod  # Contains: module github.com/author/cjson (only when using -mod flag)
 └── go.sum  # Contains dependency checksums (only when using -mod flag)
 ```

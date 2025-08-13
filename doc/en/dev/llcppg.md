@@ -721,7 +721,7 @@ cjson/
 ├── cJSON.go                    # Bindings generated from cJSON.h
 ├── cJSON_Utils.go             # Bindings generated from cJSON_Utils.h
 ├── cjson_autogen_link.go      # Auto-generated link file
-├── `llcppg.pub`                 # Type mapping information
+├── llcppg.pub                 # Type mapping information
 ├── go.mod                     # Go module file (when using -mod flag)
 └── go.sum                     # Dependency checksums (when using -mod flag)
 ```
