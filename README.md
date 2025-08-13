@@ -28,7 +28,7 @@ go install .
 
 ## Usage
 
-llcppg.cfg file is a configure file used by llcppg. Once llcppg.cfg is generated then you can run llcppg command to generate go pacakge for the c/c++ lib.
+`llcppg.cfg` file is a configure file used by llcppg. Once `llcppg.cfg` is generated then you can run llcppg command to generate go pacakge for the c/c++ lib.
 
 ```sh
 llcppg [config-file]
@@ -69,13 +69,13 @@ The configuration file supports the following options:
 After creating the configuration file, run:
 
 ```bash
-llcppg llcppg.cfg
+llcppg `llcppg.cfg`
 ```
 
 If you're not in a Go module or want to create a separate module, you can use the `-mod` flag to create a new Go module for the generated package:
 
 ```bash
-llcppg -mod github.com/author/cjson llcppg.cfg
+llcppg -mod github.com/author/cjson `llcppg.cfg`
 ```
 
 After execution,LLGo Binding will be generated in a directory named after the config name (which is also the package name). For example, with the cjson configuration above, you'll see:
@@ -85,7 +85,7 @@ cjson/
 ├── cJSON.go
 ├── cJSON_Utils.go
 ├── cjson_autogen_link.go
-├── llcppg.pub
+├── `llcppg.pub`
 ├── go.mod  # Contains: module github.com/author/cjson (only when using -mod flag)
 └── go.sum  # Contains dependency checksums (only when using -mod flag)
 ```
@@ -358,8 +358,8 @@ xmlChar * xsltGetNsProp(xmlNodePtr node, const xmlChar *name, const xmlChar *nam
 If `xmlChar` and `xmlNodePtr` mappings are not found (not declare `llcppg-libxml` in `deps`), llcppg will notify the user of these missing types and indicate they are from `libxml2` header files.
 The corresponding notification would be:
 ```bash
-convert /path/to/include/libxml2/libxml/xmlstring.h first, declare its converted package in llcppg.cfg deps for load [xmlChar].
-convert /path/to/libxml2/libxml/tree.h first, declare its converted package in llcppg.cfg deps for load [xmlNodePtr].
+convert /path/to/include/libxml2/libxml/xmlstring.h first, declare its converted package in `llcppg.cfg` deps for load [xmlChar].
+convert /path/to/libxml2/libxml/tree.h first, declare its converted package in `llcppg.cfg` deps for load [xmlNodePtr].
 ```
 
 For this project, `llcppg` will automatically handle type references to libxml2. During the process, `llcppg` uses the `llcppg.pub` file from the generated libxml2 package to ensure type consistency.
@@ -453,7 +453,7 @@ This caching strategy ensures that type references are properly maintained when 
 llcppcfg [libname]
 ```
 
-llcppcfg tool is used to generate llcppg.cfg file.
+llcppcfg tool is used to generate `llcppg.cfg` file.
 
 ## Design
 
