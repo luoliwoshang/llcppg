@@ -93,7 +93,7 @@ func (p *TypeConv) handleArrayType(t *ast.ArrayType) (types.Type, error) {
 		return nil, fmt.Errorf("error convert elem type: %w", err)
 	}
 	if p.ctx == Param {
-		// array in the parameter,ignore the len,convert as pointer
+		// array in the parameter, ignore the len, convert as pointer
 		return types.NewPointer(elemType), nil
 	}
 
