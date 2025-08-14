@@ -3,8 +3,14 @@ name: Test Demo With Generated Pkgs
 on:
   push:
     branches: [ "**" ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
   pull_request:
     branches: [ "**" ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
 
 jobs:
 
