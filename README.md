@@ -28,7 +28,7 @@ go install .
 
 ## Usage
 
-llcppg.cfg file is a configure file used by llcppg. Once llcppg.cfg is generated then you can run llcppg command to generate Go package for the C/C++ lib.
+`llcppg.cfg` file is a configure file used by llcppg. Once `llcppg.cfg` is generated then you can run llcppg command to generate Go package for the C/C++ lib.
 
 ```sh
 llcppg [config-file]
@@ -453,7 +453,7 @@ This caching strategy ensures that type references are properly maintained when 
 llcppcfg [libname]
 ```
 
-llcppcfg tool is used to generate llcppg.cfg file.
+llcppcfg tool is used to generate `llcppg.cfg` file.
 
 ## Design
 

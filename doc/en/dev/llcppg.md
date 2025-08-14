@@ -451,10 +451,10 @@ Each dependency package follows a unified file organization structure (using xml
 1. HTMLtree.go (generated from HTMLtree.h)
 2. HTMLparser.go (generated from HTMLparser.h)
 * Configuration files
-1. llcppg.cfg (dependency information)
-2. llcppg.pub (type mapping information)
+1. `llcppg.cfg` (dependency information)
+2. `llcppg.pub` (type mapping information)
 
-##### TypeMapping Examples (llcppg.pub)
+##### TypeMapping Examples (`llcppg.pub`)
 
 * C types on the left and corresponding Go type names on the right
 * If the Go Name is same with C type name,only need keep one column
@@ -513,8 +513,8 @@ xmlChar * xsltGetNsProp(xmlNodePtr node, const xmlChar *name, const xmlChar *nam
 If `xmlChar` and `xmlNodePtr` mappings are not found (not declare `llcppg-libxml` in `deps`), llcppg will notify the user of these missing types and indicate they are from `libxml2` header files.
 The corresponding notification would be:
 ```bash
-convert /path/to/include/libxml2/libxml/xmlstring.h first, declare its converted package in llcppg.cfg deps for load [xmlChar].
-convert /path/to/libxml2/libxml/tree.h first, declare its converted package in llcppg.cfg deps for load [xmlNodePtr].
+convert /path/to/include/libxml2/libxml/xmlstring.h first, declare its converted package in `llcppg.cfg` deps for load [xmlChar].
+convert /path/to/libxml2/libxml/tree.h first, declare its converted package in `llcppg.cfg` deps for load [xmlNodePtr].
 ```
 
 For this project, `llcppg` will automatically handle type references to libxml2. During the process, `llcppg` uses the `llcppg.pub` file from the generated libxml2 package to ensure type consistency.
@@ -690,7 +690,7 @@ import (
 
 ### Type Mapping File
 
-* Generates an llcppg.pub file containing a mapping table from C types to Go type names, is used for package dependency handling, example and concept see [Dependency](#Dependency)
+* Generates an `llcppg.pub` file containing a mapping table from C types to Go type names, is used for package dependency handling, example and concept see [Dependency](#Dependency)
 
 ### Go Module Files (Optional)
 
@@ -756,7 +756,7 @@ When `staticLib: true` is configured in `llcppg.cfg`, llcppsymg switches to stat
 
 #### Header-Only Mode
 
-When `headerOnly: true` is configured in llcppg.cfg, llcppg operates in header-only processing mode.
+When `headerOnly: true` is configured in `llcppg.cfg`, llcppg operates in header-only processing mode.
 
 In header-only processing mode, instead of matching library symbols with header declarations, it will generate the symbol table based solely on header files specified in cflags.
 
@@ -866,7 +866,7 @@ gogensig -  # read pkg-info-file from stdin
 ```
 
 #### Function Generation
-During execution, gogensig only generates functions whose corresponding mangle exists in llcppg.symb.json, determining whether to generate functions/methods with specified Go names by parsing the go field corresponding to the mangle.
+During execution, gogensig only generates functions whose corresponding mangle exists in `llcppg.symb.json`, determining whether to generate functions/methods with specified Go names by parsing the go field corresponding to the mangle.
 
 1. Regular function format: "FunctionName"
   * Generates regular functions, using `//go:linkname` annotation
