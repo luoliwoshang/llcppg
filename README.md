@@ -58,13 +58,13 @@ The configuration file supports the following options:
 - `include`: Header files to include in the binding generation
 - `libs`: Library flags for linking
 - `trimPrefixes`: Prefixes to remove from function names & type names
-- `cplusplus`: Set to true for C++ libraries(not support)
+- `cplusplus`: Set to true for C++ libraries (not supported)
 - `deps`: Dependencies (other packages & standard libraries)
 - `mix`: Set to true when package header files are mixed with other header files in the same directory. In this mode, only files explicitly listed in `include` are processed as package files.
 - `typeMap`: Custom name mapping from C types to Go types.
 - `symMap`: Custom name mapping from C function names to Go function names.
 - `staticLib`: Set to true to enable static library symbol reading instead of dynamic library linking. When enabled, llcppg will read symbols from static libraries (.a files) rather than dynamic libraries (.so/.dylib files).
-- `headerOnly`: Set to true to ​​enable header-only mode. In header-only processing mode, instead of matching library symbols with header declarations, it will generate the symbol table based solely on header files specified in cflags.
+- `headerOnly`: Set to true to enable header-only mode. In header-only processing mode, instead of matching library symbols with header declarations, it will generate the symbol table based solely on header files specified in cflags.
 
 After creating the configuration file, run:
 
@@ -78,7 +78,7 @@ If you're not in a Go module or want to create a separate module, you can use th
 llcppg -mod github.com/author/cjson llcppg.cfg
 ```
 
-After execution,LLGo Binding will be generated in a directory named after the config name (which is also the package name). For example, with the cjson configuration above, you'll see:
+After execution, LLGo Binding will be generated in a directory named after the config name (which is also the package name). For example, with the cjson configuration above, you'll see:
 
 ```bash
 cjson/

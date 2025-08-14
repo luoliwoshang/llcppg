@@ -79,4 +79,4 @@ The generated llcppg.cfg content will be similar to:
 
 4. **Sort by Dependency Weight**
    Prioritize headers based on:
-   - Dependency count (files with more dependencies rank higher)
+   - Dependency count (files with more dependencies rank higher).
