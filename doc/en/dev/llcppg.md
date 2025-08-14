@@ -499,7 +499,7 @@ You can specify dependent package paths in the `deps` field of `llcppg.cfg` . Fo
   "libs": "$(pkg-config --libs libxslt)",
   "trimPrefixes": ["xslt"],
   "deps": ["c/os","github.com/goplus/llpkg/libxml2"],
-  "includes":["libxslt/xsltutils.h","libxslt/templates.h"]
+  "include":["libxslt/xsltutils.h","libxslt/templates.h"]
 }
 ```
 
@@ -839,7 +839,7 @@ The output is a `pkg-info` structure that contains comprehensive package informa
 {
     "File": {
         "decls": [],
-        "includes": [],
+        "include": [],
         "macros": []
     },
     "FileMap": {

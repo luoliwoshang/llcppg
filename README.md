@@ -344,7 +344,7 @@ You can specify dependent package paths in the `deps` field of `llcppg.cfg` . Fo
   "libs": "$(pkg-config --libs libxslt)",
   "trimPrefixes": ["xslt"],
   "deps": ["c/os","github.com/goplus/llpkg/libxml2"],
-  "includes":["libxslt/xsltutils.h","libxslt/templates.h"]
+  "include":["libxslt/xsltutils.h","libxslt/templates.h"]
 }
 ```
 
@@ -382,7 +382,7 @@ func GetNsProp(node libxml2.NodePtr, name *libxml2.Char, nameSpace *libxml2.Char
 
 ### Important Note on Header File Ordering
 
-llcppg follows C language's dependency resolution order when processing header files. The order of files in the `includes` configuration determines the processing sequence, and incorrect ordering can lead to type resolution failures. Here's an example from the LZMA library that demonstrates the dependency relationships:
+llcppg follows C language's dependency resolution order when processing header files. The order of files in the `include` configuration determines the processing sequence, and incorrect ordering can lead to type resolution failures. Here's an example from the LZMA library that demonstrates the dependency relationships:
 
 `lzma/vli.h`:
 ```c
@@ -417,14 +417,14 @@ Since llcppg processes headers in the order specified in the configuration, you 
 ✅ Correct ordering:
 ```json
 {
-   "includes": ["lzma.h", "lzma/vli.h", "lzma/filter.h"]
+   "include": ["lzma.h", "lzma/vli.h", "lzma/filter.h"]
 }
 ```
 
 ❌ Incorrect ordering:
 ```json
 {
-   "includes": ["lzma/filter.h", "lzma.h", "lzma/vli.h"]
+   "include": ["lzma/filter.h", "lzma.h", "lzma/vli.h"]
 }
 ```
 
