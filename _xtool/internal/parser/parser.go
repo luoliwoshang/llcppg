@@ -201,7 +201,7 @@ func (ct *Converter) ParseComment(rawComment string) *ast.CommentGroup {
 	return commentGroup
 }
 
-// visit top decls (struct,class,function,enum & macro,include)
+// visit top decls (struct, class, function, enum & macro, include)
 func (ct *Converter) visitTop(cursor, parent clang.Cursor) clang.ChildVisitResult {
 	ct.incIndent()
 	defer ct.decIndent()
@@ -273,7 +273,7 @@ func (ct *Converter) visitTop(cursor, parent clang.Cursor) clang.ChildVisitResul
 	return clang.ChildVisit_Continue
 }
 
-// for flatten ast,keep type order
+// for flatten ast, keep type order
 // input is clang -E 's result
 func (ct *Converter) Convert() (*ast.File, error) {
 	cursor := ct.unit.Cursor()
@@ -508,7 +508,7 @@ func (ct *Converter) ProcessFuncDecl(cursor clang.Cursor) *ast.FuncDecl {
 	ct.logln("ProcessFuncDecl: CursorName:", name, "CursorKind:", kind, "mangledName:", mangledName)
 
 	// function type will only collect return type
-	// ProcessType can't get the field names,will collect in follows
+	// ProcessType can't get the field names, will collect in follows
 	fnType := cursor.Type()
 	typName, typKind := getTypeDesc(fnType)
 	ct.logln("ProcessFuncDecl: TypeName:", typName, "TypeKind:", typKind)
@@ -703,7 +703,7 @@ func (ct *Converter) createBaseField(cursor clang.Cursor) *ast.Field {
 	return field
 }
 
-// For Record Type(struct,union ...)'s FieldList
+// For Record Type(struct, union ...)'s FieldList
 func (ct *Converter) ProcessFieldList(cursor clang.Cursor) *ast.FieldList {
 	ct.incIndent()
 	defer ct.decIndent()
