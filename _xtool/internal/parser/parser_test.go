@@ -20,7 +20,7 @@ import (
 )
 
 func TestParserCppMode(t *testing.T) {
-	cases := []string{"class", "comment", "enum", "func", "scope", "struct", "typedef", "union", "macro", "forwarddecl1", "forwarddecl2", "include", "typeof", "forward_vs_empty"}
+	cases := []string{"class", "comment", "enum", "func", "scope", "struct", "typedef", "union", "macro", "forwarddecl1", "forwarddecl2", "include", "typeof", "forward_vs_empty", "nestedenum_cpp"}
 	// https://github.com/goplus/llgo/issues/1114
 	// todo(zzy):use os.ReadDir
 	for _, folder := range cases {
@@ -31,7 +31,7 @@ func TestParserCppMode(t *testing.T) {
 }
 
 func TestParserCMode(t *testing.T) {
-	cases := []string{"enum", "struct", "union", "macro", "include", "typeof", "named_nested_struct", "forward_vs_empty"}
+	cases := []string{"enum", "struct", "union", "macro", "include", "typeof", "named_nested_struct", "forward_vs_empty", "nestedenum"}
 	for _, folder := range cases {
 		t.Run(folder, func(t *testing.T) {
 			testFrom(t, filepath.Join("testdata", folder), "temp.h", false, false)
@@ -248,6 +248,15 @@ func TestNonBuiltinTypes(t *testing.T) {
 				Name: &ast.Ident{
 					Name: "Foo",
 				},
+			},
+		},
+		{
+			TypeCode: `struct Foo { enum Bar {} k; };
+						enum Bar`,
+			ExpectTypeStr: "enum Bar",
+			expr: &ast.TagExpr{
+				Tag:  ast.Enum,
+				Name: &ast.Ident{Name: "Bar"},
 			},
 		},
 		{

@@ -646,7 +646,7 @@ func (ct *Converter) ProcessEnumDecl(cursor clang.Cursor) *ast.EnumTypeDecl {
 		decl.Name = &ast.Ident{Name: cursorName}
 		ct.logln("ProcessEnumDecl: has name", cursorName)
 	} else {
-		ct.logln("ProcessRecordDecl: is anonymous")
+		ct.logln("ProcessEnumDecl: is anonymous")
 	}
 
 	return decl
@@ -679,6 +679,7 @@ func (ct *Converter) createBaseField(cursor clang.Cursor) *ast.Field {
 	fieldName := toStr(cursor.String())
 
 	typ := cursor.Type()
+
 	typeName, typeKind := getTypeDesc(typ)
 
 	ct.logf("createBaseField: ProcessType %s TypeKind: %s", typeName, typeKind)
@@ -760,23 +761,41 @@ func (ct *Converter) ProcessRecordDecl(cursor clang.Cursor) []ast.Decl {
 	ct.logln("ProcessRecordDecl: CursorName:", cursorName, "CursorKind:", cursorKind)
 
 	childs := PostOrderVisitChildren(cursor, func(child, parent clang.Cursor) bool {
+		// if we found a nested enum, handle it like nested struct
+		if child.Kind == clang.CursorEnumDecl {
+			return true
+		}
 		return (child.Kind == clang.CursorStructDecl || child.Kind == clang.CursorUnionDecl) && child.IsAnonymous() == 0
 	})
 
 	for _, child := range childs {
-		// Check if this is a named nested struct/union
-		typ := ct.ProcessRecordType(child)
-		// note(zzy):use len(typ.Fields.List) to ensure it has fields not a forward declaration
-		// but maybe make the forward decl in to AST is also good.
-		if child.IsAnonymous() == 0 && typ.Fields != nil {
+		switch child.Kind {
+		case clang.CursorStructDecl, clang.CursorUnionDecl:
+			// note(zzy):use len(typ.Fields.List) to ensure it has fields not a forward declaration
+			// but maybe make the forward decl in to AST is also good.
 			childName := clang.GoString(child.String())
 			ct.logln("ProcessRecordDecl: Found named nested struct:", childName)
-			decls = append(decls, &ast.TypeDecl{
-				Object: ct.CreateObject(child, &ast.Ident{Name: childName}),
-				Type:   ct.ProcessRecordType(child),
-			})
+			// Check if this is a named nested struct/union
+			typ := ct.ProcessRecordType(child)
+			// note(zzy):use len(typ.Fields.List) to ensure it has fields not a forward declaration
+			// but maybe make the forward decl in to AST is also good.
+			if child.IsAnonymous() == 0 && typ.Fields != nil {
+				decls = append(decls, &ast.TypeDecl{
+					Object: ct.CreateObject(child, &ast.Ident{Name: childName}),
+					Type:   ct.ProcessRecordType(child),
+				})
+			}
+		case clang.CursorEnumDecl:
+			childName := clang.GoString(child.String())
+
+			ct.logln("ProcessRecordDecl: Found named nested enum:", childName)
+
+			ct.incIndent()
+			decls = append(decls, ct.ProcessEnumDecl(child))
+			ct.decIndent()
 		}
 	}
+	ct.logln("ProcessRecordDecl: process record: ", cursorName)
 
 	decl := &ast.TypeDecl{
 		Object: ct.CreateObject(cursor, nil),
@@ -864,28 +883,44 @@ func (ct *Converter) ProcessElaboratedType(t clang.Type) ast.Expr {
 	ct.logln("ProcessElaboratedType: TypeName:", typeName, "TypeKind:", typeKind)
 
 	decl := t.TypeDeclaration()
+	isAnonymousDecl := decl.IsAnonymous() > 0
 
-	if decl.IsAnonymous() != 0 {
-		// anonymous type refer (except anonymous RecordType&EnumType in TypedefDecl)
-		if decl.Kind == clang.CursorEnumDecl {
+	if isAnonymousDecl && decl.Kind != clang.CursorEnumDecl {
+		return ct.ProcessRecordType(decl)
+	}
+	parts := clangutils.BuildScopingParts(decl)
+	hasParent := clangutils.HasParent(decl)
+	// NOTE(MeteorsLiu): nested enum behaves different from nested struct, for example, we can find its semantic parent
+	// however, it will cause we misidentified it as a class method expr, so take it out
+	if isAnonymousDecl && decl.Kind == clang.CursorEnumDecl {
+		// case 1: anonymous enum, but not nested (anonymous enum decl variable case)
+		if !hasParent {
+			// this is not a nested enum, handle it normally
 			return ct.ProcessEnumType(decl)
 		}
-		return ct.ProcessRecordType(decl)
+		// case 2: anonymous enum, nested (normal nested struct reference)
+		// by default, the type of an anonymous enum is int
+		// NOTE(MeteorsLiu): see disscussion https://github.com/goplus/llcppg/pull/530
+		return &ast.BuiltinType{Kind: ast.Int}
+
+		// case 3: named enum, nested, fallback to process as a ElaboratedType (nornaml nested struct)
+		// case 4: named enum, non-nested, fallback to process as a ElaboratedType normally. (typedef enum case)
 	}
 
 	// for elaborated type, it could have a tag description
 	// like struct A, union B, class C, enum D
-	parts := strings.SplitN(typeName, " ", 2)
-	if len(parts) == 2 {
-		if tagValue, ok := tagMap[parts[0]]; ok {
+	typeParts := strings.SplitN(typeName, " ", 2)
+
+	if len(typeParts) == 2 {
+		if tagValue, ok := tagMap[typeParts[0]]; ok {
 			return &ast.TagExpr{
 				Tag:  tagValue,
-				Name: ct.BuildScopingExpr(decl),
+				Name: buildScopingFromParts(parts),
 			}
 		}
 	}
 
-	return ct.BuildScopingExpr(decl)
+	return buildScopingFromParts(parts)
 }
 
 func (ct *Converter) ProcessTypeDefType(t clang.Type) ast.Expr {
@@ -1031,7 +1066,6 @@ func buildScopingFromParts(parts []string) ast.Expr {
 	if len(parts) == 0 {
 		return nil
 	}
-
 	var expr ast.Expr = &ast.Ident{Name: parts[0]}
 	for _, part := range parts[1:] {
 		expr = &ast.ScopingExpr{
