@@ -30,9 +30,10 @@ runs:
     run: |
       brew install llvm@${{inputs.llvm}} bdw-gc openssl libffi libuv lld@${{inputs.llvm}}
       brew install zlib # for llgo test .
-      brew install python@3.12 # for pydemo tests
+      brew install python@3.12 || true # for github.com/goplus/lib/py
       brew link --force zlib # for llgo test .
       brew link --force libffi
+      brew link --overwrite python@3.12
       echo "$(brew --prefix llvm@${{inputs.llvm}})/bin" >> $GITHUB_PATH
       echo "$(brew --prefix lld@${{inputs.llvm}})/bin" >> $GITHUB_PATH
   - name: Install dependencies
