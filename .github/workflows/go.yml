@@ -81,12 +81,6 @@ jobs:
         # Will remove this after pytorch is fixed.
         pcdir=$HOME/pc
         mkdir -p $pcdir
-
-        # Add python@3.12 pkgconfig path for macOS (even if not linked)
-        if [ "$(uname)" = "Darwin" ]; then
-          export PKG_CONFIG_PATH="$(brew --prefix python@3.12)/lib/pkgconfig:$PKG_CONFIG_PATH"
-        fi
-
         libdir=$(pkg-config --variable=libdir python-3.12-embed)
         echo "libdir: $libdir"
         ln -s $libdir/pkgconfig/python-3.12-embed.pc $pcdir/python3-embed.pc
