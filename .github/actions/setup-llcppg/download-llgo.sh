@@ -49,7 +49,7 @@ mkdir -p "$INSTALL_DIR"
 
 # Download and extract
 curl -L -o "/tmp/${FILENAME}" "$URL"
-tar -xzf "/tmp/${FILENAME}" -C "$INSTALL_DIR" --strip-components=1
+tar -xzf "/tmp/${FILENAME}" -C "$INSTALL_DIR"
 rm "/tmp/${FILENAME}"
 
 echo "LLGo ${VERSION} has been installed to ${INSTALL_DIR}"
