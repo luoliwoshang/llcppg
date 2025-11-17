@@ -34,6 +34,7 @@ runs:
     run: |
       bash .github/actions/setup-llcppg/download-llgo.sh ${{inputs.llgo}} .llgo
       echo "$GITHUB_WORKSPACE/.llgo/bin" >> $GITHUB_PATH
+      echo "$GITHUB_WORKSPACE/.llgo/crosscompile/clang/bin" >> $GITHUB_PATH
       export LLGO_ROOT=$GITHUB_WORKSPACE/.llgo
       echo "LLGO_ROOT=$LLGO_ROOT" >> $GITHUB_ENV
   - name: Verify LLGo installation
@@ -41,6 +42,7 @@ runs:
     run: |
       echo "LLGO_ROOT: $LLGO_ROOT"
       llgo version
+      llvm-nm --version
   - name: Build
     shell: bash
     run: go build -v ./...
