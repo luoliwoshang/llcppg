@@ -34,9 +34,11 @@ case $ARCH in
 esac
 
 # Construct download URL
-# Format: llgo-{version}-{os}-{arch}.tar.gz
-# Example: llgo-v0.11.6-darwin-arm64.tar.gz or llgo-v0.11.6-linux-amd64.tar.gz
-FILENAME="llgo-${VERSION}-${OS}-${ARCH}.tar.gz"
+# Format: llgo{version}.{os}-{arch}.tar.gz
+# Example: llgo0.11.6.darwin-arm64.tar.gz or llgo0.11.6.linux-amd64.tar.gz
+# Remove 'v' prefix from version if present
+VERSION_NUMBER="${VERSION#v}"
+FILENAME="llgo${VERSION_NUMBER}.${OS}-${ARCH}.tar.gz"
 URL="https://github.com/goplus/llgo/releases/download/${VERSION}/${FILENAME}"
 
 echo "Downloading LLGo ${VERSION} for ${OS}-${ARCH}..."
