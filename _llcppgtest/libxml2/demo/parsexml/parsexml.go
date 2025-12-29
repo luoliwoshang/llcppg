@@ -17,6 +17,6 @@ func main() {
 	docPtr := (*libxml2.XmlDoc)(unsafe.Pointer(doc))
 	root := docPtr.XmlDocGetRootElement()
 	c.Printf(c.Str("Root element: %s\n"), root.Name)
-	libxml2.XmlFreeDoc(doc)
+	doc.XmlFreeDoc()
 	libxml2.XmlCleanupParser()
 }
