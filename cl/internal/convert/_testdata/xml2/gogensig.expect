@@ -178,10 +178,7 @@ import (
 	_ "unsafe"
 )
 
-/*
- * Originally declared in xmlversion.h which is generated
- */
-//go:linkname CheckVersion C.xmlCheckVersion
+/* * Originally declared in xmlversion.h which is generated */ //go:linkname CheckVersion C.xmlCheckVersion
 func CheckVersion(version c.Int)
 
 ===== xmlstring.go =====
@@ -194,10 +191,7 @@ import (
 
 type Char c.Char
 
-/*
- * xmlChar handling
- */
-// llgo:link (*Char).Strdup C.xmlStrdup
+/* * xmlChar handling */ // llgo:link (*Char).Strdup C.xmlStrdup
 func (recv_ *Char) Strdup() *Char {
 	return nil
 }
