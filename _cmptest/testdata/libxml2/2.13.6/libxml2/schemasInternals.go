@@ -326,7 +326,6 @@ type SchemaNotationPtr *SchemaNotation
  *
  * A Schemas definition
  */
-
 type X_xmlSchema struct {
 	Name            *Char
 	TargetNamespace *Char

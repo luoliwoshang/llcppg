@@ -193,12 +193,11 @@ func (ct *Converter) ParseCommentGroup(cursor clang.Cursor) (comentGroup *ast.Co
 }
 
 func (ct *Converter) ParseComment(rawComment string) *ast.CommentGroup {
-	lines := strings.Split(rawComment, "\n")
-	commentGroup := &ast.CommentGroup{}
-	for _, line := range lines {
-		commentGroup.List = append(commentGroup.List, &ast.Comment{Text: line})
+	return &ast.CommentGroup{
+		List: []*ast.Comment{
+			{Text: rawComment},
+		},
 	}
-	return commentGroup
 }
 
 // visit top decls (struct, class, function, enum & macro, include)
