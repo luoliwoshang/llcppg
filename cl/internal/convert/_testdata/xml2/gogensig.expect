@@ -178,7 +178,10 @@ import (
 	_ "unsafe"
 )
 
-/* * Originally declared in xmlversion.h which is generated */ //go:linkname CheckVersion C.xmlCheckVersion
+/*
+ * Originally declared in xmlversion.h which is generated
+ */
+//go:linkname CheckVersion C.xmlCheckVersion
 func CheckVersion(version c.Int)
 
 ===== xmlstring.go =====
@@ -191,7 +194,10 @@ import (
 
 type Char c.Char
 
-/* * xmlChar handling */ // llgo:link (*Char).Strdup C.xmlStrdup
+/*
+ * xmlChar handling
+ */
+// llgo:link (*Char).Strdup C.xmlStrdup
 func (recv_ *Char) Strdup() *Char {
 	return nil
 }
@@ -278,7 +284,8 @@ func (recv_ *Char) StrncatNew(str2 *Char, len c.Int) *Char {
 }
 
 //go:linkname StrPrintf C.xmlStrPrintf
-func StrPrintf(buf *Char, len c.Int, msg *c.Char, __llgo_va_list ...interface{}) c.Int
+func StrPrintf(buf *Char, len c.Int, msg *c.Char, __llgo_va_list ...interface {
+}) c.Int
 
 // llgo:link (*Char).StrVPrintf C.xmlStrVPrintf
 func (recv_ *Char) StrVPrintf(len c.Int, msg *c.Char, ap c.VaList) c.Int {
