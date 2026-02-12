@@ -1,8 +1,71 @@
+// Package gowrite provides a stable output path for generated Go AST files
+// whose nodes often have missing or partial token positions.
+//
+// Why this package exists:
+//
+// Generated AST from C/C++ conversion commonly contains token.NoPos on many
+// declaration-related nodes. Older formatting behavior sometimes tolerated this,
+// but newer go/printer behavior is stricter about relative positions. Without
+// explicit anchors, comments and declarations may collapse onto one line, move
+// to unexpected places, or print unstable forms (for example around empty
+// interface types in function signatures).
+//
+// What gowrite does:
+//
+//  1. Build a synthetic token.File and assign only the minimal declaration
+//     anchors needed for stable formatting.
+//  2. Run go/format (format.Node) using that synthetic FileSet.
+//
+// This package does not try to fully reconstruct original source locations.
+// It only supplies enough deterministic positions for correct, readable output.
+//
+// High-level algorithm:
+//
+//   - Assign positions in one forward sequence while walking declarations.
+//     For comment groups, each comment's Slash gets a new position, and the
+//     cursor advances by the comment's line span (not just by comment count).
+//     This preserves spacing between multiline comments and the following nodes.
+//
+//   - Register a synthetic token.File after assignment, then install a monotonic
+//     line table with SetLines. Assigned positions align with the final file base
+//     via FileSet.Base() from the same FileSet instance.
+//
+// Why comment line span matters:
+//
+// Consider:
+//
+//	/*
+//	ExecuteFoo comment
+//	*/
+//	//go:linkname CustomExecuteFoo2 C.ExecuteFoo2
+//	func CustomExecuteFoo2()
+//
+// If comments are advanced by +1 each, the block comment and //go:linkname may
+// end up on the same logical line. Advancing by real line span prevents this.
+//
+// Empty interface handling scope:
+//
+// We intentionally handle only function-related signatures:
+// - ast.FuncDecl.Type
+// - type declarations whose TypeSpec is ast.FuncType
+//
+// This is enough for cases like ...interface{} in variadic signatures, while
+// avoiding broad, file-wide interface rewrites.
+//
+// Final line table:
+//
+// The synthetic token.File uses a simple monotonic line table via SetLines.
+// This gives go/printer consistent line boundaries for all assigned anchors.
+//
+// Non-goals:
+//
+// - No semantic AST transformation.
+// - No full-source positional normalization.
+// - No attempt to preserve original file offsets from C/C++ headers.
 package gowrite
 
 import (
 	"bytes"
-	"fmt"
 	"go/ast"
 	"go/format"
 	"go/token"
@@ -36,9 +99,7 @@ func WriteTo(dst io.Writer, pkg *gogen.Package, fname ...string) error {
 	}
 
 	fset := token.NewFileSet()
-	if err := assignDeclAnchors(fset, logicalName, file); err != nil {
-		return err
-	}
+	anchorDecls(fset, logicalName, file)
 	return format.Node(dst, fset, file)
 }
 
@@ -56,144 +117,88 @@ func astFile(pkg *gogen.Package, fname ...string) (*ast.File, string, error) {
 	return file, name, nil
 }
 
-func assignDeclAnchors(fset *token.FileSet, filename string, file *ast.File) error {
-	total := 1 // package anchor
-	total += countCommentGroup(file.Doc)
-	for _, decl := range file.Decls {
-		switch d := decl.(type) {
-		case *ast.FuncDecl:
-			total++
-			total += countCommentGroup(d.Doc)
-			if d.Body != nil {
-				total += 2 // { and } anchors
-			}
-		case *ast.GenDecl:
-			total++
-			total += countCommentGroup(d.Doc)
-		}
-	}
-	total += countEmptyInterfaceAnchors(file)
-
-	size := total + 8
-	tf := fset.AddFile(filename, -1, size)
-	next := 0
+func anchorDecls(fset *token.FileSet, filename string, file *ast.File) {
+	// Allocate synthetic positions from the current fileset base so all assigned
+	// token.Pos values belong to the same future token.File.
+	base := fset.Base()
+	next := base
 	newPos := func() token.Pos {
-		pos := tf.Pos(next)
+		pos := token.Pos(next)
 		next++
 		return pos
 	}
 	skipLines := func(n int) {
-		if n > 0 {
-			next += n
-		}
+		next += n
 	}
 
 	file.Package = newPos()
-	if err := assignCommentGroup(file.Doc, newPos, skipLines, "file doc"); err != nil {
-		return err
-	}
+	anchorComments(file.Doc, newPos, skipLines)
 
-	for i, decl := range file.Decls {
+	for _, decl := range file.Decls {
 		switch d := decl.(type) {
 		case *ast.FuncDecl:
-			name := "<anonymous>"
-			if d.Name != nil && d.Name.Name != "" {
-				name = d.Name.Name
-			}
-			if err := assignCommentGroup(d.Doc, newPos, skipLines, "func "+name); err != nil {
-				return err
-			}
+			anchorComments(d.Doc, newPos, skipLines)
 			if d.Type != nil {
 				d.Type.Func = newPos()
+				anchorEmptyIfaceInFunc(d.Type, newPos)
 			}
 			if d.Body != nil {
 				d.Body.Lbrace = newPos()
 				d.Body.Rbrace = newPos()
 			}
 		case *ast.GenDecl:
-			if err := assignCommentGroup(d.Doc, newPos, skipLines, fmt.Sprintf("gen decl #%d", i)); err != nil {
-				return err
-			}
+			anchorComments(d.Doc, newPos, skipLines)
 			d.TokPos = newPos()
+			anchorEmptyIfaceInTypeFuncs(d, newPos)
 		}
 	}
-	assignEmptyInterfaceAnchors(file, newPos)
 
-	lines := make([]int, next+1)
+	// Register the backing token.File after we know the highest synthetic offset.
+	size := next - base
+	tf := fset.AddFile(filename, base, size)
+
+	// Use a monotonic 1-offset-per-line table; line/column is only used for
+	// stable printer spacing in this synthetic file.
+	lines := make([]int, next-base)
 	for i := range lines {
 		lines[i] = i
 	}
 	if ok := tf.SetLines(lines); !ok {
 		panic("internal/gowrite: failed to set synthetic line table")
 	}
-	return nil
 }
 
-func assignCommentGroup(
+func anchorComments(
 	group *ast.CommentGroup,
 	newPos func() token.Pos,
 	skipLines func(int),
-	owner string,
-) error {
+) {
 	if group == nil {
-		return nil
+		return
 	}
-	for i, c := range group.List {
-		if c == nil {
-			continue
-		}
-		if err := validateCommentText(c.Text); err != nil {
-			return fmt.Errorf("%s comment[%d]: %w", owner, i, err)
-		}
-		c.Slash = newPos()
-		skipLines(commentLineSpan(c.Text) - 1)
-	}
-	return nil
-}
-
-func countCommentGroup(group *ast.CommentGroup) int {
-	if group == nil {
-		return 0
-	}
-	n := 0
 	for _, c := range group.List {
 		if c == nil {
 			continue
 		}
-		n += commentLineSpan(c.Text)
+		c.Slash = newPos()
+		// Advance by real line span so a multiline block comment doesn't collapse
+		// onto the following directive/declaration line.
+		skipLines(lineSpan(c.Text) - 1)
 	}
-	return n
 }
 
-func countEmptyInterfaceAnchors(file *ast.File) (n int) {
-	ast.Inspect(file, func(node ast.Node) bool {
+func anchorEmptyIfaceInFunc(ft *ast.FuncType, newPos func() token.Pos) {
+	ast.Inspect(ft, func(node ast.Node) bool {
 		it, ok := node.(*ast.InterfaceType)
 		if !ok {
 			return true
 		}
-		if needsEmptyInterfaceAnchor(it) {
-			n++
-		}
-		return true
-	})
-	return
-}
-
-func assignEmptyInterfaceAnchors(file *ast.File, newPos func() token.Pos) {
-	ast.Inspect(file, func(node ast.Node) bool {
-		it, ok := node.(*ast.InterfaceType)
-		if !ok {
-			return true
-		}
-		if !needsEmptyInterfaceAnchor(it) {
+		if !needsEmptyIface(it) {
 			return true
 		}
 
 		p := newPos()
 		it.Interface = p
-		if it.Methods == nil {
-			it.Methods = &ast.FieldList{}
-		}
 		// Keep `interface{}` compact by pinning all three tokens to one anchor.
 		it.Methods.Opening = p
 		it.Methods.Closing = p
@@ -201,15 +206,27 @@ func assignEmptyInterfaceAnchors(file *ast.File, newPos func() token.Pos) {
 	})
 }
 
-func needsEmptyInterfaceAnchor(it *ast.InterfaceType) bool {
-	if it == nil {
-		return false
+func anchorEmptyIfaceInTypeFuncs(d *ast.GenDecl, newPos func() token.Pos) {
+	for _, spec := range d.Specs {
+		ts, ok := spec.(*ast.TypeSpec)
+		if !ok {
+			continue
+		}
+		ft, ok := ts.Type.(*ast.FuncType)
+		if !ok {
+			continue
+		}
+		// Restrict empty-interface anchoring to function-type declarations only.
+		anchorEmptyIfaceInFunc(ft, newPos)
 	}
+}
+
+func needsEmptyIface(it *ast.InterfaceType) bool {
 	if it.Interface != token.NoPos {
 		return false
 	}
 	if it.Methods == nil {
-		return true
+		return false
 	}
 	if len(it.Methods.List) != 0 {
 		return false
@@ -217,17 +234,7 @@ func needsEmptyInterfaceAnchor(it *ast.InterfaceType) bool {
 	return it.Methods.Opening == token.NoPos && it.Methods.Closing == token.NoPos
 }
 
-func validateCommentText(text string) error {
-	if len(text) < 2 {
-		return fmt.Errorf("invalid comment text %q (len=%d)", text, len(text))
-	}
-	if text[0] != '/' || (text[1] != '/' && text[1] != '*') {
-		return fmt.Errorf("invalid comment prefix %q", text)
-	}
-	return nil
-}
-
-func commentLineSpan(text string) int {
+func lineSpan(text string) int {
 	if text == "" {
 		return 1
 	}
