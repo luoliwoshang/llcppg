@@ -9,7 +9,6 @@ import (
  * An option is used to describe a flag/argument option submitted when the
  * program is run.
  */
-
 type Option struct {
 	Identifier    c.Char
 	AccessLetters *c.Char
@@ -22,7 +21,6 @@ type Option struct {
  * A context is used to iterate over all options provided. It stores the parsing
  * state.
  */
-
 type OptionContext struct {
 	Options     *Option
 	OptionCount c.SizeT

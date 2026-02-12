@@ -14,7 +14,6 @@ const StringIsConst = 512
 const NESTING_LIMIT = 1000
 
 /* The cJSON structure: */
-
 type JSON struct {
 	Next        *JSON
 	Prev        *JSON
