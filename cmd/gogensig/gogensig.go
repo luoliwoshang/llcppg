@@ -31,6 +31,7 @@ import (
 	"github.com/goplus/llcppg/cmd/gogensig/unmarshal"
 	llcppg "github.com/goplus/llcppg/config"
 	args "github.com/goplus/llcppg/internal/arg"
+	"github.com/goplus/llcppg/internal/gowrite"
 	"github.com/qiniu/x/errors"
 )
 
@@ -120,7 +121,7 @@ func writePkg(pkg *gogen.Package, outDir string) error {
 	pkg.ForEachFile(func(fname string, _ *gogen.File) {
 		if fname != "" { // gogen default fname
 			outFile := filepath.Join(outDir, fname)
-			e := pkg.WriteFile(outFile, fname)
+			e := gowrite.WriteFile(pkg, outFile, fname)
 			if e != nil {
 				errs.Add(e)
 			}
