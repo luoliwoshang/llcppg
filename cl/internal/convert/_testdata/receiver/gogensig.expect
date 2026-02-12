@@ -59,8 +59,7 @@ const (
 )
 
 //go:linkname EspLogWrite C.esp_log_write
-func EspLogWrite(level EspLogLevelT, tag *c.Char, format *c.Char, __llgo_va_list ...interface {
-})
+func EspLogWrite(level EspLogLevelT, tag *c.Char, format *c.Char, __llgo_va_list ...interface{})
 
 ===== llcppg.pub =====
 ares_addr AresAddr
