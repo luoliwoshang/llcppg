@@ -68,6 +68,7 @@ func assignDeclAnchors(fset *token.FileSet, filename string, file *ast.File) {
 			total += countCommentGroup(d.Doc)
 		}
 	}
+	total += countEmptyInterfaceAnchors(file)
 
 	size := total + 8
 	tf := fset.AddFile(filename, -1, size)
@@ -97,6 +98,7 @@ func assignDeclAnchors(fset *token.FileSet, filename string, file *ast.File) {
 			d.TokPos = newPos()
 		}
 	}
+	assignEmptyInterfaceAnchors(file, newPos)
 
 	lines := make([]int, next+1)
 	for i := range lines {
@@ -121,4 +123,56 @@ func countCommentGroup(group *ast.CommentGroup) int {
 		return 0
 	}
 	return len(group.List)
+}
+
+func countEmptyInterfaceAnchors(file *ast.File) (n int) {
+	ast.Inspect(file, func(node ast.Node) bool {
+		it, ok := node.(*ast.InterfaceType)
+		if !ok {
+			return true
+		}
+		if needsEmptyInterfaceAnchor(it) {
+			n++
+		}
+		return true
+	})
+	return
+}
+
+func assignEmptyInterfaceAnchors(file *ast.File, newPos func() token.Pos) {
+	ast.Inspect(file, func(node ast.Node) bool {
+		it, ok := node.(*ast.InterfaceType)
+		if !ok {
+			return true
+		}
+		if !needsEmptyInterfaceAnchor(it) {
+			return true
+		}
+
+		p := newPos()
+		it.Interface = p
+		if it.Methods == nil {
+			it.Methods = &ast.FieldList{}
+		}
+		// Keep `interface{}` compact by pinning all three tokens to one anchor.
+		it.Methods.Opening = p
+		it.Methods.Closing = p
+		return true
+	})
+}
+
+func needsEmptyInterfaceAnchor(it *ast.InterfaceType) bool {
+	if it == nil {
+		return false
+	}
+	if it.Interface != token.NoPos {
+		return false
+	}
+	if it.Methods == nil {
+		return true
+	}
+	if len(it.Methods.List) != 0 {
+		return false
+	}
+	return it.Methods.Opening == token.NoPos && it.Methods.Closing == token.NoPos
 }
