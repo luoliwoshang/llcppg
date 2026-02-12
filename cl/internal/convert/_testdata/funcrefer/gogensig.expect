@@ -20,7 +20,8 @@ type CallBack func(c.Pointer) c.Int
 func Exec(L c.Pointer, cb CallBack)
 
 //go:linkname Mprintf C.mprintf
-func Mprintf(__llgo_arg_0 *c.Char, __llgo_va_list ...interface{}) *c.Char
+func Mprintf(__llgo_arg_0 *c.Char, __llgo_va_list ...interface {
+}) *c.Char
 
 type Hooks struct {
 	MallocFn c.Pointer
@@ -33,10 +34,12 @@ type Stream struct {
 }
 
 // llgo:type C
-type OSSLProviderInitFn func(__llgo_va_list ...interface{})
+type OSSLProviderInitFn func(__llgo_va_list ...interface {
+})
 
 //go:linkname ProviderInit2 C.OSSL_provider_init2
-func ProviderInit2(__llgo_va_list ...interface{})
+func ProviderInit2(__llgo_va_list ...interface {
+})
 
 type OSSLCOREHANDLE struct {
 	Unused [8]uint8
