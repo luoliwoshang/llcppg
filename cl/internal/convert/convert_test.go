@@ -17,6 +17,7 @@ import (
 	"github.com/goplus/llcppg/cl/internal/convert"
 	"github.com/goplus/llcppg/cmd/gogensig/unmarshal"
 	llcppg "github.com/goplus/llcppg/config"
+	"github.com/goplus/llcppg/internal/gowrite"
 	"github.com/goplus/llgo/xtool/env"
 )
 
@@ -245,7 +246,7 @@ func testFrom(t *testing.T, dir string, gen bool, validateFunc func(t *testing.T
 	pkg.ForEachFile(func(fname string, _ *gogen.File) {
 		if fname != "" { // gogen default fname
 			outFile := filepath.Join(outputDir, fname)
-			e := pkg.WriteFile(outFile, fname)
+			e := gowrite.WriteFile(pkg, outFile, fname)
 			if e != nil {
 				t.Fatal(e)
 			}

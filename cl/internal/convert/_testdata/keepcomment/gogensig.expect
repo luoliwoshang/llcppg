@@ -13,14 +13,19 @@ import (
 	_ "unsafe"
 )
 
-/**Foo comment*/
+/*
+*
+Foo comment
+*/
 type Foo1 struct {
 	A c.Int
 	B c.Double
 	C c.Int
 }
 
-/*Foo comment*/
+/*
+Foo comment
+*/
 type Foo2 struct {
 	A c.Int
 	B c.Double
@@ -41,11 +46,15 @@ type Foo4 struct {
 	C c.Int
 }
 
-/**ExecuteFoo comment*/
+/**
+ExecuteFoo comment
+*/
 //go:linkname CustomExecuteFoo1 C.ExecuteFoo1
 func CustomExecuteFoo1(a c.Int, b Foo1) c.Int
 
-/*ExecuteFoo comment*/
+/*
+ExecuteFoo comment
+*/
 //go:linkname CustomExecuteFoo2 C.ExecuteFoo2
 func CustomExecuteFoo2(a c.Int, b Foo2) c.Int
 
