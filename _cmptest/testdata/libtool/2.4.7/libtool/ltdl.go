@@ -120,7 +120,6 @@ func DlcallerSetData(key DlinterfaceId, handle Dlhandle, data c.Pointer) c.Point
 func DlcallerGetData(key DlinterfaceId, handle Dlhandle) c.Pointer
 
 /* Read only information pertaining to a loaded module. */
-
 type Dlinfo struct {
 	Filename    *c.Char
 	Name        *c.Char

@@ -5701,7 +5701,6 @@ type IndexOrderby struct {
 }
 
 /* Outputs */
-
 type IndexConstraintUsage struct {
 	ArgvIndex c.Int
 	Omit      c.Char
