@@ -215,7 +215,11 @@
       "Doc": {
         "List": [
           {
-            "Text": "/// doc 1\n/// doc 2",
+            "Text": "/// doc 1",
+            "_Type": "Comment"
+          },
+          {
+            "Text": "/// doc 2",
             "_Type": "Comment"
           }
         ],
@@ -257,7 +261,11 @@
       "Doc": {
         "List": [
           {
-            "Text": "/*! doc 1 */\n/*! doc 2 */",
+            "Text": "/*! doc 1 */",
+            "_Type": "Comment"
+          },
+          {
+            "Text": "/*! doc 2 */",
             "_Type": "Comment"
           }
         ],
@@ -299,7 +307,11 @@
       "Doc": {
         "List": [
           {
-            "Text": "/** doc 1 */\n/** doc 1 */",
+            "Text": "/** doc 1 */",
+            "_Type": "Comment"
+          },
+          {
+            "Text": "/** doc 1 */",
             "_Type": "Comment"
           }
         ],
@@ -341,7 +353,19 @@
       "Doc": {
         "List": [
           {
-            "Text": "/**\n * doc 1\n * doc 2\n */",
+            "Text": "/**",
+            "_Type": "Comment"
+          },
+          {
+            "Text": " * doc 1",
+            "_Type": "Comment"
+          },
+          {
+            "Text": " * doc 2",
+            "_Type": "Comment"
+          },
+          {
+            "Text": " */",
             "_Type": "Comment"
           }
         ],
@@ -500,7 +524,15 @@
               "Doc": {
                 "List": [
                   {
-                    "Text": "/**\n     * static field doc\n     */",
+                    "Text": "/**",
+                    "_Type": "Comment"
+                  },
+                  {
+                    "Text": "     * static field doc",
+                    "_Type": "Comment"
+                  },
+                  {
+                    "Text": "     */",
                     "_Type": "Comment"
                   }
                 ],
@@ -552,7 +584,15 @@
               "Doc": {
                 "List": [
                   {
-                    "Text": "/**\n     * field doc\n     */",
+                    "Text": "/**",
+                    "_Type": "Comment"
+                  },
+                  {
+                    "Text": "     * field doc",
+                    "_Type": "Comment"
+                  },
+                  {
+                    "Text": "     */",
                     "_Type": "Comment"
                   }
                 ],
@@ -632,7 +672,15 @@
             "Doc": {
               "List": [
                 {
-                  "Text": "/**\n     * method doc\n     */",
+                  "Text": "/**",
+                  "_Type": "Comment"
+                },
+                {
+                  "Text": "     * method doc",
+                  "_Type": "Comment"
+                },
+                {
+                  "Text": "     */",
                   "_Type": "Comment"
                 }
               ],

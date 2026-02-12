@@ -2,14 +2,12 @@ package gowrite
 
 import (
 	"bytes"
-	"fmt"
 	"go/ast"
 	"go/format"
 	"go/token"
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"syscall"
 
 	"github.com/goplus/gogen"
@@ -36,9 +34,7 @@ func WriteTo(dst io.Writer, pkg *gogen.Package, fname ...string) error {
 	}
 
 	fset := token.NewFileSet()
-	if err := assignDeclAnchors(fset, logicalName, file); err != nil {
-		return err
-	}
+	assignDeclAnchors(fset, logicalName, file)
 	return format.Node(dst, fset, file)
 }
 
@@ -56,7 +52,7 @@ func astFile(pkg *gogen.Package, fname ...string) (*ast.File, string, error) {
 	return file, name, nil
 }
 
-func assignDeclAnchors(fset *token.FileSet, filename string, file *ast.File) error {
+func assignDeclAnchors(fset *token.FileSet, filename string, file *ast.File) {
 	total := 1 // package anchor
 	total += countCommentGroup(file.Doc)
 	for _, decl := range file.Decls {
@@ -72,7 +68,6 @@ func assignDeclAnchors(fset *token.FileSet, filename string, file *ast.File) err
 			total += countCommentGroup(d.Doc)
 		}
 	}
-	total += countEmptyInterfaceAnchors(file)
 
 	size := total + 8
 	tf := fset.AddFile(filename, -1, size)
@@ -82,27 +77,14 @@ func assignDeclAnchors(fset *token.FileSet, filename string, file *ast.File) err
 		next++
 		return pos
 	}
-	skipLines := func(n int) {
-		if n > 0 {
-			next += n
-		}
-	}
 
 	file.Package = newPos()
-	if err := assignCommentGroup(file.Doc, newPos, skipLines, "file doc"); err != nil {
-		return err
-	}
+	assignCommentGroup(file.Doc, newPos)
 
-	for i, decl := range file.Decls {
+	for _, decl := range file.Decls {
 		switch d := decl.(type) {
 		case *ast.FuncDecl:
-			name := "<anonymous>"
-			if d.Name != nil && d.Name.Name != "" {
-				name = d.Name.Name
-			}
-			if err := assignCommentGroup(d.Doc, newPos, skipLines, "func "+name); err != nil {
-				return err
-			}
+			assignCommentGroup(d.Doc, newPos)
 			if d.Type != nil {
 				d.Type.Func = newPos()
 			}
@@ -111,13 +93,10 @@ func assignDeclAnchors(fset *token.FileSet, filename string, file *ast.File) err
 				d.Body.Rbrace = newPos()
 			}
 		case *ast.GenDecl:
-			if err := assignCommentGroup(d.Doc, newPos, skipLines, fmt.Sprintf("gen decl #%d", i)); err != nil {
-				return err
-			}
+			assignCommentGroup(d.Doc, newPos)
 			d.TokPos = newPos()
 		}
 	}
-	assignEmptyInterfaceAnchors(file, newPos)
 
 	lines := make([]int, next+1)
 	for i := range lines {
@@ -126,110 +105,20 @@ func assignDeclAnchors(fset *token.FileSet, filename string, file *ast.File) err
 	if ok := tf.SetLines(lines); !ok {
 		panic("internal/gowrite: failed to set synthetic line table")
 	}
-	return nil
 }
 
-func assignCommentGroup(
-	group *ast.CommentGroup,
-	newPos func() token.Pos,
-	skipLines func(int),
-	owner string,
-) error {
+func assignCommentGroup(group *ast.CommentGroup, newPos func() token.Pos) {
 	if group == nil {
-		return nil
+		return
 	}
-	for i, c := range group.List {
-		if c == nil {
-			continue
-		}
-		if err := validateCommentText(c.Text); err != nil {
-			return fmt.Errorf("%s comment[%d]: %w", owner, i, err)
-		}
+	for _, c := range group.List {
 		c.Slash = newPos()
-		skipLines(commentLineSpan(c.Text) - 1)
 	}
-	return nil
 }
 
 func countCommentGroup(group *ast.CommentGroup) int {
 	if group == nil {
 		return 0
 	}
-	n := 0
-	for _, c := range group.List {
-		if c == nil {
-			continue
-		}
-		n += commentLineSpan(c.Text)
-	}
-	return n
-}
-
-func countEmptyInterfaceAnchors(file *ast.File) (n int) {
-	ast.Inspect(file, func(node ast.Node) bool {
-		it, ok := node.(*ast.InterfaceType)
-		if !ok {
-			return true
-		}
-		if needsEmptyInterfaceAnchor(it) {
-			n++
-		}
-		return true
-	})
-	return
-}
-
-func assignEmptyInterfaceAnchors(file *ast.File, newPos func() token.Pos) {
-	ast.Inspect(file, func(node ast.Node) bool {
-		it, ok := node.(*ast.InterfaceType)
-		if !ok {
-			return true
-		}
-		if !needsEmptyInterfaceAnchor(it) {
-			return true
-		}
-
-		p := newPos()
-		it.Interface = p
-		if it.Methods == nil {
-			it.Methods = &ast.FieldList{}
-		}
-		// Keep `interface{}` compact by pinning all three tokens to one anchor.
-		it.Methods.Opening = p
-		it.Methods.Closing = p
-		return true
-	})
-}
-
-func needsEmptyInterfaceAnchor(it *ast.InterfaceType) bool {
-	if it == nil {
-		return false
-	}
-	if it.Interface != token.NoPos {
-		return false
-	}
-	if it.Methods == nil {
-		return true
-	}
-	if len(it.Methods.List) != 0 {
-		return false
-	}
-	return it.Methods.Opening == token.NoPos && it.Methods.Closing == token.NoPos
-}
-
-func validateCommentText(text string) error {
-	if len(text) < 2 {
-		return fmt.Errorf("invalid comment text %q (len=%d)", text, len(text))
-	}
-	if text[0] != '/' || (text[1] != '/' && text[1] != '*') {
-		return fmt.Errorf("invalid comment prefix %q", text)
-	}
-	return nil
-}
-
-func commentLineSpan(text string) int {
-	if text == "" {
-		return 1
-	}
-	return strings.Count(text, "\n") + 1
+	return len(group.List)
 }
