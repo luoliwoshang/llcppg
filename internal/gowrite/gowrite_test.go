@@ -69,7 +69,9 @@ func TestAssignDeclAnchors_EmptyInterfaceStaysCompact(t *testing.T) {
 	}
 
 	fset := token.NewFileSet()
-	assignDeclAnchors(fset, "demo.go", file)
+	if err := assignDeclAnchors(fset, "demo.go", file); err != nil {
+		t.Fatalf("assignDeclAnchors failed: %v", err)
+	}
 
 	var buf bytes.Buffer
 	if err := format.Node(&buf, fset, file); err != nil {
@@ -78,6 +80,67 @@ func TestAssignDeclAnchors_EmptyInterfaceStaysCompact(t *testing.T) {
 
 	got := buf.String()
 	want := "package demo\n\nfunc Mprintf(format string, __llgo_va_list ...interface{})\n"
+	if got != want {
+		t.Fatalf("unexpected output.\nwant:\n%s\ngot:\n%s", want, got)
+	}
+}
+
+func TestAssignDeclAnchors_InvalidCommentReported(t *testing.T) {
+	file := &ast.File{
+		Name: ast.NewIdent("demo"),
+		Decls: []ast.Decl{
+			&ast.FuncDecl{
+				Doc: &ast.CommentGroup{
+					List: []*ast.Comment{
+						{Text: ""},
+					},
+				},
+				Name: ast.NewIdent("Foo"),
+				Type: &ast.FuncType{
+					Params: &ast.FieldList{},
+				},
+			},
+		},
+	}
+
+	fset := token.NewFileSet()
+	err := assignDeclAnchors(fset, "demo.go", file)
+	if err == nil {
+		t.Fatal("expect invalid comment error, got nil")
+	}
+}
+
+func TestAssignDeclAnchors_MultiLineDocAndLinkStaySeparated(t *testing.T) {
+	file := &ast.File{
+		Name: ast.NewIdent("demo"),
+		Decls: []ast.Decl{
+			&ast.FuncDecl{
+				Doc: &ast.CommentGroup{
+					List: []*ast.Comment{
+						{Text: "/*\nExecuteFoo comment\n*/"},
+						{Text: "//go:linkname CustomExecuteFoo2 C.ExecuteFoo2"},
+					},
+				},
+				Name: ast.NewIdent("CustomExecuteFoo2"),
+				Type: &ast.FuncType{
+					Params: &ast.FieldList{},
+				},
+			},
+		},
+	}
+
+	fset := token.NewFileSet()
+	if err := assignDeclAnchors(fset, "demo.go", file); err != nil {
+		t.Fatalf("assignDeclAnchors failed: %v", err)
+	}
+
+	var buf bytes.Buffer
+	if err := format.Node(&buf, fset, file); err != nil {
+		t.Fatalf("format.Node failed: %v", err)
+	}
+
+	got := buf.String()
+	want := "package demo\n\n/*\nExecuteFoo comment\n*/\n//go:linkname CustomExecuteFoo2 C.ExecuteFoo2\nfunc CustomExecuteFoo2()\n"
 	if got != want {
 		t.Fatalf("unexpected output.\nwant:\n%s\ngot:\n%s", want, got)
 	}

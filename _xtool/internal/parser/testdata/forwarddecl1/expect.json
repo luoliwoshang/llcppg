@@ -663,11 +663,7 @@
               "Doc": {
                 "List": [
                   {
-                    "Text": "// char in ast will got unsigned char \u0026 signed char and they are same in go",
-                    "_Type": "Comment"
-                  },
-                  {
-                    "Text": "    // but in ast,will have different,but with compare test,we need avoid these senario",
+                    "Text": "// char in ast will got unsigned char \u0026 signed char and they are same in go\n    // but in ast,will have different,but with compare test,we need avoid these senario",
                     "_Type": "Comment"
                   }
                 ],
