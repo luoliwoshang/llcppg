@@ -594,7 +594,15 @@ func (p *Package) createEnumType(goName string, enumName *ast.Ident, pnc nc.Node
 }
 
 func (p *Package) createEnumItems(pnc nc.NodeConverter, decl *ast.EnumTypeDecl, enumType types.Type) error {
-	defs := p.NewConstGroup()
+	// Lazily create the const block only when we actually emit at least one enum item.
+	// This avoids leaving an empty `const ()` when all items are skipped (e.g. name conflict).
+	var defs *ConstGroup
+	ensureDefs := func() *ConstGroup {
+		if defs == nil {
+			defs = p.NewConstGroup()
+		}
+		return defs
+	}
 	for _, item := range decl.Type.Items {
 		goName, err := pnc.ConvEnumItem(decl, item)
 		if err != nil {
@@ -620,7 +628,7 @@ func (p *Package) createEnumItems(pnc nc.NodeConverter, decl *ast.EnumTypeDecl, 
 		if err != nil {
 			return fmt.Errorf("createEnumItems:fail to convert %T to int: %w", item.Value, err)
 		}
-		defs.New(val, enumType, name)
+		ensureDefs().New(val, enumType, name)
 	}
 	return nil
 }
@@ -629,7 +637,6 @@ func (p *Package) NewMacro(goName string, macro *ast.Macro) error {
 	// simple const macro define (#define NAME value)
 	if len(macro.Tokens) == 2 && macro.Tokens[1].Token == ctoken.LITERAL {
 		value := macro.Tokens[1].Lit
-		defs := p.NewConstGroup()
 		node := Node{name: macro.Name, kind: Macro}
 		name, _, exist, err := p.RegisterNode(node, goName, p.lookupPub)
 		if err != nil {
@@ -644,18 +651,25 @@ func (p *Package) NewMacro(goName string, macro *ast.Macro) error {
 		if debugLog {
 			log.Printf("NewMacro: %s = %s\n", name, value)
 		}
+		var macroValue any
 		if str, err := litToString(value); err == nil {
-			defs.New(str, nil, name)
+			macroValue = str
 		} else if _, err := litToUint(value); err == nil {
-			defs.New(&goast.BasicLit{
+			macroValue = &goast.BasicLit{
 				Kind:  token.INT,
 				Value: value,
-			}, nil, name)
+			}
 		} else if _, err := litToFloat(value, 64); err == nil {
-			defs.New(&goast.BasicLit{
+			macroValue = &goast.BasicLit{
 				Kind:  token.FLOAT,
 				Value: value,
-			}, nil, name)
+			}
+		}
+		// Keep const block creation lazy: if the macro literal can't be represented in Go,
+		// we skip emitting it and must not leave an empty `const ()`.
+		if macroValue != nil {
+			defs := p.NewConstGroup()
+			defs.New(macroValue, nil, name)
 		}
 	}
 	return nil

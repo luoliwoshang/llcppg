@@ -23,6 +23,7 @@ import (
 	"github.com/goplus/gogen"
 	"github.com/goplus/llcppg/cl"
 	"github.com/goplus/llcppg/cl/nc"
+	"github.com/goplus/llcppg/internal/gowrite"
 	"github.com/goplus/llcppg/parser"
 	"github.com/qiniu/x/errors"
 )
@@ -68,7 +69,7 @@ func GenGo(outDir, buildDir string, conf *Config) (err error) {
 	var errs errors.List
 	pkg.ForEachFile(func(fname string, _ *gogen.File) {
 		outFile := filepath.Join(outDir, fname)
-		e := pkg.WriteFile(outFile, fname)
+		e := gowrite.WriteFile(pkg.Package, outFile, fname)
 		if e != nil {
 			errs.Add(e)
 		}

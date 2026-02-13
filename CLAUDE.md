@@ -73,6 +73,24 @@ go vet ./...
 go test -timeout=10m ./...
 ```
 
+### After Modifying LLGo-Compiled Components
+
+The following components are built with LLGo and installed via `bash ./install.sh`:
+
+- **llcppsigfetch** (`_xtool/llcppsigfetch/`) — parses C/C++ headers into JSON AST
+- **llcppsymg** (`_xtool/llcppsymg/`) — extracts symbols from C/C++ libraries
+
+These tools share internal packages under `_xtool/internal/` (e.g., `parser`, `libclang`, `clangtool`).
+
+Tests such as `TestFromTestdata` (`cl/internal/convert`) invoke `llcppsigfetch` as a subprocess, so they depend on the installed binary being up to date.
+
+**When you modify any code under `_xtool/` (including its internal dependencies), you MUST:**
+
+1. **Run `bash ./install.sh`** to rebuild and reinstall the LLGo-compiled tools
+2. **Run the unit tests first** to verify the modified packages work correctly, and check that any test output changes are expected (e.g., `llgo test ./_xtool/internal/parser`, `llgo test ./_xtool/internal/header`)
+3. **Run `go test -v ./cl/internal/convert -run TestFromTestdata`** to verify the dependent tests pass
+4. **If test output changes are expected**, temporarily set `gen:true` in the test to regenerate expected output (`gogensig.expect`), verify it is correct, then set back to `gen:false`
+
 ## Architecture and Design
 
 For detailed technical specifications, see [llcppg Design Documentation](doc/en/dev/llcppg.md).

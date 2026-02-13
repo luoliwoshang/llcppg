@@ -1,8 +1,11 @@
 package convert
 
 import (
+	"bytes"
+	goast "go/ast"
 	"go/token"
 	"go/types"
+	"strings"
 	"testing"
 
 	"github.com/goplus/gogen"
@@ -195,5 +198,80 @@ func TestProcessSymbol(t *testing.T) {
 		if tc.expectChange && pubName == tc.name {
 			t.Errorf("Expected Change, but got same name")
 		}
+	}
+}
+
+func TestNoEmptyConstGroupWhenAllEnumItemsSkipped(t *testing.T) {
+	pnc := cltest.NC(&llcppg.Config{}, nil, cltest.NewConvSym())
+	pkg := emptyPkg(pnc)
+	tempFile := &ncimpl.HeaderFile{
+		File:     "temp.h",
+		FileType: llcppg.Inter,
+	}
+	pkg.p.SetCurFile(tempFile.ToGoFileName("testpkg"), true)
+
+	items := []*ast.EnumItem{
+		{Name: &ast.Ident{Name: "Red"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "0"}},
+		{Name: &ast.Ident{Name: "Green"}, Value: &ast.BasicLit{Kind: ast.IntLit, Value: "1"}},
+	}
+
+	// First enum: registers the items normally
+	err := pkg.NewEnumTypeDecl("Color", &ast.EnumTypeDecl{
+		Object: ast.Object{
+			Loc:  &ast.Location{File: "temp.h"},
+			Name: &ast.Ident{Name: "Color"},
+		},
+		Type: &ast.EnumType{Items: items},
+	}, pnc)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Second enum: all items already registered, so all are skipped.
+	// With lazy ConstGroup, no empty const() should be created.
+	err = pkg.NewEnumTypeDecl("Color2", &ast.EnumTypeDecl{
+		Object: ast.Object{
+			Loc:  &ast.Location{File: "temp.h"},
+			Name: &ast.Ident{Name: "Color2"},
+		},
+		Type: &ast.EnumType{Items: items},
+	}, pnc)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var buf bytes.Buffer
+	err = pkg.p.WriteTo(&buf, "temp.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	output := buf.String()
+
+	// There should be exactly one const block from the first enum.
+	// No empty const() from the second enum.
+	constCount := strings.Count(output, "const (")
+	if constCount != 1 {
+		t.Errorf("expected exactly 1 const block, got %d.\nOutput:\n%s", constCount, output)
+	}
+
+	// Also verify at the AST level: no const GenDecl with empty Specs
+	// should exist in the package's corresponding ast.File.
+	goFile := pkg.p.ASTFile("temp.go")
+	if goFile == nil {
+		t.Fatal("expected ast.File for temp.go, got nil")
+	}
+	constDeclCount := 0
+	for _, decl := range goFile.Decls {
+		genDecl, ok := decl.(*goast.GenDecl)
+		if !ok || genDecl.Tok != token.CONST {
+			continue
+		}
+		constDeclCount++
+		if len(genDecl.Specs) == 0 {
+			t.Error("found empty const declaration in AST (no Specs)")
+		}
+	}
+	if constDeclCount != 1 {
+		t.Errorf("expected exactly 1 const GenDecl in AST, got %d", constDeclCount)
 	}
 }
