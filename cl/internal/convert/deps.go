@@ -13,13 +13,10 @@ import (
 
 	"github.com/goplus/gogen"
 	llcppg "github.com/goplus/llcppg/config"
-	"github.com/goplus/mod/xgomod"
 )
 
-type Module = xgomod.Module
-
 type PkgDepLoader struct {
-	module   *xgomod.Module
+	root     string
 	pkg      *gogen.Package
 	pkgCache map[string]*PkgInfo // pkgPath -> *PkgInfo
 	pkgs     map[string]string   // pkgPath -> pkgDir
@@ -30,9 +27,9 @@ type PkgDepLoader struct {
 // Keep it empty to use the go command default behavior.
 var BuildMod string
 
-func NewPkgDepLoader(mod *xgomod.Module, pkg *gogen.Package, deps []string) (*PkgDepLoader, error) {
+func NewPkgDepLoader(root string, pkg *gogen.Package, deps []string) (*PkgDepLoader, error) {
 	ret := &PkgDepLoader{
-		module:   mod,
+		root:     root,
 		pkg:      pkg,
 		pkgCache: make(map[string]*PkgInfo),
 		regCache: make(map[string]struct{}),
@@ -132,7 +129,6 @@ func (pm *PkgDepLoader) Import(pkgPath string) (*PkgInfo, error) {
 }
 
 func (pm *PkgDepLoader) loadPkgDirs(deps []string) error {
-	root := pm.module.Root()
 	args := []string{"list", "-deps", "-e", "-f={{.ImportPath}}={{.Dir}}"}
 	if BuildMod != "" {
 		args = append(args, "-mod", BuildMod)
@@ -157,7 +153,7 @@ func (pm *PkgDepLoader) loadPkgDirs(deps []string) error {
 	}
 	args = append(args, patterns...)
 
-	data, err := runGoCommand(root, args...)
+	data, err := runGoCommand(pm.root, args...)
 	if err != nil {
 		return err
 	}

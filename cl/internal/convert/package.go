@@ -13,7 +13,6 @@ import (
 	"github.com/goplus/llcppg/cl/nc"
 	"github.com/goplus/llcppg/internal/name"
 	ctoken "github.com/goplus/llcppg/token"
-	"github.com/goplus/mod/xgomod"
 )
 
 // In Processing Package
@@ -83,14 +82,9 @@ func NewPackage(pnc nc.NodeConverter, config *PackageConfig) (*Package, error) {
 		config.Deps = append([]string{"c"}, config.Deps...)
 	}
 
-	mod, err := xgomod.Load(config.OutputDir)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load mod: %w", err)
-	}
-
 	p.PkgInfo = NewPkgInfo(config.PkgPath, config.Deps, config.Pubs)
 
-	pkgManager, err := NewPkgDepLoader(mod, p.p, config.Deps)
+	pkgManager, err := NewPkgDepLoader(config.OutputDir, p.p, config.Deps)
 	if err != nil {
 		return nil, fmt.Errorf("failed to preload package dirs: %w", err)
 	}
