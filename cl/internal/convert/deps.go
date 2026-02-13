@@ -30,14 +30,14 @@ type PkgDepLoader struct {
 // Keep it empty to use the go command default behavior.
 var BuildMod string
 
-func NewPkgDepLoader(mod *xgomod.Module, pkg *gogen.Package) (*PkgDepLoader, error) {
+func NewPkgDepLoader(mod *xgomod.Module, pkg *gogen.Package, deps []string) (*PkgDepLoader, error) {
 	ret := &PkgDepLoader{
 		module:   mod,
 		pkg:      pkg,
 		pkgCache: make(map[string]*PkgInfo),
 		regCache: make(map[string]struct{}),
 	}
-	if err := ret.loadPkgDirs(); err != nil {
+	if err := ret.loadPkgDirs(deps); err != nil {
 		return nil, err
 	}
 	return ret, nil
@@ -131,13 +131,32 @@ func (pm *PkgDepLoader) Import(pkgPath string) (*PkgInfo, error) {
 	return newPkg, nil
 }
 
-func (pm *PkgDepLoader) loadPkgDirs() error {
+func (pm *PkgDepLoader) loadPkgDirs(deps []string) error {
 	root := pm.module.Root()
 	args := []string{"list", "-deps", "-e", "-f={{.ImportPath}}={{.Dir}}"}
 	if BuildMod != "" {
 		args = append(args, "-mod", BuildMod)
 	}
-	args = append(args, "all")
+
+	seen := make(map[string]struct{})
+	patterns := make([]string, 0, len(deps))
+	for _, dep := range deps {
+		dep, _ = IsDepStd(dep)
+		dep, _ = splitPkgPath(dep)
+		if dep == "" {
+			continue
+		}
+		if _, ok := seen[dep]; ok {
+			continue
+		}
+		seen[dep] = struct{}{}
+		patterns = append(patterns, dep)
+	}
+	if len(patterns) == 0 {
+		patterns = append(patterns, "all")
+	}
+	args = append(args, patterns...)
+
 	data, err := runGoCommand(root, args...)
 	if err != nil {
 		return err

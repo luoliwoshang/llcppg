@@ -90,7 +90,7 @@ func NewPackage(pnc nc.NodeConverter, config *PackageConfig) (*Package, error) {
 
 	p.PkgInfo = NewPkgInfo(config.PkgPath, config.Deps, config.Pubs)
 
-	pkgManager, err := NewPkgDepLoader(mod, p.p)
+	pkgManager, err := NewPkgDepLoader(mod, p.p, config.Deps)
 	if err != nil {
 		return nil, fmt.Errorf("failed to preload package dirs: %w", err)
 	}
