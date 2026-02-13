@@ -1983,7 +1983,10 @@ func TestImport(t *testing.T) {
 			"github.com/goplus/llcppg/cl/internal/convert/testdata/partfinddep",
 		}
 		p.PkgInfo = convert.NewPkgInfo(".", deps, nil)
-		loader := convert.NewPkgDepLoader(mod, genPkg)
+		loader, err := convert.NewPkgDepLoader(mod, genPkg)
+		if err != nil {
+			t.Fatal(err)
+		}
 		depPkgs, err := loader.LoadDeps(p.PkgInfo)
 		p.PkgInfo.Deps = depPkgs
 		if err != nil && !errors.Is(err, llcppg.ErrConfig) {

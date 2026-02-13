@@ -1,10 +1,12 @@
 package convert
 
 import (
+	"bytes"
 	"fmt"
 	"go/token"
 	"go/types"
 	"log"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -20,16 +22,25 @@ type PkgDepLoader struct {
 	module   *xgomod.Module
 	pkg      *gogen.Package
 	pkgCache map[string]*PkgInfo // pkgPath -> *PkgInfo
+	pkgs     map[string]string   // pkgPath -> pkgDir
 	regCache map[string]struct{} // pkgPath
 }
 
-func NewPkgDepLoader(mod *xgomod.Module, pkg *gogen.Package) *PkgDepLoader {
-	return &PkgDepLoader{
+// BuildMod is passed to `go list -mod=...` when preloading package directories.
+// Keep it empty to use the go command default behavior.
+var BuildMod string
+
+func NewPkgDepLoader(mod *xgomod.Module, pkg *gogen.Package) (*PkgDepLoader, error) {
+	ret := &PkgDepLoader{
 		module:   mod,
 		pkg:      pkg,
 		pkgCache: make(map[string]*PkgInfo),
 		regCache: make(map[string]struct{}),
 	}
+	if err := ret.loadPkgDirs(); err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
 
 // for current package & dependent packages
@@ -83,12 +94,11 @@ func (pm *PkgDepLoader) Import(pkgPath string) (*PkgInfo, error) {
 		return pkg, nil
 	}
 
-	pkg, err := pm.module.Lookup(pkgPath)
-	if err != nil {
-		return nil, err
+	pkgDir := pm.pkgs[pkgPath]
+	if pkgDir == "" {
+		return nil, fmt.Errorf("%w: go list cache has no dir for package %q", llcppg.ErrConfig, pkgPath)
 	}
-
-	pkgDir, err := filepath.Abs(pkg.Dir)
+	pkgDir, err := filepath.Abs(pkgDir)
 	if err != nil {
 		return nil, err
 	}
@@ -119,6 +129,41 @@ func (pm *PkgDepLoader) Import(pkgPath string) (*PkgInfo, error) {
 		}
 	}
 	return newPkg, nil
+}
+
+func (pm *PkgDepLoader) loadPkgDirs() error {
+	root := pm.module.Root()
+	args := []string{"list", "-deps", "-e", "-f={{.ImportPath}}={{.Dir}}"}
+	if BuildMod != "" {
+		args = append(args, "-mod", BuildMod)
+	}
+	args = append(args, "all")
+	data, err := runGoCommand(root, args...)
+	if err != nil {
+		return err
+	}
+	pm.pkgs = make(map[string]string)
+	for _, line := range strings.Split(string(data), "\n") {
+		pos := strings.Index(line, "=")
+		if pos != -1 {
+			pm.pkgs[line[:pos]] = line[pos+1:]
+		}
+	}
+	return nil
+}
+
+func runGoCommand(root string, args ...string) ([]byte, error) {
+	cmd := exec.Command("go", args...)
+	cmd.Dir = root
+	data, err := cmd.CombinedOutput()
+	if err != nil {
+		msg := strings.TrimSpace(string(bytes.TrimSpace(data)))
+		if msg == "" {
+			return nil, fmt.Errorf("go %s: %w", strings.Join(args, " "), err)
+		}
+		return nil, fmt.Errorf("go %s: %w: %s", strings.Join(args, " "), err, msg)
+	}
+	return data, nil
 }
 
 func splitPkgPath(pkgPath string) (string, string) {
