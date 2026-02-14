@@ -114,14 +114,19 @@ func gogensig(conf *llcppg.Config, in *llcppg.Pkg, modulePath string, v verboseF
 	if err := prepareEnv(outputDir, conf.Deps, modulePath); err != nil {
 		return err
 	}
+	if err := os.Chdir(outputDir); err != nil {
+		return err
+	}
+	defer func() { _ = os.Chdir(wd) }()
 	symbFile := filepath.Join(wd, llcppg.LLCPPG_SYMB)
 	symbTable, err := llcppg.GetSymTableFromFile(symbFile)
 	if err != nil {
 		return err
 	}
 	pkg, err := cl.Convert(&cl.ConvConfig{
-		PkgName: conf.Name,
-		Pkg:     in.File,
+		OutputDir: outputDir,
+		PkgName:   conf.Name,
+		Pkg:       in.File,
 		NC: &ncimpl.Converter{
 			PkgName: conf.Name,
 			Pubs:    conf.TypeMap,
