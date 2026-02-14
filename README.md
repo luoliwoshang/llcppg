@@ -8,22 +8,33 @@ llcppg - LLGo autogen tool for C/C++ libraries
 [![Language](https://img.shields.io/badge/language-XGo-blue.svg)](https://github.com/goplus/gop)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/goplus/llcppg)
 
-llcppg aims to be a tool for automatically generating LLGo bindings for C/C++ libraries, enhancing the experience of integrating LLGo with C! It is worth mentioning that several core components of llcppg are built using LLGo, fully leveraging its core capability of "better integrating with the C ecosystem" for development.
+llcppg aims to automatically generate LLGo bindings for C/C++ libraries and improve the LLGo + C integration experience.
+The full llcppg package-generation pipeline is now built and orchestrated with LLGo.
 
 ## How to install
 
-This project depends on LLGo's C ecosystem integration capability, and some components of this tool must be compiled with LLGo. For LLGo installation, please refer to:
+This project depends on LLGo's C ecosystem integration capability.
+
+llcppg currently follows the latest LLGo main-branch behavior. Please build and install LLGo from the `main` branch first, then install llcppg.
+
+For LLGo installation, please refer to:
 https://github.com/goplus/llgo?tab=readme-ov-file#how-to-install
 
 ```bash
 brew install cjson # macos
 apt-get install libcjson-dev # linux
+go install ./cmd/llcppcfg
+go install ./cmd/llcppgtest
+llgo install ./cmd/llcppg
+
+# Optional debug / troubleshooting tools:
 llgo install ./_xtool/llcppsymg
 llgo install ./_xtool/llcppsigfetch
-go install ./cmd/llcppcfg
-go install ./cmd/gogensig
-go install .
+llgo install ./cmd/gogensig
 ```
+
+For normal package generation, only the `llcppg` binary is required.
+The standalone tools above are kept mainly for debugging and isolated troubleshooting.
 
 
 ## Usage
