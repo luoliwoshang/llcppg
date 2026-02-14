@@ -39,7 +39,9 @@ esac
 # Remove 'v' prefix from version if present
 VERSION_NUMBER="${VERSION#v}"
 FILENAME="llgo${VERSION_NUMBER}.${OS}-${ARCH}.tar.gz"
-# Use fork releases while upstream release is not available yet.
+# Temporary: use fork releases because goplus/llgo v0.12.1 has gogen
+# compilation bugs fixed on main but not yet released.
+# TODO: revert to github.com/goplus/llgo once v0.12.2+ is officially released.
 URL="https://github.com/luoliwoshang/llgo/releases/download/${VERSION}/${FILENAME}"
 
 echo "Downloading LLGo ${VERSION} for ${OS}-${ARCH}..."
