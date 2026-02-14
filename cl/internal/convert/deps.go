@@ -23,10 +23,6 @@ type PkgDepLoader struct {
 	regCache map[string]struct{} // pkgPath
 }
 
-// BuildMod is passed to `go list -mod=...` when preloading package directories.
-// Keep it empty to use the go command default behavior.
-var BuildMod string
-
 func NewPkgDepLoader(root string, pkg *gogen.Package, deps []string) (*PkgDepLoader, error) {
 	ret := &PkgDepLoader{
 		root:     root,
@@ -129,10 +125,7 @@ func (pm *PkgDepLoader) Import(pkgPath string) (*PkgInfo, error) {
 }
 
 func (pm *PkgDepLoader) loadPkgDirs(deps []string) error {
-	args := []string{"list", "-deps", "-e", "-f={{.ImportPath}}={{.Dir}}"}
-	if BuildMod != "" {
-		args = append(args, "-mod", BuildMod)
-	}
+	args := []string{"list", "-deps", "-f={{.ImportPath}}={{.Dir}}"}
 
 	seen := make(map[string]struct{})
 	patterns := make([]string, 0, len(deps))

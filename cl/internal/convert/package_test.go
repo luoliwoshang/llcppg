@@ -1971,20 +1971,23 @@ func TestHeaderFileToGo(t *testing.T) {
 
 func TestImport(t *testing.T) {
 	t.Run("invalid include path", func(t *testing.T) {
-		p := &convert.Package{}
 		genPkg := gogen.NewPackage(".", "include", nil)
 		deps := []string{
 			"github.com/goplus/llcppg/cl/internal/convert/testdata/invalidpath",
 			"github.com/goplus/llcppg/cl/internal/convert/testdata/partfinddep",
 		}
-		p.PkgInfo = convert.NewPkgInfo(".", deps, nil)
+		_, err := convert.NewPkgDepLoader(".", genPkg, deps)
+		if err == nil {
+			t.Fatal("expected error")
+		}
+	})
+	t.Run("unknown import path", func(t *testing.T) {
+		genPkg := gogen.NewPackage(".", "include", nil)
+		deps := []string{
+			"github.com/goplus/llcppg/cl/internal/convert/testdata/cjson",
+		}
 		loader, err := convert.NewPkgDepLoader(".", genPkg, deps)
 		if err != nil {
-			t.Fatal(err)
-		}
-		depPkgs, err := loader.LoadDeps(p.PkgInfo)
-		p.PkgInfo.Deps = depPkgs
-		if err != nil && !errors.Is(err, llcppg.ErrConfig) {
 			t.Fatal(err)
 		}
 		_, err = loader.Import("github.com/goplus/invalidpkg")
