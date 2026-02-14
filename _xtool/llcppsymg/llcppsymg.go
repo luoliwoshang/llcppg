@@ -21,8 +21,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/goplus/llcppg/_xtool/internal/symbol"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/internal/symg"
+	"github.com/goplus/llcppg/_xtool/symg"
 	llcppg "github.com/goplus/llcppg/config"
 	args "github.com/goplus/llcppg/internal/arg"
 )
@@ -65,11 +64,10 @@ func main() {
 		fmt.Fprintln(os.Stderr, "Failed to parse config file:", ags.CfgFile)
 	}
 
-	libMode := symbol.ModeDynamic
+	libMode := symg.ModeDynamic
 	if conf.StaticLib {
-		libMode = symbol.ModeStatic
+		libMode = symg.ModeStatic
 	}
-
 	symbolTable, err := symg.Do(&symg.Config{
 		Libs:         conf.Libs,
 		CFlags:       conf.CFlags,
