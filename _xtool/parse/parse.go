@@ -202,6 +202,9 @@ func createTempIfNoExist(filename *string, pattern string) error {
 	if err != nil {
 		return err
 	}
+	if err := f.Close(); err != nil {
+		return err
+	}
 	*filename = f.Name()
 	return nil
 }

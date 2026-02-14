@@ -21,8 +21,8 @@ apt-get install libcjson-dev # linux
 llgo install ./_xtool/llcppsymg
 llgo install ./_xtool/llcppsigfetch
 go install ./cmd/llcppcfg
-go install ./cmd/gogensig
-go install .
+llgo install -v ./cmd/gogensig
+go install -v ./cmd/llcppg
 ```
 
 

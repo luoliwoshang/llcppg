@@ -229,27 +229,13 @@ func RunAllGenPkgDemos(baseDir string, confDir string) error {
 		return fmt.Errorf("no directories containing llcppg.cfg found in %s", baseDir)
 	}
 
-	failedDemosCh := make(chan string, len(demos))
-	// Test each demo
-	for _, demo := range demos {
-		demo := demo
-
-		go func() {
-			if err := RunGenPkgDemo(demo, confDir); err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				failedDemosCh <- demo
-			} else {
-				failedDemosCh <- ""
-			}
-		}()
-	}
-
 	var failedDemos []string
-	for range demos {
-		demoDir := <-failedDemosCh
-
-		if demoDir != "" {
-			failedDemos = append(failedDemos, demoDir)
+	// Run demos serially. In corner-case CI environments (e.g. macOS 15 Intel),
+	// fully parallel demo generation may trigger unstable toolchain behavior.
+	for _, demo := range demos {
+		if err := RunGenPkgDemo(demo, confDir); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			failedDemos = append(failedDemos, demo)
 		}
 	}
 

@@ -17,16 +17,23 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 
+	"github.com/goplus/gogen"
+	"github.com/goplus/llcppg/_xtool/parse"
+	"github.com/goplus/llcppg/_xtool/symg"
+	"github.com/goplus/llcppg/ast"
+	"github.com/goplus/llcppg/cl"
+	"github.com/goplus/llcppg/cl/nc/ncimpl"
 	llcppg "github.com/goplus/llcppg/config"
+	"github.com/goplus/llcppg/internal/gowrite"
 	"github.com/goplus/llgo/xtool/env"
+	"github.com/qiniu/x/errors"
 
 	// import to make it linked in go.mod
 	_ "github.com/goplus/lib/c"
@@ -49,56 +56,108 @@ const (
 	VerboseAll = VerboseSymg | VerboseSigfetch | VerboseGogen
 )
 
-type CommandOptions struct {
-	Name    string
-	Args    []string
-	Verbose bool
-}
-
-func command(opts CommandOptions) *exec.Cmd {
-	args := opts.Args
-	if opts.Verbose {
-		args = append([]string{"-v"}, args...)
+func buildSymbolTable(conf *llcppg.Config, v verboseFlags) error {
+	if (v & VerboseSymg) != 0 {
+		symg.SetDebug(symg.DbgFlagAll)
 	}
-	return exec.Command(opts.Name, args...)
+	libMode := symg.ModeDynamic
+	if conf.StaticLib {
+		libMode = symg.ModeStatic
+	}
+	symbolTable, err := symg.Do(&symg.Config{
+		Libs:         conf.Libs,
+		CFlags:       conf.CFlags,
+		Includes:     conf.Include,
+		Mix:          conf.Mix,
+		TrimPrefixes: conf.TrimPrefixes,
+		SymMap:       conf.SymMap,
+		IsCpp:        conf.Cplusplus,
+		HeaderOnly:   conf.HeaderOnly,
+		LibMode:      libMode,
+	})
+	if err != nil {
+		return err
+	}
+	jsonData, err := json.MarshalIndent(symbolTable, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(llcppg.LLCPPG_SYMB, jsonData, os.ModePerm)
 }
 
-func llcppsymg(conf []byte, v verboseFlags) error {
-	cmd := command(CommandOptions{
-		Name:    "llcppsymg",
-		Args:    []string{"-"},
-		Verbose: (v & VerboseSymg) != 0,
-	})
-	cmd.Stdin = bytes.NewReader(conf)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+func parseHeaders(conf *llcppg.Config, v verboseFlags) (*llcppg.Pkg, error) {
+	if (v & VerboseSigfetch) != 0 {
+		parse.SetDebug(parse.DbgFlagAll)
+	}
+	var pkg *llcppg.Pkg
+	parseCfg := &parse.Config{
+		Conf: conf,
+		Exec: func(_ *parse.Config, p *llcppg.Pkg) {
+			pkg = p
+		},
+	}
+	if err := parse.Do(parseCfg); err != nil {
+		return nil, err
+	}
+	return pkg, nil
 }
 
-func llcppsigfetch(conf []byte, v verboseFlags, out *io.PipeWriter) {
-	cmd := command(CommandOptions{
-		Name:    "llcppsigfetch",
-		Args:    []string{"-"},
-		Verbose: (v & VerboseSigfetch) != 0,
+// gengo converts C header AST information into corresponding LLGo bindings.
+func gengo(conf *llcppg.Config, in *llcppg.Pkg, modulePath string, v verboseFlags) error {
+	if (v & VerboseGogen) != 0 {
+		cl.SetDebug(cl.DbgFlagAll)
+	}
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	outputDir := filepath.Join(wd, conf.Name)
+	if err := prepareEnv(outputDir, conf.Deps, modulePath); err != nil {
+		return err
+	}
+	if err := os.Chdir(outputDir); err != nil {
+		return err
+	}
+	defer func() { _ = os.Chdir(wd) }()
+	symbFile := filepath.Join(wd, llcppg.LLCPPG_SYMB)
+	symbTable, err := llcppg.GetSymTableFromFile(symbFile)
+	if err != nil {
+		return err
+	}
+	pkg, err := cl.Convert(&cl.ConvConfig{
+		OutputDir: outputDir,
+		PkgName:   conf.Name,
+		Pkg:       in.File,
+		NC: &ncimpl.Converter{
+			PkgName: conf.Name,
+			Pubs:    conf.TypeMap,
+			ConvSym: func(name *ast.Object, mangleName string) (goName string, err error) {
+				item, err := symbTable.LookupSymbol(mangleName)
+				if err != nil {
+					return "", err
+				}
+				return item.Go, nil
+			},
+			FileMap:        in.FileMap,
+			TrimPrefixes:   conf.TrimPrefixes,
+			KeepUnderScore: conf.KeepUnderScore,
+		},
+		Deps: conf.Deps,
+		Libs: conf.Libs,
 	})
-	cmd.Stdin = bytes.NewReader(conf)
-	cmd.Stdout = out
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	check(err)
-	out.Close()
-}
-
-func gogensig(in io.Reader, cfg string, modulePath string, v verboseFlags) error {
-	cmd := command(CommandOptions{
-		Name:    "gogensig",
-		Args:    []string{"-", "-cfg=" + cfg, "-mod=" + modulePath},
-		Verbose: (v & VerboseGogen) != 0,
-	})
-	cmd.Stdin = in
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	if err != nil {
+		return err
+	}
+	if err := llcppg.WritePubFile(filepath.Join(outputDir, llcppg.LLCPPG_PUB), pkg.Pubs); err != nil {
+		return err
+	}
+	if err := writePkg(pkg.Package, outputDir); err != nil {
+		return err
+	}
+	if err := runCommand(outputDir, "go", "fmt", "."); err != nil {
+		return err
+	}
+	return runCommand(outputDir, "go", "mod", "tidy")
 }
 
 func main() {
@@ -170,24 +229,56 @@ func do(cfgFile string, mode modeFlags, verbose verboseFlags, modulePath string)
 	err = json.NewDecoder(f).Decode(&conf)
 	check(err)
 
+	// Keep original libs expression for generated LLGoPackage, but use expanded
+	// values for symbol extraction and header parsing passes.
+	rawLibs := conf.Libs
 	conf.CFlags = env.ExpandEnv(conf.CFlags)
 	conf.Libs = env.ExpandEnv(conf.Libs)
 
-	b, err := json.MarshalIndent(&conf, "", "  ")
-	check(err)
-
 	if mode&ModeSymbGen != 0 {
-		err = llcppsymg(b, verbose)
+		// Pass 1: build native symbol table.
+		err = buildSymbolTable(&conf, verbose)
 		check(err)
 	}
 
 	if mode&ModeCodegen != 0 {
-		r, w := io.Pipe()
-		go llcppsigfetch(b, verbose, w)
-
-		err = gogensig(r, cfgFile, modulePath, verbose)
+		// Pass 2: parse headers into AST package.
+		pkg, err := parseHeaders(&conf, verbose)
+		check(err)
+		// Pass 3: convert C header AST information into corresponding LLGo bindings.
+		codegenConf := conf
+		codegenConf.Libs = rawLibs
+		err = gengo(&codegenConf, pkg, modulePath, verbose)
 		check(err)
 	}
+}
+
+func prepareEnv(outputDir string, deps []string, modulePath string) error {
+	if err := os.MkdirAll(outputDir, 0744); err != nil {
+		return err
+	}
+	return cl.ModInit(deps, outputDir, modulePath)
+}
+
+func writePkg(pkg *gogen.Package, outDir string) error {
+	var errs errors.List
+	pkg.ForEachFile(func(fname string, _ *gogen.File) {
+		if fname != "" {
+			outFile := filepath.Join(outDir, fname)
+			if err := gowrite.WriteFile(pkg, outFile, fname); err != nil {
+				errs.Add(err)
+			}
+		}
+	})
+	return errs.ToError()
+}
+
+func runCommand(dir, cmdName string, args ...string) error {
+	execCmd := exec.Command(cmdName, args...)
+	execCmd.Stdout = os.Stdout
+	execCmd.Stderr = os.Stderr
+	execCmd.Dir = dir
+	return execCmd.Run()
 }
 
 func check(err error) {

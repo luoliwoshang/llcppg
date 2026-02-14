@@ -14,7 +14,7 @@ import (
 	"testing"
 
 	"github.com/goplus/llcppg/_xtool/internal/symbol"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/internal/symg"
+	"github.com/goplus/llcppg/_xtool/symg"
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/goplus/llcppg/internal/name"
 	"github.com/goplus/llgo/xtool/nm"

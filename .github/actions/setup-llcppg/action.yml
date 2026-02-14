@@ -8,8 +8,8 @@ inputs:
     description: "LLVM version to install (e.g. 18)"
     default: "19"
   llgo:
-    description: "LLGo version to download (e.g. v0.12.1)"
-    default: "v0.12.1"
+    description: "LLGo version to download (e.g. v0.12.14)"
+    default: "v0.12.14"
 runs:
   using: "composite"
   steps:
@@ -50,10 +50,6 @@ runs:
       echo "LLGO_ROOT: $LLGO_ROOT"
       llgo version
       clang --version
-  - name: Build
-    shell: bash
-    run: go build -v ./...
-
   - name: Install llcppg modules
     shell: bash
     run: |

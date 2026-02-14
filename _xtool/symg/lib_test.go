@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/goplus/llcppg/_xtool/internal/symbol"
-	"github.com/goplus/llcppg/_xtool/llcppsymg/internal/symg"
+	"github.com/goplus/llcppg/_xtool/symg"
 )
 
 func TestParseLibs(t *testing.T) {
