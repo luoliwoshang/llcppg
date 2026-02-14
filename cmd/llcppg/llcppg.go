@@ -228,6 +228,7 @@ func do(cfgFile string, mode modeFlags, verbose verboseFlags, modulePath string)
 	err = json.NewDecoder(f).Decode(&conf)
 	check(err)
 
+	rawLibs := conf.Libs
 	conf.CFlags = env.ExpandEnv(conf.CFlags)
 	conf.Libs = env.ExpandEnv(conf.Libs)
 
@@ -239,7 +240,9 @@ func do(cfgFile string, mode modeFlags, verbose verboseFlags, modulePath string)
 	if mode&ModeCodegen != 0 {
 		pkg, err := llcppsigfetch(&conf, verbose)
 		check(err)
-		err = gogensig(&conf, pkg, modulePath, verbose)
+		codegenConf := conf
+		codegenConf.Libs = rawLibs
+		err = gogensig(&codegenConf, pkg, modulePath, verbose)
 		check(err)
 	}
 }
