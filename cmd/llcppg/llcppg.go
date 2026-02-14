@@ -26,7 +26,7 @@ import (
 
 	"github.com/goplus/gogen"
 	"github.com/goplus/llcppg/_xtool/parse"
-	symgtask "github.com/goplus/llcppg/_xtool/symg"
+	"github.com/goplus/llcppg/_xtool/symg"
 	"github.com/goplus/llcppg/ast"
 	"github.com/goplus/llcppg/cl"
 	"github.com/goplus/llcppg/cl/nc/ncimpl"
@@ -56,15 +56,15 @@ const (
 	VerboseAll = VerboseSymg | VerboseSigfetch | VerboseGogen
 )
 
-func llcppsymg(conf *llcppg.Config, v verboseFlags) error {
+func buildSymbolTable(conf *llcppg.Config, v verboseFlags) error {
 	if (v & VerboseSymg) != 0 {
-		symgtask.SetDebug(symgtask.DbgFlagAll)
+		symg.SetDebug(symg.DbgFlagAll)
 	}
-	libMode := symgtask.ModeDynamic
+	libMode := symg.ModeDynamic
 	if conf.StaticLib {
-		libMode = symgtask.ModeStatic
+		libMode = symg.ModeStatic
 	}
-	symbolTable, err := symgtask.Do(&symgtask.Config{
+	symbolTable, err := symg.Do(&symg.Config{
 		Libs:         conf.Libs,
 		CFlags:       conf.CFlags,
 		Includes:     conf.Include,
@@ -85,7 +85,7 @@ func llcppsymg(conf *llcppg.Config, v verboseFlags) error {
 	return os.WriteFile(llcppg.LLCPPG_SYMB, jsonData, os.ModePerm)
 }
 
-func llcppsigfetch(conf *llcppg.Config, v verboseFlags) (*llcppg.Pkg, error) {
+func parseHeaders(conf *llcppg.Config, v verboseFlags) (*llcppg.Pkg, error) {
 	if (v & VerboseSigfetch) != 0 {
 		parse.SetDebug(parse.DbgFlagAll)
 	}
@@ -102,7 +102,8 @@ func llcppsigfetch(conf *llcppg.Config, v verboseFlags) (*llcppg.Pkg, error) {
 	return pkg, nil
 }
 
-func gogensig(conf *llcppg.Config, in *llcppg.Pkg, modulePath string, v verboseFlags) error {
+// gengo converts C header AST information into corresponding LLGo bindings.
+func gengo(conf *llcppg.Config, in *llcppg.Pkg, modulePath string, v verboseFlags) error {
 	if (v & VerboseGogen) != 0 {
 		cl.SetDebug(cl.DbgFlagAll)
 	}
@@ -228,21 +229,26 @@ func do(cfgFile string, mode modeFlags, verbose verboseFlags, modulePath string)
 	err = json.NewDecoder(f).Decode(&conf)
 	check(err)
 
+	// Keep original libs expression for generated LLGoPackage, but use expanded
+	// values for symbol extraction and header parsing passes.
 	rawLibs := conf.Libs
 	conf.CFlags = env.ExpandEnv(conf.CFlags)
 	conf.Libs = env.ExpandEnv(conf.Libs)
 
 	if mode&ModeSymbGen != 0 {
-		err = llcppsymg(&conf, verbose)
+		// Pass 1: build native symbol table.
+		err = buildSymbolTable(&conf, verbose)
 		check(err)
 	}
 
 	if mode&ModeCodegen != 0 {
-		pkg, err := llcppsigfetch(&conf, verbose)
+		// Pass 2: parse headers into AST package.
+		pkg, err := parseHeaders(&conf, verbose)
 		check(err)
+		// Pass 3: convert C header AST information into corresponding LLGo bindings.
 		codegenConf := conf
 		codegenConf.Libs = rawLibs
-		err = gogensig(&codegenConf, pkg, modulePath, verbose)
+		err = gengo(&codegenConf, pkg, modulePath, verbose)
 		check(err)
 	}
 }
