@@ -13,8 +13,7 @@ The full llcppg package-generation pipeline is now built and orchestrated with L
 
 ## How to install
 
-This project depends on LLGo's C ecosystem integration capability.
-
+This project depends on LLGo's C ecosystem integration capability, and the current end-to-end llcppg package-generation pipeline is fully compiled by LLGo.
 llcppg currently follows the latest LLGo main-branch behavior. Please build and install LLGo from the `main` branch first, then install llcppg.
 
 For LLGo installation, please refer to:
@@ -23,14 +22,13 @@ https://github.com/goplus/llgo?tab=readme-ov-file#how-to-install
 ```bash
 brew install cjson # macos
 apt-get install libcjson-dev # linux
-go install ./cmd/llcppcfg
-go install ./cmd/llcppgtest
 llgo install ./cmd/llcppg
 
 # Optional debug / troubleshooting tools:
 llgo install ./_xtool/llcppsymg
 llgo install ./_xtool/llcppsigfetch
 llgo install ./cmd/gogensig
+go install ./cmd/llcppcfg
 ```
 
 For normal package generation, only the `llcppg` binary is required.
