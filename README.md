@@ -22,7 +22,7 @@ llgo install -a ./_xtool/llcppsymg
 llgo install -a ./_xtool/llcppsigfetch
 go install ./cmd/llcppcfg
 llgo install -a -v ./cmd/gogensig
-llgo install -a -v ./cmd/llcppg
+go install -v ./cmd/llcppg
 ```
 
 
