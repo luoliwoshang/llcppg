@@ -25,7 +25,7 @@ llgo install ./cmd/llcppg
 
 For normal package generation, only the `llcppg` binary is required.
 
-### devtool
+### Development tools
 
 For debugging and isolated troubleshooting, you can optionally install these standalone tools:
 
