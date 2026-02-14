@@ -20,8 +20,6 @@ For LLGo installation, please refer to:
 https://github.com/goplus/llgo?tab=readme-ov-file#how-to-install
 
 ```bash
-brew install cjson # macos
-apt-get install libcjson-dev # linux
 llgo install ./cmd/llcppg
 
 # Optional debug / troubleshooting tools:
