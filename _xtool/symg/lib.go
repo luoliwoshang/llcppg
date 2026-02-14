@@ -27,6 +27,11 @@ func ParseLibs(libs string) *Libs {
 
 type LibMode = symbol.Mode
 
+const (
+	ModeDynamic LibMode = symbol.ModeDynamic
+	ModeStatic  LibMode = symbol.ModeStatic
+)
+
 // searches for each library name in the provided paths and default paths,
 // appending the appropriate file extension (.dylib for macOS, .so for Linux at dylib mode, .a for static mode).
 //

@@ -14,5 +14,5 @@ llgo install ./_xtool/llcppsigfetch
 echo "llcppsigfetch is install"
 llgo install -v ./cmd/gogensig
 echo "gogensig is install"
-go install -v ./cmd/llcppg
+llgo install -v ./cmd/llcppg
 echo "llcppg is install"

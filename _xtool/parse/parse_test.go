@@ -12,7 +12,7 @@ import (
 
 	"github.com/goplus/llcppg/_xtool/internal/clangtool"
 	"github.com/goplus/llcppg/_xtool/internal/parser"
-	"github.com/goplus/llcppg/_xtool/llcppsigfetch/internal/parse"
+	"github.com/goplus/llcppg/_xtool/parse"
 	llcppg "github.com/goplus/llcppg/config"
 )
 
