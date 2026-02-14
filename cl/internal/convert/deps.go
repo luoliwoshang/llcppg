@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"errors"
 	"fmt"
 	"go/token"
 	"go/types"
@@ -142,7 +143,7 @@ func (pm *PkgDepLoader) loadPkgDirs(deps []string) error {
 
 	data, err := runGoCommand(pm.root, args...)
 	if err != nil {
-		return err
+		return errors.New("go " + strings.Join(args, " ") + ": " + err.Error() + ": " + strings.TrimSpace(string(data)))
 	}
 	pm.pkgs = make(map[string]string)
 	for _, line := range strings.Split(string(data), "\n") {
