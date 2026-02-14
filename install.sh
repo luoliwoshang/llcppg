@@ -6,7 +6,7 @@ go install -v ./cmd/llcppcfg
 go install -v ./cmd/llcppgtest
 
 # main process required
-llgo install ./_xtool/llcppsymg
-llgo install ./_xtool/llcppsigfetch
-go install -v ./cmd/gogensig
-go install -v ./cmd/llcppg
+llgo install -a ./_xtool/llcppsymg
+llgo install -a ./_xtool/llcppsigfetch
+llgo install -a -v ./cmd/gogensig
+llgo install -a -v ./cmd/llcppg
