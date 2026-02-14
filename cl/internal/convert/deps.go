@@ -1,7 +1,6 @@
 package convert
 
 import (
-	"bytes"
 	"fmt"
 	"go/token"
 	"go/types"
@@ -127,14 +126,40 @@ func (pm *PkgDepLoader) Import(pkgPath string) (*PkgInfo, error) {
 func (pm *PkgDepLoader) loadPkgDirs(deps []string) error {
 	args := []string{"list", "-deps", "-f={{.ImportPath}}={{.Dir}}"}
 
+	// Warm the go-list cache with explicit dependency patterns.
+	//
+	// We intentionally avoid relying on `go list ... all` when deps are provided:
+	// `all` only includes packages reachable from packages in the current main module.
+	// At this stage, we may have finished `go get`, but generated code has not been
+	// written yet, so those dependencies are not necessarily reachable by imports.
+	// In that case, `all` can miss entries such as github.com/goplus/lib/c.
+	//
+	// So we normalize configured deps first (for example, c -> github.com/goplus/lib/c
+	// and pkg@version -> pkg), de-duplicate them, and pass them as explicit patterns
+	// to get stable ImportPath -> Dir mappings for later dependency loading.
+	patterns := listPatterns(deps)
+	args = append(args, patterns...)
+
+	data, err := runGoCommand(pm.root, args...)
+	if err != nil {
+		return err
+	}
+	pm.pkgs = make(map[string]string)
+	for _, line := range strings.Split(string(data), "\n") {
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) == 2 && parts[0] != "" {
+			pm.pkgs[parts[0]] = parts[1]
+		}
+	}
+	return nil
+}
+
+func listPatterns(deps []string) []string {
 	seen := make(map[string]struct{})
 	patterns := make([]string, 0, len(deps))
 	for _, dep := range deps {
 		dep, _ = IsDepStd(dep)
 		dep, _ = splitPkgPath(dep)
-		if dep == "" {
-			continue
-		}
 		if _, ok := seen[dep]; ok {
 			continue
 		}
@@ -144,34 +169,13 @@ func (pm *PkgDepLoader) loadPkgDirs(deps []string) error {
 	if len(patterns) == 0 {
 		patterns = append(patterns, "all")
 	}
-	args = append(args, patterns...)
-
-	data, err := runGoCommand(pm.root, args...)
-	if err != nil {
-		return err
-	}
-	pm.pkgs = make(map[string]string)
-	for _, line := range strings.Split(string(data), "\n") {
-		pos := strings.Index(line, "=")
-		if pos != -1 {
-			pm.pkgs[line[:pos]] = line[pos+1:]
-		}
-	}
-	return nil
+	return patterns
 }
 
 func runGoCommand(root string, args ...string) ([]byte, error) {
 	cmd := exec.Command("go", args...)
 	cmd.Dir = root
-	data, err := cmd.CombinedOutput()
-	if err != nil {
-		msg := strings.TrimSpace(string(bytes.TrimSpace(data)))
-		if msg == "" {
-			return nil, fmt.Errorf("go %s: %w", strings.Join(args, " "), err)
-		}
-		return nil, fmt.Errorf("go %s: %w: %s", strings.Join(args, " "), err, msg)
-	}
-	return data, nil
+	return cmd.CombinedOutput()
 }
 
 func splitPkgPath(pkgPath string) (string, string) {
