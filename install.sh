@@ -2,7 +2,7 @@
 set -e
 
 # for test
-go install -v ./cmd/llcppcfg
+llgo install -v ./cmd/llcppcfg
 go install -v ./cmd/llcppgtest
 
 # Main pipeline does not depend on the tools below.
