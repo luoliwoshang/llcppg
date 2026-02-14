@@ -1,35 +1,39 @@
 package convert
 
 import (
+	"errors"
 	"fmt"
 	"go/token"
 	"go/types"
 	"log"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/goplus/gogen"
 	llcppg "github.com/goplus/llcppg/config"
-	"github.com/goplus/mod/xgomod"
 )
 
-type Module = xgomod.Module
-
 type PkgDepLoader struct {
-	module   *xgomod.Module
+	root     string
 	pkg      *gogen.Package
 	pkgCache map[string]*PkgInfo // pkgPath -> *PkgInfo
+	pkgs     map[string]string   // pkgPath -> pkgDir
 	regCache map[string]struct{} // pkgPath
 }
 
-func NewPkgDepLoader(mod *xgomod.Module, pkg *gogen.Package) *PkgDepLoader {
-	return &PkgDepLoader{
-		module:   mod,
+func NewPkgDepLoader(root string, pkg *gogen.Package, deps []string) (*PkgDepLoader, error) {
+	ret := &PkgDepLoader{
+		root:     root,
 		pkg:      pkg,
 		pkgCache: make(map[string]*PkgInfo),
 		regCache: make(map[string]struct{}),
 	}
+	if err := ret.loadPkgDirs(deps); err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
 
 // for current package & dependent packages
@@ -83,12 +87,11 @@ func (pm *PkgDepLoader) Import(pkgPath string) (*PkgInfo, error) {
 		return pkg, nil
 	}
 
-	pkg, err := pm.module.Lookup(pkgPath)
-	if err != nil {
-		return nil, err
+	pkgDir := pm.pkgs[pkgPath]
+	if pkgDir == "" {
+		return nil, fmt.Errorf("%w: go list cache has no dir for package %q", llcppg.ErrConfig, pkgPath)
 	}
-
-	pkgDir, err := filepath.Abs(pkg.Dir)
+	pkgDir, err := filepath.Abs(pkgDir)
 	if err != nil {
 		return nil, err
 	}
@@ -119,6 +122,61 @@ func (pm *PkgDepLoader) Import(pkgPath string) (*PkgInfo, error) {
 		}
 	}
 	return newPkg, nil
+}
+
+func (pm *PkgDepLoader) loadPkgDirs(deps []string) error {
+	args := []string{"list", "-deps", "-f={{.ImportPath}}={{.Dir}}"}
+
+	// Warm the go-list cache with explicit dependency patterns.
+	//
+	// We intentionally avoid relying on `go list ... all` when deps are provided:
+	// `all` only includes packages reachable from packages in the current main module.
+	// At this stage, we may have finished `go get`, but generated code has not been
+	// written yet, so those dependencies are not necessarily reachable by imports.
+	// In that case, `all` can miss entries such as github.com/goplus/lib/c.
+	//
+	// So we normalize configured deps first (for example, c -> github.com/goplus/lib/c
+	// and pkg@version -> pkg), de-duplicate them, and pass them as explicit patterns
+	// to get stable ImportPath -> Dir mappings for later dependency loading.
+	patterns := listPatterns(deps)
+	args = append(args, patterns...)
+
+	data, err := runGoCommand(pm.root, args...)
+	if err != nil {
+		return errors.New("go " + strings.Join(args, " ") + ": " + err.Error() + ": " + strings.TrimSpace(string(data)))
+	}
+	pm.pkgs = make(map[string]string)
+	for _, line := range strings.Split(string(data), "\n") {
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) == 2 && parts[0] != "" {
+			pm.pkgs[parts[0]] = parts[1]
+		}
+	}
+	return nil
+}
+
+func listPatterns(deps []string) []string {
+	seen := make(map[string]struct{})
+	patterns := make([]string, 0, len(deps))
+	for _, dep := range deps {
+		dep, _ = IsDepStd(dep)
+		dep, _ = splitPkgPath(dep)
+		if _, ok := seen[dep]; ok {
+			continue
+		}
+		seen[dep] = struct{}{}
+		patterns = append(patterns, dep)
+	}
+	if len(patterns) == 0 {
+		patterns = append(patterns, "all")
+	}
+	return patterns
+}
+
+func runGoCommand(root string, args ...string) ([]byte, error) {
+	cmd := exec.Command("go", args...)
+	cmd.Dir = root
+	return cmd.CombinedOutput()
 }
 
 func splitPkgPath(pkgPath string) (string, string) {

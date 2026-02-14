@@ -16,7 +16,6 @@ import (
 	llcppg "github.com/goplus/llcppg/config"
 	"github.com/goplus/llcppg/internal/name"
 	"github.com/goplus/llcppg/token"
-	"github.com/goplus/mod/xgomod"
 )
 
 var dir string
@@ -1972,21 +1971,23 @@ func TestHeaderFileToGo(t *testing.T) {
 
 func TestImport(t *testing.T) {
 	t.Run("invalid include path", func(t *testing.T) {
-		p := &convert.Package{}
 		genPkg := gogen.NewPackage(".", "include", nil)
-		mod, err := xgomod.Load(".")
-		if err != nil {
-			t.Fatal(err)
-		}
 		deps := []string{
 			"github.com/goplus/llcppg/cl/internal/convert/testdata/invalidpath",
 			"github.com/goplus/llcppg/cl/internal/convert/testdata/partfinddep",
 		}
-		p.PkgInfo = convert.NewPkgInfo(".", deps, nil)
-		loader := convert.NewPkgDepLoader(mod, genPkg)
-		depPkgs, err := loader.LoadDeps(p.PkgInfo)
-		p.PkgInfo.Deps = depPkgs
-		if err != nil && !errors.Is(err, llcppg.ErrConfig) {
+		_, err := convert.NewPkgDepLoader(".", genPkg, deps)
+		if err == nil {
+			t.Fatal("expected error")
+		}
+	})
+	t.Run("unknown import path", func(t *testing.T) {
+		genPkg := gogen.NewPackage(".", "include", nil)
+		deps := []string{
+			"github.com/goplus/llcppg/cl/internal/convert/testdata/cjson",
+		}
+		loader, err := convert.NewPkgDepLoader(".", genPkg, deps)
+		if err != nil {
 			t.Fatal(err)
 		}
 		_, err = loader.Import("github.com/goplus/invalidpkg")
