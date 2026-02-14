@@ -8,11 +8,11 @@ go install -v ./cmd/llcppgtest
 echo "llcppgtest is install"
 
 # main process required
-llgo install -a ./_xtool/llcppsymg
+llgo install ./_xtool/llcppsymg
 echo "llcppsymg is install"
-llgo install -a ./_xtool/llcppsigfetch
+llgo install ./_xtool/llcppsigfetch
 echo "llcppsigfetch is install"
-llgo install -a -v ./cmd/gogensig
+llgo install -v ./cmd/gogensig
 echo "gogensig is install"
 go install -v ./cmd/llcppg
 echo "llcppg is install"

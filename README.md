@@ -18,10 +18,10 @@ https://github.com/goplus/llgo?tab=readme-ov-file#how-to-install
 ```bash
 brew install cjson # macos
 apt-get install libcjson-dev # linux
-llgo install -a ./_xtool/llcppsymg
-llgo install -a ./_xtool/llcppsigfetch
+llgo install ./_xtool/llcppsymg
+llgo install ./_xtool/llcppsigfetch
 go install ./cmd/llcppcfg
-llgo install -a -v ./cmd/gogensig
+llgo install -v ./cmd/gogensig
 go install -v ./cmd/llcppg
 ```
 
