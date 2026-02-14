@@ -58,14 +58,18 @@ func Do(conf *Config) (symbolTable []*llcppg.SymbolInfo, err error) {
 	if err != nil {
 		return
 	}
-	defer os.Remove(tempFile.Name())
-	err = clangtool.ComposeIncludes(conf.Includes, tempFile.Name())
+	tempFileName := tempFile.Name()
+	if err = tempFile.Close(); err != nil {
+		return
+	}
+	defer os.Remove(tempFileName)
+	err = clangtool.ComposeIncludes(conf.Includes, tempFileName)
 	if err != nil {
 		return
 	}
 
 	headerInfos, err := ParseHeaderFile(
-		tempFile.Name(),
+		tempFileName,
 		pkgHfiles.CurPkgFiles(),
 		conf.TrimPrefixes,
 		strings.Fields(conf.CFlags),

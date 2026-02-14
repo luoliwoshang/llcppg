@@ -28,15 +28,19 @@ func GetInclusions(conf *Config, fn func(fileName string, depth int)) error {
 		if err != nil {
 			return err
 		}
-		defer os.Remove(tmpFile.Name())
+		tmpName := tmpFile.Name()
+		if err := tmpFile.Close(); err != nil {
+			_ = os.Remove(tmpName)
+			return err
+		}
+		defer os.Remove(tmpName)
 
 		inc := fmt.Sprintf("#include <%s>", conf.HeaderFileName)
-		_, err = tmpFile.Write([]byte(inc))
-		if err != nil {
+		if err := os.WriteFile(tmpName, []byte(inc), 0600); err != nil {
 			return err
 		}
 
-		file = tmpFile.Name()
+		file = tmpName
 	}
 
 	args := defaultArgs(conf.IsCpp)

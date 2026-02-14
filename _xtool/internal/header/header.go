@@ -50,7 +50,11 @@ func PkgHfileInfo(conf *Config) *PkgHfilesInfo {
 	if err != nil {
 		panic(err)
 	}
-	defer os.Remove(outfile.Name())
+	outfileName := outfile.Name()
+	if err := outfile.Close(); err != nil {
+		panic(err)
+	}
+	defer os.Remove(outfileName)
 
 	inters := make(map[string]struct{})
 	others := []string{} // impl & third
@@ -80,9 +84,9 @@ func PkgHfileInfo(conf *Config) *PkgHfilesInfo {
 		}
 	}
 
-	clangtool.ComposeIncludes(conf.Includes, outfile.Name())
+	clangtool.ComposeIncludes(conf.Includes, outfileName)
 	err = clangtool.GetInclusions(&clangtool.Config{
-		ComposedHeaderFile: outfile.Name(),
+		ComposedHeaderFile: outfileName,
 		CompileArgs:        conf.Args,
 	}, retrieveComposedHeadersFn)
 	if err != nil {
