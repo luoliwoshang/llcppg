@@ -22,7 +22,11 @@ import (
 	"iter"
 	"log"
 	"os"
+	"slices"
 	"strings"
+
+	"github.com/goplus/gogen"
+	"github.com/goplus/llcppg/clang"
 )
 
 // -----------------------------------------------------------------------------
@@ -119,29 +123,72 @@ func tooFewOrManyFields(i int, fewOrMany, line string) {
 }
 
 // -----------------------------------------------------------------------------
-/*
-func savePubFile(file string, it iter.Seq[Entry], n int) (err error) {
-	if n == 0 {
-		return
+
+func (e Entry) pubLine() string {
+	line := string(e.Kind) + " "
+	if e.Tag != 0 {
+		line += tagStrvals[e.Tag]
 	}
-	f, err := os.Create(file)
-	if err != nil {
-		return
+	line += e.Name
+	if e.GoName != "" {
+		line += " " + e.GoName
 	}
-	defer f.Close()
-	ret := make([]string, 0, n)
-	for e := range it {
-		line := string(rune(e.Kind)) + " " + e.Name
-		if e.GoName != "" {
-			line += " " + e.GoName
-		}
-		ret = append(ret, line)
-	}
-	sort.Strings(ret)
-	_, err = f.WriteString(strings.Join(ret, "\n"))
-	return
+	return line
 }
-*/
+
+// -----------------------------------------------------------------------------
+
+func publicTypeTag(decl clang.Cursor) typeTag {
+	switch decl.Kind {
+	case tagStruct, tagClass, tagUnion, tagEnum:
+	default:
+		return 0 // templates have no distinct tag in the pub format
+	}
+	// Clang borrows the typedef name for an anonymous tag, e.g.
+	// typedef struct { int x; } Point. Its spelling range still points to
+	// the tag keyword; "struct Point" is not a declared C type name.
+	u := clang.TU(decl)
+	tokens, dispose := u.Tokenize(decl.SpellingNameRange(0, 0))
+	defer dispose()
+	if len(tokens) != 0 && getTypeTag(u.TokenSpelling(tokens[0])) != 0 {
+		return 0
+	}
+	return decl.Kind
+}
+
+func (p *pkgCtx) addPublicType(cName string, tag typeTag) {
+	p.pubs = append(p.pubs, Entry{Kind: entryType, Name: cName, Tag: tag})
+}
+
+// publicEntries resolves candidates against the final package. A type can be
+// registered before its definition fails, or be an internal type parameter
+// rather than a package-level declaration; neither should appear in the pub.
+func (p *pkgCtx) publicEntries() []Entry {
+	pkg := p.pkg.Types
+	scope := pkg.Scope()
+	entries := make(map[Entry]none)
+	for _, e := range p.pubs {
+		o := p.types[e.Name]
+		if o.TypeName == nil || o.feats&(featAllIgnore|featTyIgnore) != 0 ||
+			o.Pkg() != pkg || !o.Exported() || scope.Lookup(o.Name()) != o.TypeName {
+			continue
+		}
+		if decl, ok := p.typdecls[e.Name]; ok && decl.State() == gogen.TyStateDeleted {
+			continue
+		}
+		e.GoName = o.Name()
+		entries[e] = none{}
+	}
+	ret := make([]Entry, 0, len(entries))
+	for e := range entries {
+		ret = append(ret, e)
+	}
+	slices.SortFunc(ret, func(a, b Entry) int {
+		return strings.Compare(a.pubLine(), b.pubLine())
+	})
+	return ret
+}
+
 // -----------------------------------------------------------------------------
 
 func (p *pkgCtx) forceImportUnsafe() {

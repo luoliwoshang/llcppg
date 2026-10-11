@@ -289,7 +289,7 @@ func NewPackage(pkgPath, pkgName string, files []Source, conf *Config) (ret Pack
 	ctx.compile()
 	ret.Package = pkg
 	ret.Wrap = ctx.wrap
-	ret.Public = ctx.pubs
+	ret.Public = ctx.publicEntries()
 
 	if ctx.errCnt > 0 {
 		err = fmt.Errorf("compilation failed with %d errors", ctx.errCnt)

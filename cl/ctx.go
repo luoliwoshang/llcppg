@@ -299,6 +299,9 @@ func (p *pkgCtx) addType(cName string, decl clang.Cursor, typNamed *types.Named)
 	typObj := typeObj{typNamed.Obj(), 0}
 	p.types[cName] = typObj
 	p.aliasTypeName(cName, typObj.Name())
+	if decl.IsAnonymous() == 0 {
+		p.addPublicType(cName, publicTypeTag(decl))
+	}
 
 	if debugCompileDecl {
 		p.logf(decl, "==> addType %s: %v", cName, typNamed)
