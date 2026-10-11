@@ -358,6 +358,7 @@ func ParseSources(index clang.Index, headerFiles, includeDirs []string, lang str
 	for i, headerFile := range headerFiles {
 		tu, e := index.ParseTranslationUnit(clang.DetailedPreprocessingRecord, headerFile, flags...)
 		if e != nil {
+			DisposeSources(files[:i])
 			return nil, e
 		}
 		files[i] = tu
