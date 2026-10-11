@@ -124,12 +124,13 @@ func tooFewOrManyFields(i int, fewOrMany, line string) {
 
 // -----------------------------------------------------------------------------
 
-// savePubFile saves entries in their existing order.
+// savePubFile saves entries sorted by their serialized lines.
 func savePubFile(file string, entries []Entry) (err error) {
 	lines := make([]string, len(entries))
 	for i, e := range entries {
 		lines[i] = e.pubLine()
 	}
+	slices.Sort(lines)
 	text := strings.Join(lines, "\n")
 	if len(lines) != 0 {
 		text += "\n"
@@ -209,9 +210,6 @@ func (p *pkgCtx) publicEntries() []Entry {
 	for e := range entries {
 		ret = append(ret, e)
 	}
-	slices.SortFunc(ret, func(a, b Entry) int {
-		return strings.Compare(a.pubLine(), b.pubLine())
-	})
 	return ret
 }
 

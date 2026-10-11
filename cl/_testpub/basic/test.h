@@ -1,3 +1,5 @@
+#pragma once
+
 typedef unsigned long api_size_t;
 
 struct api_point_t {
