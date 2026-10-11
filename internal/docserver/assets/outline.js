@@ -106,6 +106,11 @@
     if (event.target !== this.el && event.target !== this.el.firstElementChild) {
       return;
     }
+    // The click scrolls the page to this item's anchor; keep the scroll-spy from
+    // reacting to that self-induced scroll (which could otherwise expand a
+    // neighbouring section — the reported "clicking Variables expands Functions"
+    // bug). This runs for every explicit activation, expandable or not.
+    this.controller.suppressSpy();
     if (this.isExpandable) {
       // Faithful pkgsite toggle: collapse only when the item is already both
       // expanded and selected, otherwise expand. Because handleClick ends by
@@ -146,6 +151,9 @@
     switch (event.key) {
       case " ":
       case "Enter":
+        // Explicit activation, same as a click: scroll-spy must not override the
+        // selection with a neighbouring section the ensuing scroll reveals.
+        this.controller.suppressSpy();
         if (this.isExpandable) {
           // Same faithful toggle rule as handleClick: collapse only when
           // already expanded and selected, else expand. setSelected below keeps
@@ -222,8 +230,25 @@
     this.firstTreeitem = null;
     this.lastTreeitem = null;
     this.observerCallbacks = [];
+    // suppressSpyUntil is a timestamp (ms) before which the scroll-spy ignores
+    // intersection callbacks. An explicit click/Enter/Space scrolls the page to
+    // the chosen anchor, and that scroll makes a *neighbouring* section cross
+    // the observer's threshold — on llcppg's short single page the next section
+    // is often fully in view. The debounced scroll-spy then fires ~200ms later
+    // and would expand/select that neighbour, so e.g. clicking "Variables" (a
+    // non-expandable section link) ends up expanding "Functions". Treating the
+    // user's own activation as authoritative for a short window swallows that
+    // self-induced callback while leaving genuine later scrolling untouched.
+    this.suppressSpyUntil = 0;
     this.init();
   }
+
+  // SPY_SUPPRESS_MS is the window after an explicit activation during which the
+  // scroll-spy stays quiet. It must comfortably exceed the observer debounce
+  // (200ms) plus the browser's scroll settle so the single click-induced
+  // callback is dropped, yet stay short enough that deliberate scrolling right
+  // after a click re-engages the spy.
+  var SPY_SUPPRESS_MS = 700;
 
   TreeNavController.prototype.init = function () {
     this.handleResize();
@@ -269,6 +294,14 @@
     this.el.style.setProperty("--js-tree-height", this.el.clientHeight + "px");
   };
 
+  // suppressSpy marks the scroll-spy quiet for the next SPY_SUPPRESS_MS. Call it
+  // whenever the user explicitly activates an item (click / Enter / Space): the
+  // activation already selected the right item and scrolled to its anchor, so
+  // the self-induced intersection callback that follows must not override it.
+  TreeNavController.prototype.suppressSpy = function () {
+    this.suppressSpyUntil = Date.now() + SPY_SUPPRESS_MS;
+  };
+
   TreeNavController.prototype.observeTargets = function () {
     var self = this;
     this.addObserver(function (treeitem) {
@@ -279,6 +312,14 @@
       // is barely noticeable; on llcppg's compact single page it would slam the
       // user's open type/func groups shut on every scroll, so scroll-spy only
       // adds here — collapsing stays an explicit click/keyboard action.
+      //
+      // Skip the callback the user's own click/keyboard activation just caused:
+      // that scroll can bring a neighbouring section to the observer threshold
+      // and would otherwise expand/select the wrong item (clicking "Variables"
+      // expanding "Functions"). suppressSpy() sets the window; see its comment.
+      if (Date.now() < self.suppressSpyUntil) {
+        return;
+      }
       self.expandTreeitem(treeitem);
       self.setSelected(treeitem, true);
     });

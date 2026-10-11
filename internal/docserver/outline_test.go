@@ -225,6 +225,32 @@ func TestOutlineScriptHasCollapseBehavior(t *testing.T) {
 	}
 }
 
+// TestOutlineScriptSuppressesSpyOnActivation guards the fix for the sidebar bug
+// where clicking a section link (e.g. "Variables") sometimes expanded a
+// neighbouring one (e.g. "Functions"). An explicit click/Enter/Space scrolls to
+// the chosen anchor; on llcppg's short single page that scroll brings the next
+// section to the IntersectionObserver threshold, and the debounced scroll-spy
+// then expands/selects that neighbour. The fix marks the scroll-spy quiet for a
+// short window after any explicit activation (suppressSpy), checked at the top
+// of the observer callback, so the self-induced callback is dropped while real
+// later scrolling still re-engages the spy. These markers keep a future edit
+// from silently dropping that suppression and bringing the bug back.
+func TestOutlineScriptSuppressesSpyOnActivation(t *testing.T) {
+	dir := writeDir(t, map[string]string{"a.go": "package foo\n"})
+	srv := httptest.NewServer(newHandler(dir, false, nil, nil))
+	defer srv.Close()
+
+	js := getBody(t, srv.URL+"/static/outline.js", http.StatusOK)
+	for _, want := range []string{
+		`this.controller.suppressSpy()`,      // explicit activation arms the window
+		`Date.now() < self.suppressSpyUntil`, // scroll-spy honours the window
+	} {
+		if !strings.Contains(js, want) {
+			t.Errorf("outline.js missing scroll-spy suppression marker %q", want)
+		}
+	}
+}
+
 // TestStylesheetHasPkgsiteTreeRules guards that the copied pkgsite tree styling
 // stays in page.css: the top-level entries are bold (font-weight 500, not the
 // old link style), collapsed groups are hidden, and expanded ones are shown via
