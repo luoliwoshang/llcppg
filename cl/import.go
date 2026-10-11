@@ -39,7 +39,7 @@ const (
 // Entry represents a C/C++ name and its corresponding Go name.
 type Entry struct {
 	Name   string
-	GoName string    // optional
+	GoName string    // optional; omitted names use externName, independent of importer configuration
 	Tag    typeTag   // only valid for Kind == 'T'
 	Kind   entryKind // 'T' (type), 'f' (func), 'v' (var), 'D' (dependency)
 }
@@ -53,6 +53,9 @@ type Entry struct {
 // T cName goName
 // T <tag> cName
 // T <tag> cName goName
+//
+// An omitted Go name uses the default C/C++ name conversion (externName).
+// An explicit Go name is used verbatim. Neither depends on importer configuration.
 func loadPubFile(pubfile string) (it iter.Seq[Entry], err error) {
 	b, err := os.ReadFile(pubfile)
 	if err != nil {
@@ -177,7 +180,7 @@ func (p *pkgCtx) importPkg(pkgPath string) *types.Package {
 
 		case entryType:
 			if e.GoName == "" {
-				e.GoName = p.typeName(e.Name, true)
+				e.GoName = externName(e.Name)
 			}
 			if o := scope.Lookup(e.GoName); o != nil {
 				if t, ok := o.(*types.TypeName); ok {

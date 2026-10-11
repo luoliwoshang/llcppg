@@ -1,5 +1,5 @@
 D clang/CXErrorCode
-T CXVirtualFileOverlayImpl
-T CXVirtualFileOverlay
-T CXModuleMapDescriptorImpl
-T CXModuleMapDescriptor
+T CXVirtualFileOverlayImpl VirtualFileOverlayImpl
+T CXVirtualFileOverlay VirtualFileOverlay
+T CXModuleMapDescriptorImpl ModuleMapDescriptorImpl
+T CXModuleMapDescriptor ModuleMapDescriptor
