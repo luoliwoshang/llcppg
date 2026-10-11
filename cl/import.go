@@ -124,6 +124,20 @@ func tooFewOrManyFields(i int, fewOrMany, line string) {
 
 // -----------------------------------------------------------------------------
 
+// savePubFile saves entries in their existing order.
+func savePubFile(file string, entries []Entry) (err error) {
+	lines := make([]string, len(entries))
+	for i, e := range entries {
+		lines[i] = e.pubLine()
+	}
+	text := strings.Join(lines, "\n")
+	if len(lines) != 0 {
+		text += "\n"
+	}
+
+	return os.WriteFile(file, []byte(text), 0644)
+}
+
 func (e Entry) pubLine() string {
 	line := string(e.Kind) + " "
 	if e.Tag != 0 {
@@ -134,6 +148,12 @@ func (e Entry) pubLine() string {
 		line += " " + e.GoName
 	}
 	return line
+}
+
+// WritePubFile writes the generated public entries with explicit Go type names.
+// An empty list clears any previous contents.
+func (p Package) WritePubFile(file string) error {
+	return savePubFile(file, p.Public)
 }
 
 // -----------------------------------------------------------------------------
