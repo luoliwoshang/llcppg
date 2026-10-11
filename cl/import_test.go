@@ -101,6 +101,7 @@ func TestImportPubNames(t *testing.T) {
 				rename:  make(map[string]string),
 				types:   make(map[string]typeObj),
 				impPkgs: make(map[string]none),
+				pubDeps: make(map[string]none),
 				pubLookup: func(path string) (string, bool) {
 					file, ok := pubFiles[path]
 					return file, ok

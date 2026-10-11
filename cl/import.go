@@ -179,6 +179,12 @@ func (p *pkgCtx) publicEntries() []Entry {
 		e.GoName = o.Name()
 		entries[e] = none{}
 	}
+	for dep := range p.pubDeps {
+		_, implicit := p.implicitPkgs[dep]
+		if dep != "" && dep != pkg.Path() && !implicit {
+			entries[Entry{Kind: entryDependency, Name: dep}] = none{}
+		}
+	}
 	ret := make([]Entry, 0, len(entries))
 	for e := range entries {
 		ret = append(ret, e)
@@ -196,6 +202,14 @@ func (p *pkgCtx) forceImportUnsafe() {
 }
 
 func (p *pkgCtx) importPkg(pkgPath string) *types.Package {
+	// Record the direct dependency even if it was already loaded through
+	// another package's pub. Dependency output must not depend on load order.
+	p.pubDeps[pkgPath] = none{}
+	return p.loadPkg(pkgPath)
+}
+
+// loadPkg loads pub mappings recursively without adding direct dependencies.
+func (p *pkgCtx) loadPkg(pkgPath string) *types.Package {
 	if _, ok := p.impPkgs[pkgPath]; ok {
 		return nil // imported already
 	}
@@ -223,7 +237,7 @@ func (p *pkgCtx) importPkg(pkgPath string) *types.Package {
 	for e := range entries {
 		switch e.Kind {
 		case entryDependency:
-			p.importPkg(e.Name)
+			p.loadPkg(e.Name)
 
 		case entryType:
 			if e.GoName == "" {

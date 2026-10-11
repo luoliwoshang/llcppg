@@ -276,10 +276,14 @@ func NewPackage(pkgPath, pkgName string, files []Source, conf *Config) (ret Pack
 		fileBases: make(map[clang.File]int), ovobjs: make(map[string]*overloadObj),
 		macroVals: make(map[string]any), types: make(map[string]typeObj),
 		lastSeen: make(map[string]none), impPkgs: make(map[string]none),
+		pubDeps: make(map[string]none),
 	}
 
 	if conf.LoadLibcPubFile {
-		ctx.c.Types = ctx.importPkg(libcPkgPath)
+		ctx.c.Types = ctx.loadPkg(libcPkgPath)
+		// Consumers load these pub mappings automatically before importing
+		// dependencies, so they need no generated D entries.
+		ctx.implicitPkgs = maps.Clone(ctx.impPkgs)
 	} else {
 		ctx.c = pkg.Import(libcPkgPath)
 	}
