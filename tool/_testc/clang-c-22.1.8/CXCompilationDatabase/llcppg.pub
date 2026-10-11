@@ -1,5 +1,5 @@
 D clang/CXString
-T CXCompilationDatabase
-T CXCompileCommands
-T CXCompileCommand
-T enum CXLCompilationDatabase_Error
+T CXCompilationDatabase CompilationDatabase
+T CXCompileCommands CompileCommands
+T CXCompileCommand CompileCommand
+T enum CXCompilationDatabase_Error CompilationDatabase_Error

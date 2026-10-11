@@ -245,9 +245,19 @@ func (p *pkgCtx) funcName(cName string, order int, typName, typCName string, glo
 }
 
 func (p *pkgCtx) cstyleToGo(name string, underscoreStart, public bool) string {
-	rename := p.rename
+	return cstyleToGo(name, underscoreStart, public, p.rename, p.forceCamelCase)
+}
+
+// externName applies the default naming rules to an external C/C++ symbol,
+// independently of the importing package's configuration and local aliases.
+func externName(cName string) string {
+	name, underscoreStart := checkUnderscoreStart(cName)
+	return cstyleToGo(name, underscoreStart, true, nil, false)
+}
+
+func cstyleToGo(name string, underscoreStart, public bool, rename map[string]string, forceCamelCase bool) string {
 	parts, hasNS := cNameSplit(name)
-	if p.shouldKeepCStyle(parts, hasNS) {
+	if shouldKeepCStyle(parts, hasNS, forceCamelCase) {
 		return goNameOf(name, underscoreStart, public)
 	}
 	lastEndWithUpper := false
@@ -276,9 +286,9 @@ func (p *pkgCtx) cstyleToGo(name string, underscoreStart, public bool) string {
 	return goNameOf(strings.Join(parts, ""), underscoreStart, public)
 }
 
-func (p *pkgCtx) shouldKeepCStyle(parts []string, hasNS bool) bool {
+func shouldKeepCStyle(parts []string, hasNS, forceCamelCase bool) bool {
 	if !hasNS && isAllUpperStart(parts) {
-		if p.forceCamelCase {
+		if forceCamelCase {
 			return isAnyUpperEnd(parts)
 		}
 		return true
