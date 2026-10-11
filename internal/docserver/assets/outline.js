@@ -23,6 +23,13 @@
     };
   }
 
+  // OBSERVER_DEBOUNCE_MS is the default scroll-spy debounce window: the
+  // intersection callback fires this long after the last intersection event.
+  // SPY_SUPPRESS_MS (below) must stay comfortably larger than this, so both the
+  // debounce default and the suppression window read the same source of truth
+  // and a change to one is visible against the other.
+  var OBSERVER_DEBOUNCE_MS = 200;
+
   // slug mirrors pkgsite's group-id generation: non-word runs collapse to "_".
   function slug(s) {
     return s.replace(/[\W_]+/g, "_");
@@ -100,31 +107,46 @@
     return this.el.getAttribute("aria-selected") === "true";
   };
 
-  TreeItem.prototype.handleClick = function (event) {
-    // Only act on clicks on this item itself (or its first child), so a click
-    // on a nested item does not toggle its ancestors.
-    if (event.target !== this.el && event.target !== this.el.firstElementChild) {
-      return;
-    }
-    // The click scrolls the page to this item's anchor; keep the scroll-spy from
-    // reacting to that self-induced scroll (which could otherwise expand a
+  // activate performs an explicit activation (click or Space/Enter): suppress the
+  // scroll-spy, apply the faithful pkgsite toggle when the item is expandable, and
+  // select it. It is the single source of truth shared by handleClick and
+  // handleKeydown so the two paths can never drift apart (e.g. arming suppression
+  // on one but not the other). Callers own only their own event-propagation
+  // handling, which legitimately differs between mouse and keyboard. Returns true
+  // when the item was expandable (i.e. a toggle happened), which the keyboard path
+  // uses to decide whether it captured the key.
+  TreeItem.prototype.activate = function () {
+    // The activation scrolls the page to this item's anchor; keep the scroll-spy
+    // from reacting to that self-induced scroll (which could otherwise expand a
     // neighbouring section — the reported "clicking Variables expands Functions"
     // bug). This runs for every explicit activation, expandable or not.
     this.controller.suppressSpy();
     if (this.isExpandable) {
       // Faithful pkgsite toggle: collapse only when the item is already both
-      // expanded and selected, otherwise expand. Because handleClick ends by
-      // calling setSelected(this), the first click selects+expands and the
-      // second (now selected and expanded) collapses — the two-click open/close
+      // expanded and selected, otherwise expand. Because activate ends by calling
+      // setSelected(this), the first activation selects+expands and the second
+      // (now selected and expanded) collapses — the two-click open/close
       // pkg.go.dev uses.
       if (this.isExpanded() && this.isSelected()) {
         this.controller.collapseTreeitem(this);
       } else {
         this.controller.expandTreeitem(this);
       }
-      event.stopPropagation();
     }
     this.controller.setSelected(this);
+    return this.isExpandable;
+  };
+
+  TreeItem.prototype.handleClick = function (event) {
+    // Only act on clicks on this item itself (or its first child), so a click
+    // on a nested item does not toggle its ancestors.
+    if (event.target !== this.el && event.target !== this.el.firstElementChild) {
+      return;
+    }
+    if (this.activate()) {
+      // A toggle on an expandable item must not bubble to ancestor treeitems.
+      event.stopPropagation();
+    }
   };
 
   TreeItem.prototype.handleFocus = function () {
@@ -151,23 +173,16 @@
     switch (event.key) {
       case " ":
       case "Enter":
-        // Explicit activation, same as a click: scroll-spy must not override the
-        // selection with a neighbouring section the ensuing scroll reveals.
-        this.controller.suppressSpy();
-        if (this.isExpandable) {
-          // Same faithful toggle rule as handleClick: collapse only when
-          // already expanded and selected, else expand. setSelected below keeps
-          // click and keyboard behaving identically.
-          if (this.isExpanded() && this.isSelected()) {
-            this.controller.collapseTreeitem(this);
-          } else {
-            this.controller.expandTreeitem(this);
-          }
+        // Explicit activation, same as a click: activate() suppresses the
+        // scroll-spy (so it can't override the selection with a neighbouring
+        // section the ensuing scroll reveals) and applies the shared toggle rule.
+        if (this.activate()) {
+          // Expandable item was toggled — the key is fully captured below
+          // (stopPropagation + preventDefault keep Space from scrolling the page).
           captured = true;
         } else {
           event.stopPropagation();
         }
-        this.controller.setSelected(this);
         break;
       case "ArrowUp":
         this.controller.setFocusToPreviousItem(this);
@@ -234,20 +249,22 @@
     // intersection callbacks. An explicit click/Enter/Space scrolls the page to
     // the chosen anchor, and that scroll makes a *neighbouring* section cross
     // the observer's threshold — on llcppg's short single page the next section
-    // is often fully in view. The debounced scroll-spy then fires ~200ms later
-    // and would expand/select that neighbour, so e.g. clicking "Variables" (a
-    // non-expandable section link) ends up expanding "Functions". Treating the
-    // user's own activation as authoritative for a short window swallows that
-    // self-induced callback while leaving genuine later scrolling untouched.
+    // is often fully in view. The debounced scroll-spy then fires one
+    // OBSERVER_DEBOUNCE_MS later and would expand/select that neighbour, so e.g.
+    // clicking "Variables" (a non-expandable section link) ends up expanding
+    // "Functions". Treating the user's own activation as authoritative for a
+    // short window swallows that self-induced callback while leaving genuine
+    // later scrolling untouched.
     this.suppressSpyUntil = 0;
     this.init();
   }
 
   // SPY_SUPPRESS_MS is the window after an explicit activation during which the
-  // scroll-spy stays quiet. It must comfortably exceed the observer debounce
-  // (200ms) plus the browser's scroll settle so the single click-induced
-  // callback is dropped, yet stay short enough that deliberate scrolling right
-  // after a click re-engages the spy.
+  // scroll-spy stays quiet. It must comfortably exceed OBSERVER_DEBOUNCE_MS (the
+  // scroll-spy debounce) plus the browser's scroll settle so the single
+  // click-induced callback is dropped, yet stay short enough that deliberate
+  // scrolling right after a click re-engages the spy. If you change
+  // OBSERVER_DEBOUNCE_MS, revisit this value too.
   var SPY_SUPPRESS_MS = 700;
 
   TreeNavController.prototype.init = function () {
@@ -390,7 +407,9 @@
   };
 
   TreeNavController.prototype.addObserver = function (fn, delay) {
-    this.observerCallbacks.push(debounce(fn, delay == null ? 200 : delay));
+    this.observerCallbacks.push(
+      debounce(fn, delay == null ? OBSERVER_DEBOUNCE_MS : delay)
+    );
   };
 
   TreeNavController.prototype.setFocusToNextItem = function (currentItem) {

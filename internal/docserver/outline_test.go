@@ -230,11 +230,13 @@ func TestOutlineScriptHasCollapseBehavior(t *testing.T) {
 // neighbouring one (e.g. "Functions"). An explicit click/Enter/Space scrolls to
 // the chosen anchor; on llcppg's short single page that scroll brings the next
 // section to the IntersectionObserver threshold, and the debounced scroll-spy
-// then expands/selects that neighbour. The fix marks the scroll-spy quiet for a
-// short window after any explicit activation (suppressSpy), checked at the top
-// of the observer callback, so the self-induced callback is dropped while real
-// later scrolling still re-engages the spy. These markers keep a future edit
-// from silently dropping that suppression and bringing the bug back.
+// then expands/selects that neighbour. The fix routes both the click and the
+// keyboard paths through a shared activate(), which marks the scroll-spy quiet
+// for a short window (suppressSpy / SPY_SUPPRESS_MS) checked at the top of the
+// observer callback, so the self-induced callback is dropped while real later
+// scrolling still re-engages the spy. These markers keep a future edit from
+// silently dropping the suppression (and reviving the bug) or letting the two
+// activation paths drift apart.
 func TestOutlineScriptSuppressesSpyOnActivation(t *testing.T) {
 	dir := writeDir(t, map[string]string{"a.go": "package foo\n"})
 	srv := httptest.NewServer(newHandler(dir, false, nil, nil))
@@ -242,12 +244,22 @@ func TestOutlineScriptSuppressesSpyOnActivation(t *testing.T) {
 
 	js := getBody(t, srv.URL+"/static/outline.js", http.StatusOK)
 	for _, want := range []string{
-		`this.controller.suppressSpy()`,      // explicit activation arms the window
+		`this.controller.suppressSpy()`,      // activate() arms the window
 		`Date.now() < self.suppressSpyUntil`, // scroll-spy honours the window
+		`var SPY_SUPPRESS_MS = 700`,          // load-bearing window must exceed the debounce
+		`var OBSERVER_DEBOUNCE_MS = 200`,     // the debounce it must stay larger than
 	} {
 		if !strings.Contains(js, want) {
 			t.Errorf("outline.js missing scroll-spy suppression marker %q", want)
 		}
+	}
+
+	// Both the click and the keyboard activation paths must route through the
+	// shared activate(); if only one did, the suppress call would be armed on a
+	// single path and the bug could return on the other. Guard that at least two
+	// call sites invoke it (handleClick and handleKeydown).
+	if n := strings.Count(js, `this.activate()`); n < 2 {
+		t.Errorf("outline.js should call this.activate() from both the click and keyboard paths, found %d call(s)", n)
 	}
 }
 
