@@ -73,7 +73,7 @@ func varHasInitExpr(ctx *pkgCtx, v clang.Cursor) (hasInitExpr bool) {
 		switch decl.Kind {
 		case lc.Cursor_InitListExpr, lc.Cursor_CallExpr, lc.Cursor_DeclRefExpr,
 			lc.Cursor_UnaryOperator, lc.Cursor_BinaryOperator, lc.Cursor_UnexposedExpr,
-			lc.Cursor_CXXStaticCastExpr:
+			lc.Cursor_CXXStaticCastExpr, lc.Cursor_CXXBoolLiteralExpr:
 			hasInitExpr = true
 			return clang.Break
 		case lc.Cursor_TypeRef, lc.Cursor_UnaryExpr, lc.Cursor_ParmDecl,
