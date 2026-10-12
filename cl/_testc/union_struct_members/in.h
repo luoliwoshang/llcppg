@@ -66,3 +66,15 @@ union References {
     struct Tagged tagged;
     Alias alias;
 };
+
+// The fieldless struct promotes x and y onto record, after kind.
+union AnonymousMember {
+    struct {
+        int kind;
+        struct {
+            short x;
+            short y;
+        };
+    } record;
+    unsigned char bytes[8];
+};

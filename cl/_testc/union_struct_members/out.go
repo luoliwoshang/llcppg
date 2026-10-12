@@ -31,6 +31,9 @@ type Alias = Tagged
 type References struct {
 	_xgo_union [2]uint64
 }
+type AnonymousMember struct {
+	_xgo_union [2]uint32
+}
 type _llcppg_anon_1 struct {
 	Code c.Int
 }
@@ -109,6 +112,22 @@ func (p *References) XGof_ref_tagged() *Tagged {
 func (p *References) XGof_ref_alias() *Alias {
 	return (*Alias)(unsafe.Pointer(p))
 }
+
+type _llcppg_anon_10 struct {
+	Kind c.Int
+	_llcppg_anon_11
+}
+type _llcppg_anon_11 struct {
+	X int16
+	Y int16
+}
+
+func (p *AnonymousMember) XGof_ref_record() *_llcppg_anon_10 {
+	return (*_llcppg_anon_10)(unsafe.Pointer(p))
+}
+func (p *AnonymousMember) XGof_ref_bytes() *[8]uint8 {
+	return (*[8]uint8)(unsafe.Pointer(p))
+}
 func (p *_llcppg_anon_4) XGof_ref_code() *c.Int {
 	return (*c.Int)(unsafe.Pointer(p))
 }
@@ -119,11 +138,11 @@ func (p *_llcppg_anon_9) XGof_ref_code() *c.Int {
 	return (*c.Int)(unsafe.Pointer(p))
 }
 
-type _llcppg_anon_10 struct {
+type _llcppg_anon_12 struct {
 	X c.Float
 	Y c.Float
 }
 
-func (p *_llcppg_anon_9) XGof_ref_pair() *_llcppg_anon_10 {
-	return (*_llcppg_anon_10)(unsafe.Pointer(p))
+func (p *_llcppg_anon_9) XGof_ref_pair() *_llcppg_anon_12 {
+	return (*_llcppg_anon_12)(unsafe.Pointer(p))
 }
