@@ -121,11 +121,20 @@ func toType(ctx *pkgCtx, pkg *types.Package, typ lc.Type, flags int, scope *scop
 		underlying = underlying.Named()
 	}
 	decl := underlying.Declaration()
-	if decl.Kind == lc.Cursor_UnionDecl && decl.IsAnonymous() != 0 {
-		return emitUnion(ctx, decl, ctx.nextAnonName())
-	}
 	var feats int
-	ret := toTypeEx(ctx, pkg, typ, flags, &feats, scope)
+	var ret types.Type
+	switch {
+	case decl.Kind == lc.Cursor_UnionDecl && decl.IsAnonymous() != 0:
+		return emitUnion(ctx, decl, ctx.nextAnonName())
+	case decl.Kind == lc.Cursor_StructDecl && decl.IsAnonymous() != 0:
+		var ok bool
+		ret, ok = emitClass(ctx, decl, ctx.nextAnonName(), scope)
+		if !ok {
+			feats |= featExplicitIgnore
+		}
+	default:
+		ret = toTypeEx(ctx, pkg, typ, flags, &feats, scope)
+	}
 	if feats&featAllIgnore != 0 {
 		panic("unsupported type - " + clang.String(typ))
 	}
