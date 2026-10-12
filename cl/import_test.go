@@ -143,21 +143,20 @@ func TestImportPubNames(t *testing.T) {
 	}
 }
 
-func TestWritePubFile(t *testing.T) {
+func TestSavePubFile(t *testing.T) {
 	entries := []Entry{
 		{Kind: entryType, Name: "point", GoName: "Point"},
 		{Kind: entryDependency, Name: "test/dep"},
 	}
 	file := filepath.Join(t.TempDir(), "llcppg.pub")
-	p := Package{Public: entries}
-	if err := p.WritePubFile(file); err != nil {
+	if err := SavePubFile(file, entries, 0644); err != nil {
 		t.Fatal(err)
 	}
 	want := "D test/dep\nT point Point\n"
 	if b, err := os.ReadFile(file); err != nil || string(b) != want {
 		t.Fatalf("pub contents = %q, %v; want %q", b, err, want)
 	}
-	if err := (Package{}).WritePubFile(file); err != nil {
+	if err := SavePubFile(file, nil, 0644); err != nil {
 		t.Fatal(err)
 	}
 	if b, err := os.ReadFile(file); err != nil || len(b) != 0 {
@@ -280,7 +279,7 @@ func generatePubFixture(t *testing.T, fixtureRoot, workDir, dir string) *types.P
 		t.Fatal(err)
 	}
 	pubFile := filepath.Join(pkgDir, "llcppg.pub")
-	if err := pkg.WritePubFile(pubFile); err != nil {
+	if err := SavePubFile(pubFile, pkg.Public, 0644); err != nil {
 		t.Fatal(err)
 	}
 	pub, err := os.ReadFile(pubFile)
@@ -365,7 +364,7 @@ func generatePubFixture(t *testing.T, fixtureRoot, workDir, dir string) *types.P
 }
 
 func TestPubGeneration(t *testing.T) {
-	for _, dir := range []string{"types", "cxx"} {
+	for _, dir := range []string{"types", "cxx", "typedef_reuse"} {
 		t.Run(dir, func(t *testing.T) {
 			fixtureRoot, workDir := preparePubFixtures(t, dir)
 			generatePubFixture(t, fixtureRoot, workDir, dir)

@@ -124,8 +124,9 @@ func tooFewOrManyFields(i int, fewOrMany, line string) {
 
 // -----------------------------------------------------------------------------
 
-// savePubFile saves entries sorted by their serialized lines.
-func savePubFile(file string, entries []Entry) (err error) {
+// SavePubFile saves entries sorted by their serialized lines.
+// An empty list clears any previous contents.
+func SavePubFile(file string, entries []Entry, perm os.FileMode) (err error) {
 	lines := make([]string, len(entries))
 	for i, e := range entries {
 		lines[i] = e.pubLine()
@@ -136,7 +137,7 @@ func savePubFile(file string, entries []Entry) (err error) {
 		text += "\n"
 	}
 
-	return os.WriteFile(file, []byte(text), 0644)
+	return os.WriteFile(file, []byte(text), perm)
 }
 
 func (e Entry) pubLine() string {
@@ -149,12 +150,6 @@ func (e Entry) pubLine() string {
 		line += " " + e.GoName
 	}
 	return line
-}
-
-// WritePubFile writes the generated public entries with explicit Go type names.
-// An empty list clears any previous contents.
-func (p Package) WritePubFile(file string) error {
-	return savePubFile(file, p.Public)
 }
 
 // -----------------------------------------------------------------------------
