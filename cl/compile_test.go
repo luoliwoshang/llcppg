@@ -59,10 +59,11 @@ func testGenGo(t *testing.T, pkg *gogen.Package, dir string, exp any) {
 	testDiff(t, dir, "/out.go.txt", &b, exp)
 }
 
-func testFromDir(t *testing.T, sel, relDir string, lang cl.Language) {
+func testFromDir(t *testing.T, sel, relDir string, lang cl.Language, genPubFile ...bool) {
 	idx := clang.CreateIndex(1, 1)
 	defer idx.Dispose()
 
+	savePubFile := genPubFile != nil && genPubFile[0]
 	cltest.TestFromDir(t, sel, relDir, func(t *testing.T, pkgDir string) {
 		pkgDir, _ = filepath.Abs(pkgDir)
 
@@ -82,6 +83,17 @@ func testFromDir(t *testing.T, sel, relDir string, lang cl.Language) {
 			mod = m
 		}
 
+		const pkgPrefix = "testcl/"
+		rootDir, myPkgName := filepath.Split(pkgDir)
+		imp := packages.NewImporter(nil, rootDir)
+		if myPkgName == "cxx" { // as a special case for C++ tests
+			lang = cl.LanguageCXX
+		}
+		fakePkgName := "foo"
+		if savePubFile { // use real package name
+			fakePkgName = myPkgName
+		}
+
 		files := make([]cl.Source, len(srcFiles))
 		for i, srcFile := range srcFiles {
 			presumedFile := filepath.Join(pkgDir, srcFile)
@@ -94,18 +106,21 @@ func testFromDir(t *testing.T, sel, relDir string, lang cl.Language) {
 			files[i] = u
 		}
 
-		const pkgPrefix = "testcl/"
-		rootDir, myPkgName := filepath.Split(pkgDir)
-		imp := packages.NewImporter(nil, rootDir)
-		pkg, err := cl.NewPackage(pkgPrefix+myPkgName, "foo", files, &cl.Config{
+		pkg, err := cl.NewPackage(pkgPrefix+myPkgName, fakePkgName, files, &cl.Config{
 			Importer:        imp,
 			LLGoPackage:     conf.LLGoPackage,
 			Language:        lang,
 			WrapFileHeader:  conf.WrapFileHeader,
+			NSPrefix:        conf.NSPrefix,
+			EnumPrefix:      conf.EnumPrefix,
+			Rename:          conf.Rename,
 			TypeAlias:       conf.TypeAlias,
 			TypeIgnore:      conf.TypeIgnore,
+			TypePrefix:      conf.TypePrefix,
+			TypeSuffix:      conf.TypeSuffix,
 			MacroIgnore:     conf.MacroIgnore,
 			CFlags:          conf.CFlags,
+			ForceCamelCase:  conf.ForceCamelCase,
 			LoadLibcPubFile: conf.LoadLibcPubFile,
 			DontKeepDoc:     !conf.KeepDoc,
 			NameLookup:      nil,
@@ -137,6 +152,11 @@ func testFromDir(t *testing.T, sel, relDir string, lang cl.Language) {
 		if pkg.Wrap != nil {
 			testDiff(t, pkgDir, wrapFile+".txt", &pkg.Wrap.Content, wrap)
 		}
+		if savePubFile {
+			pubExp, _ := os.ReadFile(pkgDir + "/llcppg.pub")
+			pub := cl.PubFile(pkg.Public)
+			testDiff(t, pkgDir, "/llcppg.pub.txt", bytes.NewBuffer(pub), pubExp)
+		}
 	})
 }
 
@@ -158,6 +178,10 @@ func TestCpp(t *testing.T) {
 
 func TestPreprocessor(t *testing.T) {
 	testFromDir(t, "", "./_testpp", cl.LanguageCXX)
+}
+
+func TestPub(t *testing.T) {
+	testFromDir(t, "", "./_testpub", cl.LanguageC, true)
 }
 
 // -----------------------------------------------------------------------------

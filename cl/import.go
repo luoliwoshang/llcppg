@@ -26,7 +26,6 @@ import (
 	"strings"
 
 	"github.com/goplus/gogen"
-	"github.com/goplus/llcppg/clang"
 )
 
 // -----------------------------------------------------------------------------
@@ -43,9 +42,16 @@ const (
 // Entry represents a C/C++ name and its corresponding Go name.
 type Entry struct {
 	Name   string
-	GoName string    // optional; omitted names use externName, independent of importer configuration
-	Tag    typeTag   // only valid for Kind == 'T'
+	GoName string    // optional; omitted names use externName, independent of llcppg.cfg
 	Kind   entryKind // 'T' (type), 'f' (func), 'v' (var), 'D' (dependency)
+}
+
+func (e Entry) pubLine() string {
+	line := string(e.Kind) + " " + e.Name
+	if e.GoName != "" {
+		line += " " + e.GoName
+	}
+	return line
 }
 
 // -----------------------------------------------------------------------------
@@ -55,8 +61,6 @@ type Entry struct {
 // D depPkgPath
 // T cName
 // T cName goName
-// T <tag> cName
-// T <tag> cName goName
 //
 // An omitted Go name uses the default C/C++ name conversion (externName).
 // An explicit Go name is used verbatim. Neither depends on importer configuration.
@@ -84,38 +88,17 @@ func loadPubFile(pubfile string) (it iter.Seq[Entry], err error) {
 			kind := kindFld[0]
 			cName := flds[1]
 			goName := ""
-			tag := typeTag(0)
-			if kind == entryType && len(flds) > 2 {
-				igo := 2
-				if tag = getTypeTag(flds[1]); tag != 0 {
-					cName, igo = flds[2], 3
-				}
-				if igo < len(flds) {
-					goName = flds[igo]
-				}
-			} else if len(flds) > 3 {
+			if kind == entryType && len(flds) == 3 {
+				goName = flds[2]
+			} else if len(flds) > 2 {
 				tooFewOrManyFields(i, "many", line)
 			}
-			if !yield(Entry{Kind: kind, Name: cName, GoName: goName, Tag: tag}) {
+			if !yield(Entry{Kind: kind, Name: cName, GoName: goName}) {
 				return
 			}
 		}
 	}
 	return
-}
-
-func getTypeTag(tag string) typeTag {
-	switch tag {
-	case "enum":
-		return tagEnum
-	case "struct":
-		return tagStruct
-	case "class":
-		return tagClass
-	case "union":
-		return tagUnion
-	}
-	return 0
 }
 
 func tooFewOrManyFields(i int, fewOrMany, line string) {
@@ -124,56 +107,29 @@ func tooFewOrManyFields(i int, fewOrMany, line string) {
 
 // -----------------------------------------------------------------------------
 
-// SavePubFile saves entries sorted by their serialized lines.
-// An empty list clears any previous contents.
-func SavePubFile(file string, entries []Entry, perm os.FileMode) (err error) {
+// PubFile generates the byte representation of the public entries, sorted by their
+// serialized lines.
+func PubFile(entries []Entry) []byte {
+	size := 0
 	lines := make([]string, len(entries))
 	for i, e := range entries {
-		lines[i] = e.pubLine()
+		line := e.pubLine()
+		lines[i] = line
+		size += len(line) + 1
 	}
 	slices.Sort(lines)
-	text := strings.Join(lines, "\n")
-	if len(lines) != 0 {
-		text += "\n"
+	b := make([]byte, 0, size)
+	for _, line := range lines {
+		b = append(b, line...)
+		b = append(b, '\n')
 	}
-
-	return os.WriteFile(file, []byte(text), perm)
-}
-
-func (e Entry) pubLine() string {
-	line := string(e.Kind) + " "
-	if e.Tag != 0 {
-		line += tagStrvals[e.Tag]
-	}
-	line += e.Name
-	if e.GoName != "" {
-		line += " " + e.GoName
-	}
-	return line
+	return b
 }
 
 // -----------------------------------------------------------------------------
 
-func publicTypeTag(decl clang.Cursor) typeTag {
-	switch decl.Kind {
-	case tagStruct, tagClass, tagUnion, tagEnum:
-	default:
-		return 0 // templates have no distinct tag in the pub format
-	}
-	// Clang borrows the typedef name for an anonymous tag, e.g.
-	// typedef struct { int x; } Point. Its spelling range still points to
-	// the tag keyword; "struct Point" is not a declared C type name.
-	u := clang.TU(decl)
-	tokens, dispose := u.Tokenize(decl.SpellingNameRange(0, 0))
-	defer dispose()
-	if len(tokens) != 0 && getTypeTag(u.TokenSpelling(tokens[0])) != 0 {
-		return 0
-	}
-	return decl.Kind
-}
-
-func (p *pkgCtx) addPublicType(cName string, tag typeTag) {
-	p.pubs = append(p.pubs, Entry{Kind: entryType, Name: cName, Tag: tag})
+func (p *pkgCtx) addPublicType(cName string) {
+	p.pubTyps[cName] = none{}
 }
 
 // publicEntries resolves candidates against the final package. A type can be
@@ -182,28 +138,23 @@ func (p *pkgCtx) addPublicType(cName string, tag typeTag) {
 func (p *pkgCtx) publicEntries() []Entry {
 	pkg := p.pkg.Types
 	scope := pkg.Scope()
-	entries := make(map[Entry]none)
-	for _, e := range p.pubs {
-		o := p.types[e.Name]
+	ret := make([]Entry, 0, len(p.pubDeps)+len(p.pubTyps))
+	for dep := range p.pubDeps {
+		_, implicit := p.implicitPkgs[dep]
+		if !implicit {
+			ret = append(ret, Entry{Kind: entryDependency, Name: dep})
+		}
+	}
+	for name := range p.pubTyps {
+		o := p.types[name]
 		if o.TypeName == nil || o.feats&(featAllIgnore|featTyIgnore) != 0 ||
 			o.Pkg() != pkg || !o.Exported() || scope.Lookup(o.Name()) != o.TypeName {
 			continue
 		}
-		if decl, ok := p.typdecls[e.Name]; ok && decl.State() == gogen.TyStateDeleted {
+		if decl, ok := p.typdecls[name]; ok && decl.State() == gogen.TyStateDeleted {
 			continue
 		}
-		e.GoName = o.Name()
-		entries[e] = none{}
-	}
-	for dep := range p.pubDeps {
-		_, implicit := p.implicitPkgs[dep]
-		if dep != "" && dep != pkg.Path() && !implicit {
-			entries[Entry{Kind: entryDependency, Name: dep}] = none{}
-		}
-	}
-	ret := make([]Entry, 0, len(entries))
-	for e := range entries {
-		ret = append(ret, e)
+		ret = append(ret, Entry{Kind: entryType, Name: name, GoName: o.Name()})
 	}
 	return ret
 }
@@ -259,9 +210,6 @@ func (p *pkgCtx) loadPkg(pkgPath string) *types.Package {
 			if o := scope.Lookup(e.GoName); o != nil {
 				if t, ok := o.(*types.TypeName); ok {
 					p.types[e.Name] = typeObj{t, 0}
-					if e.Tag != 0 {
-						p.types[tagStrvals[e.Tag]+e.Name] = typeObj{t, 0}
-					}
 				}
 			}
 

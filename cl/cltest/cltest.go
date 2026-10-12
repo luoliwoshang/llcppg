@@ -32,15 +32,40 @@ import (
 
 // Config represents the lltest configuration.
 type Config struct {
-	LLGoPackage     string            `json:"LLGoPackage"`
-	WrapFileHeader  string            `json:"WrapFileHeader"`
-	CFlags          string            `json:"CFlags"`
-	Files           []string          `json:"Files"`
-	TypeAlias       map[string]string `json:"TypeAlias"`
-	TypeIgnore      []string          `json:"TypeIgnore"`
-	MacroIgnore     []string          `json:"MacroIgnore"`
-	LoadLibcPubFile bool              `json:"LoadLibcPubFile"`
-	KeepDoc         bool              `json:"KeepDoc"`
+	LLGoPackage    string   `json:"LLGoPackage"`
+	WrapFileHeader string   `json:"WrapFileHeader"`
+	CFlags         string   `json:"CFlags"`
+	Files          []string `json:"Files"`
+
+	// NSPrefix specifies the prefix to remove from C/C++ namespace names when generating
+	// Go package names (optional).
+	NSPrefix []string `json:"NSPrefix"` // C/C++ namespace prefix to remove
+
+	// EnumPrefix specifies the prefix to remove from C/C++ enum value names when generating
+	// Go const names (optional).
+	EnumPrefix []string `json:"EnumPrefix"`
+
+	TypeAlias  map[string]string `json:"TypeAlias"`
+	TypeIgnore []string          `json:"TypeIgnore"`
+
+	// TypePrefix/TypeSuffix specifies the prefix/suffix to remove from C/C++ type names
+	// when generating Go type names (optional).
+	TypePrefix []string `json:"TypePrefix"`
+	TypeSuffix []string `json:"TypeSuffix"`
+
+	// Rename specifies a mapping of C/C++ names to Go names (optional). If a name is present
+	// in the map, it will be renamed to the corresponding Go name.
+	Rename map[string]string `json:"Rename"`
+
+	MacroIgnore []string `json:"MacroIgnore"`
+
+	// convert capitalized, underscore-joined names to camel case, except names whose final
+	// segment is all-uppercase (acronyms/macros), which are kept as-is.
+	ForceCamelCase bool `json:"ForceCamelCase"`
+
+	LoadLibcPubFile bool `json:"LoadLibcPubFile"`
+
+	KeepDoc bool `json:"KeepDoc"`
 }
 
 // LoadConf loads the lltest configuration.

@@ -127,7 +127,8 @@ func genPkg(destDir, srcDir, mainPkgName string, index clang.Index, cfg *tool.Co
 	if err = errs.ToError(); err != nil {
 		return
 	}
-	return cl.SavePubFile(filepath.Join(destDir, "llcppg.pub"), pkg.Public, 0644)
+	pub := cl.PubFile(pkg.Public)
+	return os.WriteFile(filepath.Join(destDir, "llcppg.pub"), pub, 0644)
 }
 
 // -----------------------------------------------------------------------------

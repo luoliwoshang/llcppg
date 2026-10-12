@@ -160,7 +160,7 @@ type pkgCtx struct {
 
 	loads    []compileUnit
 	compiles []compileUnit
-	pubs     []Entry
+	pubTyps  map[string]none // TODO(xsw): maybe can remove this field (use typdecls)
 
 	errCnt   int
 	failFast int
@@ -302,7 +302,7 @@ func (p *pkgCtx) addType(cName string, decl clang.Cursor, typNamed *types.Named)
 	p.types[cName] = typObj
 	p.aliasTypeName(cName, typObj.Name())
 	if decl.IsAnonymous() == 0 {
-		p.addPublicType(cName, publicTypeTag(decl))
+		p.addPublicType(cName)
 	}
 
 	if debugCompileDecl {

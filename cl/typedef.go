@@ -90,7 +90,7 @@ func loadTypedef(ctx *pkgCtx, decl clang.Cursor, scope *scopeCtx) {
 	if tn, ok := tunder.(*types.Named); ok {
 		if o := tn.Obj(); o.Pkg() == pkgTypes && o.Name() == goName {
 			ctx.types[cName] = typeObj{o, 0}
-			ctx.addPublicType(cName, 0)
+			ctx.addPublicType(cName)
 			return // already defined
 		}
 	}
@@ -108,7 +108,7 @@ func loadTypedef(ctx *pkgCtx, decl clang.Cursor, scope *scopeCtx) {
 		eunder, _ := ctx.effectiveUnder(cName, tunder)
 		if prev, ok := o.(*types.TypeName); ok && types.Identical(prev.Type(), eunder) {
 			ctx.types[cName] = typeObj{prev, 0}
-			ctx.addPublicType(cName, 0)
+			ctx.addPublicType(cName)
 			return // same underlying type, reuse the existing definition
 		}
 		ctx.errorf(decl, "%s redeclared in this block\n\t%v: other declaration of %s",
@@ -158,7 +158,7 @@ func defineTypedef(ctx *pkgCtx, decl clang.Cursor, cName, goName string, scope *
 
 	ctx.types[cName] = typeObj{obj, 0}
 	ctx.aliasTypeName(cName, goName)
-	ctx.addPublicType(cName, 0)
+	ctx.addPublicType(cName)
 }
 
 // effectiveUnder maps a typedef's resolved underlying type to the type actually
@@ -196,7 +196,7 @@ func doAliasType(ctx *pkgCtx, cName string, tunder types.Type, scope *scopeCtx) 
 	obj := t.Obj()
 	ctx.types[cName] = typeObj{obj, 0}
 	ctx.aliasTypeName(cName, goName)
-	ctx.addPublicType(cName, 0)
+	ctx.addPublicType(cName)
 	return t
 }
 
