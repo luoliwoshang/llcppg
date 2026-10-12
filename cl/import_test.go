@@ -17,14 +17,23 @@
 package cl
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"go/ast"
+	"go/parser"
 	"go/token"
 	"go/types"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 	"testing"
 
 	"github.com/goplus/gogen"
+	"github.com/goplus/gogen/packages"
+	"github.com/goplus/llcppg/clang"
+	"github.com/qiniu/x/test"
 )
 
 type pubTestImporter map[string]*types.Package
@@ -101,6 +110,7 @@ func TestImportPubNames(t *testing.T) {
 				rename:  make(map[string]string),
 				types:   make(map[string]typeObj),
 				impPkgs: make(map[string]none),
+				pubDeps: make(map[string]none),
 				pubLookup: func(path string) (string, bool) {
 					file, ok := pubFiles[path]
 					return file, ok
@@ -125,6 +135,265 @@ func TestImportPubNames(t *testing.T) {
 			if got := p.types["time_t"].TypeName; got != transitive.Scope().Lookup("TimeT") {
 				t.Errorf("transitive time_t mapping: got %v, want transitive.TimeT", got)
 			}
+			wantDeps := []Entry{{Kind: entryDependency, Name: depPath}}
+			if got := p.publicEntries(); !slices.Equal(got, wantDeps) {
+				t.Errorf("dependencies with a pub cycle: got %v, want %v", got, wantDeps)
+			}
+		})
+	}
+}
+
+func TestSavePubFile(t *testing.T) {
+	entries := []Entry{
+		{Kind: entryType, Name: "point", GoName: "Point"},
+		{Kind: entryDependency, Name: "test/dep"},
+	}
+	file := filepath.Join(t.TempDir(), "llcppg.pub")
+	if err := SavePubFile(file, entries, 0644); err != nil {
+		t.Fatal(err)
+	}
+	want := "D test/dep\nT point Point\n"
+	if b, err := os.ReadFile(file); err != nil || string(b) != want {
+		t.Fatalf("pub contents = %q, %v; want %q", b, err, want)
+	}
+	if err := SavePubFile(file, nil, 0644); err != nil {
+		t.Fatal(err)
+	}
+	if b, err := os.ReadFile(file); err != nil || len(b) != 0 {
+		t.Fatalf("empty pub = %q, %v", b, err)
+	}
+}
+
+func TestPublicEntriesDeletedType(t *testing.T) {
+	pkg := gogen.NewPackage("test/local", "local", nil)
+	decl := pkg.NewTypeDefs().NewType("Point", nil)
+	obj := decl.InitType(pkg, types.NewStruct(nil, nil)).Obj()
+	p := &pkgCtx{
+		pkg:      pkg,
+		types:    map[string]typeObj{"point": {obj, 0}},
+		typdecls: map[string]typDecl{"point": {TypeDecl: decl}},
+	}
+	p.addPublicType("point", tagStruct)
+	want := []Entry{{Kind: entryType, Name: "point", GoName: "Point", Tag: tagStruct}}
+	if got := p.publicEntries(); !slices.Equal(got, want) {
+		t.Fatalf("before deletion: got %v, want %v", got, want)
+	}
+	// Delete removes the Go declaration but leaves its type object in scope.
+	// The pub must still exclude it, even without an ignored-type flag.
+	decl.Delete()
+	if got := p.publicEntries(); len(got) != 0 {
+		t.Fatalf("deleted type remains in pub: %v", got)
+	}
+}
+
+const pubFixtureModule = "testpub"
+
+type pubFixtureConfig struct {
+	Config
+	Deps []string // local Go package paths exposed to PackageOf and PubFileLookup
+}
+
+func preparePubFixtures(t *testing.T, dirs ...string) (fixtureRoot, workDir string) {
+	t.Helper()
+	fixtureRoot, err := filepath.Abs("_testpub")
+	if err != nil {
+		t.Fatal(err)
+	}
+	workDir = t.TempDir()
+	files := []string{"go.mod", "go.sum"}
+	for _, dir := range dirs {
+		files = append(files, filepath.Join(dir, "test.h"), filepath.Join(dir, "in.cfg"))
+	}
+	// Copy only inputs. In particular, A must consume B's newly generated
+	// Go source and pub, never the checked-in golden files.
+	for _, file := range files {
+		data, err := os.ReadFile(filepath.Join(fixtureRoot, file))
+		if err != nil {
+			t.Fatal(err)
+		}
+		dest := filepath.Join(workDir, file)
+		if err := os.MkdirAll(filepath.Dir(dest), 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(dest, data, 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return
+}
+
+func generatePubFixture(t *testing.T, fixtureRoot, workDir, dir string) *types.Package {
+	t.Helper()
+	pkgDir := filepath.Join(workDir, dir)
+	data, err := os.ReadFile(filepath.Join(pkgDir, "in.cfg"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cfg pubFixtureConfig
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		t.Fatal(err)
+	}
+	pkgPath := pubFixtureModule + "/" + filepath.ToSlash(dir)
+	headers := map[string]string{filepath.Join(pkgDir, "test.h"): pkgPath}
+	pubFiles := make(map[string]string)
+	for _, dep := range cfg.Deps {
+		rel, ok := strings.CutPrefix(dep, pubFixtureModule+"/")
+		if !ok {
+			t.Fatalf("dependency %q is outside the fixture module", dep)
+		}
+		depDir := filepath.Join(workDir, filepath.FromSlash(rel))
+		headers[filepath.Join(depDir, "test.h")] = dep
+		pubFiles[dep] = filepath.Join(depDir, "llcppg.pub")
+	}
+	conf := &cfg.Config
+	conf.Importer = packages.NewImporter(nil, workDir)
+	conf.PackageOf = func(header string) (string, bool) {
+		pkgPath, ok := headers[filepath.Clean(header)]
+		return pkgPath, ok
+	}
+	conf.PubFileLookup = func(pkgPath string) (string, bool) {
+		file, ok := pubFiles[pkgPath]
+		return file, ok
+	}
+	lang := "c"
+	if conf.Language == LanguageCXX {
+		lang = "c++"
+	}
+	idx := clang.CreateIndex(1, 1)
+	defer idx.Dispose()
+	u, err := idx.ParseTranslationUnit(clang.DetailedPreprocessingRecord,
+		filepath.Join(pkgDir, "test.h"), "-x", lang)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer u.Dispose()
+	pkg, err := NewPackage(pkgPath, filepath.Base(dir), []Source{u}, conf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var goSource bytes.Buffer
+	if err := pkg.WriteTo(&goSource); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(pkgDir, "out.go"), goSource.Bytes(), 0644); err != nil {
+		t.Fatal(err)
+	}
+	pubFile := filepath.Join(pkgDir, "llcppg.pub")
+	if err := SavePubFile(pubFile, pkg.Public, 0644); err != nil {
+		t.Fatal(err)
+	}
+	pub, err := os.ReadFile(pubFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	goldenDir := filepath.Join(fixtureRoot, dir)
+	expectedPub, err := os.ReadFile(filepath.Join(goldenDir, "llcppg.pub"))
+	if err != nil && !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+	// Only the pub is compared byte-for-byte to lock its format, including
+	// whitespace, entry order and the final newline.
+	if test.Diff(t, filepath.Join(goldenDir, "llcppg.pub.txt"), pub, expectedPub) {
+		t.Error(goldenDir, ": unexpected pub output")
+	}
+
+	// out.go supplies expected exported package-level type names only. These tests
+	// focus on pub output; comparing Go source bytes would unnecessarily
+	// lock its formatting. Import the generated source and check its scope.
+	goGolden := filepath.Join(goldenDir, "out.go")
+	expectedGo, err := parser.ParseFile(token.NewFileSet(), goGolden, nil, 0)
+	if os.IsNotExist(err) {
+		if err := os.WriteFile(goGolden+".txt", goSource.Bytes(), 0644); err != nil {
+			t.Fatal(err)
+		}
+		t.Errorf("missing %s; generated source saved to %s.txt", goGolden, goGolden)
+	} else if err != nil {
+		t.Fatal(err)
+	}
+	imp := packages.NewImporter(nil, workDir)
+	generated, err := imp.Import(pkgPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if expectedGo != nil {
+		for _, decl := range expectedGo.Decls {
+			typesDecl, ok := decl.(*ast.GenDecl)
+			if !ok || typesDecl.Tok != token.TYPE {
+				continue
+			}
+			for _, spec := range typesDecl.Specs {
+				name := spec.(*ast.TypeSpec).Name.Name
+				if !ast.IsExported(name) {
+					continue // imported packages do not expose unused private types
+				}
+				if _, ok := generated.Scope().Lookup(name).(*types.TypeName); !ok {
+					t.Errorf("generated package %s is missing expected type %s", pkgPath, name)
+				}
+			}
+		}
+	}
+
+	// Read the newly generated pub and check both raw and tagged C/C++ names
+	// against the generated Go source.
+	consumer := &pkgCtx{
+		pkg:   gogen.NewPackage("testpub/consumer", "consumer", &gogen.Config{Importer: imp}),
+		types: make(map[string]typeObj), impPkgs: make(map[string]none), pubDeps: make(map[string]none),
+		pubLookup: func(path string) (string, bool) {
+			if path == pkgPath {
+				return pubFile, true
+			}
+			return conf.PubFileLookup(path)
+		},
+	}
+	consumer.importPkg(pkgPath)
+	for _, e := range pkg.Public {
+		if e.Kind != entryType {
+			continue
+		}
+		obj := generated.Scope().Lookup(e.GoName)
+		if got := consumer.types[e.Name].TypeName; got != obj {
+			t.Errorf("imported %s = %v; want %v", e.Name, got, obj)
+		}
+		if e.Tag != 0 {
+			if got := consumer.types[tagStrvals[e.Tag]+e.Name].TypeName; got != obj {
+				t.Errorf("imported tagged %s = %v; want %v", e.Name, got, obj)
+			}
+		}
+	}
+	return generated
+}
+
+func TestPubGeneration(t *testing.T) {
+	for _, dir := range []string{"types", "cxx", "typedef_reuse"} {
+		t.Run(dir, func(t *testing.T) {
+			fixtureRoot, workDir := preparePubFixtures(t, dir)
+			generatePubFixture(t, fixtureRoot, workDir, dir)
+		})
+	}
+}
+
+func TestPubGenerationDependency(t *testing.T) {
+	fixtureRoot, workDir := preparePubFixtures(t,
+		"basic", "deps/a", "deps/transitive", "deps/direct_a_first", "deps/direct_basic_first")
+	generatePubFixture(t, fixtureRoot, workDir, "basic")
+	generatePubFixture(t, fixtureRoot, workDir, "deps/a")
+	pkg := generatePubFixture(t, fixtureRoot, workDir, "deps/transitive")
+	// Direct and transitive fields must reference the dependency's actual
+	// Go types despite the consumer's different naming configuration.
+	holder := pkg.Scope().Lookup("Holder").Type().Underlying().(*types.Struct)
+	for i, want := range []string{
+		"*testpub/deps/a.View",
+		"*testpub/basic.Point",
+		"testpub/basic.Length",
+	} {
+		if got := types.TypeString(holder.Field(i).Type(), nil); got != want {
+			t.Errorf("consumer field %d = %s; want %s", i, got, want)
+		}
+	}
+	// Both include orders must emit the same direct dependency entries.
+	for _, dir := range []string{"deps/direct_a_first", "deps/direct_basic_first"} {
+		t.Run(filepath.Base(dir), func(t *testing.T) {
+			generatePubFixture(t, fixtureRoot, workDir, dir)
 		})
 	}
 }

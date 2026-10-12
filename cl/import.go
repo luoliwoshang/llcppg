@@ -22,7 +22,11 @@ import (
 	"iter"
 	"log"
 	"os"
+	"slices"
 	"strings"
+
+	"github.com/goplus/gogen"
+	"github.com/goplus/llcppg/clang"
 )
 
 // -----------------------------------------------------------------------------
@@ -119,29 +123,91 @@ func tooFewOrManyFields(i int, fewOrMany, line string) {
 }
 
 // -----------------------------------------------------------------------------
-/*
-func savePubFile(file string, it iter.Seq[Entry], n int) (err error) {
-	if n == 0 {
-		return
+
+// SavePubFile saves entries sorted by their serialized lines.
+// An empty list clears any previous contents.
+func SavePubFile(file string, entries []Entry, perm os.FileMode) (err error) {
+	lines := make([]string, len(entries))
+	for i, e := range entries {
+		lines[i] = e.pubLine()
 	}
-	f, err := os.Create(file)
-	if err != nil {
-		return
+	slices.Sort(lines)
+	text := strings.Join(lines, "\n")
+	if len(lines) != 0 {
+		text += "\n"
 	}
-	defer f.Close()
-	ret := make([]string, 0, n)
-	for e := range it {
-		line := string(rune(e.Kind)) + " " + e.Name
-		if e.GoName != "" {
-			line += " " + e.GoName
-		}
-		ret = append(ret, line)
-	}
-	sort.Strings(ret)
-	_, err = f.WriteString(strings.Join(ret, "\n"))
-	return
+
+	return os.WriteFile(file, []byte(text), perm)
 }
-*/
+
+func (e Entry) pubLine() string {
+	line := string(e.Kind) + " "
+	if e.Tag != 0 {
+		line += tagStrvals[e.Tag]
+	}
+	line += e.Name
+	if e.GoName != "" {
+		line += " " + e.GoName
+	}
+	return line
+}
+
+// -----------------------------------------------------------------------------
+
+func publicTypeTag(decl clang.Cursor) typeTag {
+	switch decl.Kind {
+	case tagStruct, tagClass, tagUnion, tagEnum:
+	default:
+		return 0 // templates have no distinct tag in the pub format
+	}
+	// Clang borrows the typedef name for an anonymous tag, e.g.
+	// typedef struct { int x; } Point. Its spelling range still points to
+	// the tag keyword; "struct Point" is not a declared C type name.
+	u := clang.TU(decl)
+	tokens, dispose := u.Tokenize(decl.SpellingNameRange(0, 0))
+	defer dispose()
+	if len(tokens) != 0 && getTypeTag(u.TokenSpelling(tokens[0])) != 0 {
+		return 0
+	}
+	return decl.Kind
+}
+
+func (p *pkgCtx) addPublicType(cName string, tag typeTag) {
+	p.pubs = append(p.pubs, Entry{Kind: entryType, Name: cName, Tag: tag})
+}
+
+// publicEntries resolves candidates against the final package. A type can be
+// registered before its definition fails, or be an internal type parameter
+// rather than a package-level declaration; neither should appear in the pub.
+func (p *pkgCtx) publicEntries() []Entry {
+	pkg := p.pkg.Types
+	scope := pkg.Scope()
+	entries := make(map[Entry]none)
+	for _, e := range p.pubs {
+		o := p.types[e.Name]
+		if o.TypeName == nil || o.feats&(featAllIgnore|featTyIgnore) != 0 ||
+			o.Pkg() != pkg || !o.Exported() || scope.Lookup(o.Name()) != o.TypeName {
+			continue
+		}
+		if decl, ok := p.typdecls[e.Name]; ok && decl.State() == gogen.TyStateDeleted {
+			continue
+		}
+		e.GoName = o.Name()
+		entries[e] = none{}
+	}
+	for dep := range p.pubDeps {
+		_, implicit := p.implicitPkgs[dep]
+		if dep != "" && dep != pkg.Path() && !implicit {
+			entries[Entry{Kind: entryDependency, Name: dep}] = none{}
+		}
+	}
+	ret := make([]Entry, 0, len(entries))
+	for e := range entries {
+		ret = append(ret, e)
+	}
+	return ret
+}
+
 // -----------------------------------------------------------------------------
 
 func (p *pkgCtx) forceImportUnsafe() {
@@ -149,6 +215,14 @@ func (p *pkgCtx) forceImportUnsafe() {
 }
 
 func (p *pkgCtx) importPkg(pkgPath string) *types.Package {
+	// Record the direct dependency even if it was already loaded through
+	// another package's pub. Dependency output must not depend on load order.
+	p.pubDeps[pkgPath] = none{}
+	return p.loadPkg(pkgPath)
+}
+
+// loadPkg loads pub mappings recursively without adding direct dependencies.
+func (p *pkgCtx) loadPkg(pkgPath string) *types.Package {
 	if _, ok := p.impPkgs[pkgPath]; ok {
 		return nil // imported already
 	}
@@ -176,7 +250,7 @@ func (p *pkgCtx) importPkg(pkgPath string) *types.Package {
 	for e := range entries {
 		switch e.Kind {
 		case entryDependency:
-			p.importPkg(e.Name)
+			p.loadPkg(e.Name)
 
 		case entryType:
 			if e.GoName == "" {

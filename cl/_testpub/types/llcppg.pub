@@ -1,0 +1,15 @@
+T b_alias_t Alias
+T b_anon_t Anon
+T b_callback_t Callback
+T b_configured_t Configured
+T b_count_t Count
+T b_handle_ptr_t HandlePtr
+T b_macro_anon_t MacroAnon
+T b_point_t Point
+T b_size_t Size
+T enum b_status_t Status
+T struct b_container_t Container
+T struct b_handle_t Handle
+T struct b_macro_t Macro
+T struct b_point_t Point
+T union b_value_t Value
