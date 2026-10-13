@@ -90,7 +90,7 @@ func newEnumType(ctx *pkgCtx, decl clang.Cursor, cName, goName string) typDecl {
 	if feats&featAllIgnore != 0 {
 		ctx.panicf(decl, "enum %s: unsupported underlying type %s (%d: %s)", cNameOf(decl), cTypeName(typ), typ.Kind, clang.String(typ))
 	}
-	typDecl.InitType(pkg, underType)
+	typDecl.initType(pkg, underType)
 	return typDecl
 }
 

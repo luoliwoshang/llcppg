@@ -101,6 +101,25 @@ type typeObj struct {
 type typDecl struct {
 	*gogen.TypeDecl
 	defs *gogen.TypeDefs
+	at   *gogen.File
+}
+
+// restoreFile makes type initialization build its AST in the file that owns
+// the declaration. A forward declaration can be seen in one header while its
+// definition is loaded from another header, and gogen binds imports to the
+// current file while converting a type to AST.
+func (t typDecl) restoreFile(pkg *gogen.Package) func() {
+	if t.at == nil || pkg.CurFile() == t.at {
+		return func() {}
+	}
+	old := pkg.RestoreCurFile(t.at)
+	return func() { pkg.RestoreCurFile(old) }
+}
+
+func (t typDecl) initType(pkg *gogen.Package, typ types.Type) *types.Named {
+	restore := t.restoreFile(pkg)
+	defer restore()
+	return t.TypeDecl.InitType(pkg, typ)
 }
 
 type pkgCtx struct {
@@ -247,7 +266,7 @@ func (p *pkgCtx) compile() {
 	pkg := p.pkg
 	for _, typDecl := range p.typdecls {
 		if typDecl.State() == gogen.TyStateUninited {
-			typDecl.InitType(pkg, types.NewStruct(nil, nil))
+			typDecl.initType(pkg, types.NewStruct(nil, nil))
 		}
 	}
 	doCompile(p, &p.compiles)

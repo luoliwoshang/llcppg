@@ -196,6 +196,7 @@ func loadClass(ctx *pkgCtx, cName string, this *classCtx, cls clang.Cursor) {
 
 func newType(ctx *pkgCtx, cls clang.Cursor, cName, goName string, tparams ...*types.TypeParam) (ret typDecl) {
 	ret.defs = ctx.pkg.NewTypeDefs()
+	ret.at = ctx.pkg.CurFile()
 	ret.TypeDecl = ret.defs.NewType(goName, tparams, goNode(ctx, cls))
 	if cName != "" {
 		ctx.addType(cName, cls, ret.Type())
@@ -279,7 +280,7 @@ func initClassTypeEx(ctx *pkgCtx, typDecl typDecl, this *classCtx, goName string
 		this.ownsVptr = true
 	}
 	typStruc := types.NewStruct(this.fields, nil)
-	typDecl.InitType(pkg, typStruc)
+	typDecl.initType(pkg, typStruc)
 	ctx.addCompileUnit(func(ctx *pkgCtx) {
 		compileClassImpl(ctx, this)
 	})

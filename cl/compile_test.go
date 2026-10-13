@@ -184,4 +184,75 @@ func TestPub(t *testing.T) {
 	testFromDir(t, "", "./_testpub", cl.LanguageC, true)
 }
 
+// A forward declaration may be assigned to one generated Go file while its
+// definition is loaded from another header/file. Imports used by the completed
+// type must stay with the file that owns the type declaration.
+func TestMultiFileTypeImports(t *testing.T) {
+	dir := t.TempDir()
+	for name, content := range map[string]string{
+		"a.h": "#pragma once\nstruct point;\n",
+		"b.h": "#pragma once\nstruct point { int x; void *data; };\n",
+	} {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	idx := clang.CreateIndex(1, 1)
+	defer idx.Dispose()
+	ua, err := idx.ParseTranslationUnit(
+		clang.DetailedPreprocessingRecord, filepath.Join(dir, "a.h"), "-I", dir, "-x", "c")
+	if err != nil {
+		t.Fatal("ParseTranslationUnit failed:", err)
+	}
+	defer ua.Dispose()
+	ub, err := idx.ParseTranslationUnit(
+		clang.DetailedPreprocessingRecord, filepath.Join(dir, "b.h"), "-I", dir, "-x", "c")
+	if err != nil {
+		t.Fatal("ParseTranslationUnit failed:", err)
+	}
+	defer ub.Dispose()
+
+	rootDir, err := filepath.Abs("..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	pkg, err := cl.NewPackage("test/multifile", "multifile", []cl.Source{ua, ub}, &cl.Config{
+		Importer: packages.NewImporter(nil, rootDir),
+		PackageOf: func(headerFile string) (string, bool) {
+			if filepath.Dir(headerFile) == dir {
+				return "test/multifile", true
+			}
+			return "", false
+		},
+		GoFileOf: func(headerFile string) (string, bool) {
+			switch filepath.Base(headerFile) {
+			case "a.h":
+				return "a.go", true
+			case "b.h":
+				return "b.go", true
+			}
+			return "", false
+		},
+	})
+	if err != nil {
+		t.Fatal("cl.NewPackage:", err)
+	}
+
+	var a, b bytes.Buffer
+	if err := pkg.Package.WriteTo(&a, "a.go"); err != nil {
+		t.Fatal("write a.go:", err)
+	}
+	if err := pkg.Package.WriteTo(&b, "b.go"); err != nil {
+		t.Fatal("write b.go:", err)
+	}
+	aout, bout := a.String(), b.String()
+	if !strings.Contains(aout, `"github.com/goplus/lib/c"`) || !strings.Contains(aout, `"unsafe"`) {
+		t.Fatalf("a.go is missing imports for the completed type:\n%s", aout)
+	}
+	if strings.Contains(bout, `github.com/goplus/lib/c`) || strings.Contains(bout, `"unsafe"`) {
+		t.Fatalf("b.go unexpectedly owns a.go's type imports:\n%s", bout)
+	}
+}
+
 // -----------------------------------------------------------------------------

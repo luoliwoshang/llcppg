@@ -470,11 +470,11 @@ func initBitFieldType(ctx *pkgCtx, typDecl typDecl, this *classCtx, cls clang.Cu
 
 	if layout.opaque {
 		ctx.logf(cls, "[WARN] bit-field record laid out as opaque storage: %s", layout.reason)
-		typDecl.InitType(pkg, opaqueBitStruct(ctx, pos, cls, layout))
+		typDecl.initType(pkg, opaqueBitStruct(ctx, pos, cls, layout))
 		return true
 	}
 
-	typDecl.InitType(pkg, types.NewStruct(layout.fields, nil))
+	typDecl.initType(pkg, types.NewStruct(layout.fields, nil))
 
 	// Load nested type/enum/method declarations (but not FieldDecls, already
 	// handled by the layout) so they are emitted like for an ordinary record.

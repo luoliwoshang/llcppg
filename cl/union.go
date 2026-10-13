@@ -86,10 +86,10 @@ func initUnionType(ctx *pkgCtx, decl clang.Cursor, typDecl typDecl) {
 	if !ok {
 		// A union with no body (GNU empty union) has no storage: emit an empty
 		// struct with no accessors.
-		typDecl.InitType(pkg, types.NewStruct(nil, nil))
+		typDecl.initType(pkg, types.NewStruct(nil, nil))
 		return
 	}
-	typDecl.InitType(pkg, unionStruct(ctx, decl, storage))
+	typDecl.initType(pkg, unionStruct(ctx, decl, storage))
 
 	// Collect the members that get an accessor, then generate the accessors in
 	// the compile phase (after every type is registered) so member types
