@@ -1,6 +1,6 @@
 T api::b_box_t Box
+T api::b_color_t Color
 T api::b_index_t Index
-T class api::b_widget_t Widget
-T enum api::b_color_t Color
-T struct api::b_record_t Record
-T union api::b_value_t Value
+T api::b_record_t Record
+T api::b_value_t Value
+T api::b_widget_t Widget

@@ -142,6 +142,10 @@ type Config struct {
 	// criterion to group sub-directory files by, e.g., "dir" or "fname". `GroupSubdir = true`
 	// is equivalent to `GroupSubdirBy = "dir"`.
 	GroupSubdirBy string `json:"GroupSubdirBy"`
+
+	// IncludeDir specifies a function to determine the include directory for a given
+	// package path (optional).
+	IncludeDir func(pkgPath string) (includeDir string, err error) `json:"-"`
 }
 
 // -----------------------------------------------------------------------------

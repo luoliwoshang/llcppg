@@ -1,4 +1,4 @@
 T foo Foo
 T foo_t Foo
+T point Point
 T point_t Point
-T struct point Point

@@ -1,0 +1,3 @@
+D testcl/basic
+T a_size_t Size
+T a_view_t View

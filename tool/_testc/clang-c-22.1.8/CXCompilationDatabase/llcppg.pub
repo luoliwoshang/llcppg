@@ -1,5 +1,7 @@
 D clang/CXString
+D clang/ExternC
+D clang/Platform
 T CXCompilationDatabase CompilationDatabase
-T CXCompileCommands CompileCommands
+T CXCompilationDatabase_Error CompilationDatabase_Error
 T CXCompileCommand CompileCommand
-T enum CXCompilationDatabase_Error CompilationDatabase_Error
+T CXCompileCommands CompileCommands

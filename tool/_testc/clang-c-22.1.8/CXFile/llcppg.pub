@@ -1,4 +1,6 @@
-D clang/cstdlib
 D clang/CXString
+D clang/ExternC
+D clang/Platform
+D clang/cstdlib
 T CXFile File
-T struct CXFileUniqueID FileUniqueID
+T CXFileUniqueID FileUniqueID

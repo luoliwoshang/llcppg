@@ -1,4 +1,4 @@
-#include "../../basic/test.h"
+#include <basic/test.h>
 
 struct a_view_t {
     api_record_t *record;

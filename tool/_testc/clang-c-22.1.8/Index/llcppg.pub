@@ -1,99 +1,105 @@
+D clang/BuildSystem
 D clang/CXDiagnostic
 D clang/CXErrorCode
 D clang/CXFile
 D clang/CXSourceLocation
 D clang/CXString
-T CXIndex Index
-T CXTargetInfo TargetInfo
-T CXTranslationUnit TranslationUnit
+D clang/ExternC
+D clang/Platform
+T CXAvailabilityKind AvailabilityKind
+T CXBinaryOperatorKind BinaryOperatorKind
+T CXCallingConv CallingConv
+T CXChildVisitResult ChildVisitResult
+T CXChoice Choice
 T CXClientData ClientData
-T struct CXUnsavedFile UnsavedFile
-T enum CXAvailabilityKind AvailabilityKind
-T struct CXVersion Version
-T enum CXCursor_ExceptionSpecificationKind Cursor_ExceptionSpecificationKind
-T enum CXChoice Choice
-T enum CXGlobalOptFlags GlobalOptFlags
-T struct CXIndexOptions IndexOptions
-T enum CXTranslationUnit_Flags TranslationUnit_Flags
-T enum CXSaveTranslationUnit_Flags SaveTranslationUnit_Flags
-T enum CXSaveError SaveError
-T enum CXReparse_Flags Reparse_Flags
-T enum CXTUResourceUsageKind TUResourceUsageKind
-T struct CXTUResourceUsageEntry TUResourceUsageEntry
-T struct CXTUResourceUsage TUResourceUsage
-T enum CXCursorKind CursorKind
-T struct CXCursor Cursor
-T enum CXLinkageKind LinkageKind
-T enum CXVisibilityKind VisibilityKind
-T struct CXPlatformAvailability PlatformAvailability
-T enum CXLanguageKind LanguageKind
-T enum CXTLSKind TLSKind
-T CXCursorSet CursorSet
-T enum CXTypeKind TypeKind
-T enum CXCallingConv CallingConv
-T struct CXType Type
-T enum CXTemplateArgumentKind TemplateArgumentKind
-T enum CXTypeNullabilityKind TypeNullabilityKind
-T enum CXTypeLayoutError TypeLayoutError
-T enum CXRefQualifierKind RefQualifierKind
-T enum CX_CXXAccessSpecifier CXXAccessSpecifier
-T enum CX_StorageClass StorageClass
-T enum CX_BinaryOperatorKind X_BinaryOperatorKind
-T enum CXChildVisitResult ChildVisitResult
-T CXCursorVisitor CursorVisitor
-T CXPrintingPolicy PrintingPolicy
-T enum CXPrintingPolicyProperty PrintingPolicyProperty
-T enum CXObjCPropertyAttrKind ObjCPropertyAttrKind
-T enum CXObjCDeclQualifierKind ObjCDeclQualifierKind
-T CXModule Module
-T enum CXNameRefFlags NameRefFlags
-T enum CXTokenKind TokenKind
-T struct CXToken Token
+T CXCodeCompleteResults CodeCompleteResults
+T CXCodeComplete_Flags CodeComplete_Flags
+T CXCompletionChunkKind CompletionChunkKind
+T CXCompletionContext CompletionContext
+T CXCompletionResult CompletionResult
 T CXCompletionString CompletionString
-T struct CXCompletionResult CompletionResult
-T enum CXCompletionChunkKind CompletionChunkKind
-T struct CXCodeCompleteResults CodeCompleteResults
-T enum CXCodeComplete_Flags CodeComplete_Flags
-T enum CXCompletionContext CompletionContext
-T CXInclusionVisitor InclusionVisitor
-T enum CXEvalResultKind EvalResultKind
+T CXCursor Cursor
+T CXCursorAndRangeVisitor CursorAndRangeVisitor
+T CXCursorKind CursorKind
+T CXCursorSet CursorSet
+T CXCursorSetImpl CursorSetImpl
+T CXCursorVisitor CursorVisitor
+T CXCursor_ExceptionSpecificationKind Cursor_ExceptionSpecificationKind
 T CXEvalResult EvalResult
-T enum CXVisitorResult VisitorResult
-T struct CXCursorAndRangeVisitor CursorAndRangeVisitor
-T enum CXResult Result
-T CXIdxClientFile IdxClientFile
-T CXIdxClientEntity IdxClientEntity
-T CXIdxClientContainer IdxClientContainer
-T CXIdxClientASTFile IdxClientASTFile
-T struct CXIdxLoc IdxLoc
-T struct CXIdxIncludedFileInfo IdxIncludedFileInfo
-T struct CXIdxImportedASTFileInfo IdxImportedASTFileInfo
-T enum CXIdxEntityKind IdxEntityKind
-T enum CXIdxEntityLanguage IdxEntityLanguage
-T enum CXIdxEntityCXXTemplateKind IdxEntityCXXTemplateKind
-T enum CXIdxAttrKind IdxAttrKind
-T struct CXIdxAttrInfo IdxAttrInfo
-T struct CXIdxEntityInfo IdxEntityInfo
-T struct CXIdxContainerInfo IdxContainerInfo
-T struct CXIdxIBOutletCollectionAttrInfo IdxIBOutletCollectionAttrInfo
-T enum CXIdxDeclInfoFlags IdxDeclInfoFlags
-T struct CXIdxDeclInfo IdxDeclInfo
-T enum CXIdxObjCContainerKind IdxObjCContainerKind
-T struct CXIdxObjCContainerDeclInfo IdxObjCContainerDeclInfo
-T struct CXIdxBaseClassInfo IdxBaseClassInfo
-T struct CXIdxObjCProtocolRefInfo IdxObjCProtocolRefInfo
-T struct CXIdxObjCProtocolRefListInfo IdxObjCProtocolRefListInfo
-T struct CXIdxObjCInterfaceDeclInfo IdxObjCInterfaceDeclInfo
-T struct CXIdxObjCCategoryDeclInfo IdxObjCCategoryDeclInfo
-T struct CXIdxObjCPropertyDeclInfo IdxObjCPropertyDeclInfo
-T struct CXIdxCXXClassDeclInfo IdxCXXClassDeclInfo
-T enum CXIdxEntityRefKind IdxEntityRefKind
-T enum CXSymbolRole SymbolRole
-T struct CXIdxEntityRefInfo IdxEntityRefInfo
-T struct IndexerCallbacks
-T CXIndexAction IndexAction
-T enum CXIndexOptFlags IndexOptFlags
+T CXEvalResultKind EvalResultKind
 T CXFieldVisitor FieldVisitor
-T enum CXBinaryOperatorKind BinaryOperatorKind
-T enum CXUnaryOperatorKind UnaryOperatorKind
+T CXGlobalOptFlags GlobalOptFlags
+T CXIdxAttrInfo IdxAttrInfo
+T CXIdxAttrKind IdxAttrKind
+T CXIdxBaseClassInfo IdxBaseClassInfo
+T CXIdxCXXClassDeclInfo IdxCXXClassDeclInfo
+T CXIdxClientASTFile IdxClientASTFile
+T CXIdxClientContainer IdxClientContainer
+T CXIdxClientEntity IdxClientEntity
+T CXIdxClientFile IdxClientFile
+T CXIdxContainerInfo IdxContainerInfo
+T CXIdxDeclInfo IdxDeclInfo
+T CXIdxDeclInfoFlags IdxDeclInfoFlags
+T CXIdxEntityCXXTemplateKind IdxEntityCXXTemplateKind
+T CXIdxEntityInfo IdxEntityInfo
+T CXIdxEntityKind IdxEntityKind
+T CXIdxEntityLanguage IdxEntityLanguage
+T CXIdxEntityRefInfo IdxEntityRefInfo
+T CXIdxEntityRefKind IdxEntityRefKind
+T CXIdxIBOutletCollectionAttrInfo IdxIBOutletCollectionAttrInfo
+T CXIdxImportedASTFileInfo IdxImportedASTFileInfo
+T CXIdxIncludedFileInfo IdxIncludedFileInfo
+T CXIdxLoc IdxLoc
+T CXIdxObjCCategoryDeclInfo IdxObjCCategoryDeclInfo
+T CXIdxObjCContainerDeclInfo IdxObjCContainerDeclInfo
+T CXIdxObjCContainerKind IdxObjCContainerKind
+T CXIdxObjCInterfaceDeclInfo IdxObjCInterfaceDeclInfo
+T CXIdxObjCPropertyDeclInfo IdxObjCPropertyDeclInfo
+T CXIdxObjCProtocolRefInfo IdxObjCProtocolRefInfo
+T CXIdxObjCProtocolRefListInfo IdxObjCProtocolRefListInfo
+T CXInclusionVisitor InclusionVisitor
+T CXIndex Index
+T CXIndexAction IndexAction
+T CXIndexOptFlags IndexOptFlags
+T CXIndexOptions IndexOptions
+T CXLanguageKind LanguageKind
+T CXLinkageKind LinkageKind
+T CXModule Module
+T CXNameRefFlags NameRefFlags
+T CXObjCDeclQualifierKind ObjCDeclQualifierKind
+T CXObjCPropertyAttrKind ObjCPropertyAttrKind
+T CXPlatformAvailability PlatformAvailability
+T CXPrintingPolicy PrintingPolicy
+T CXPrintingPolicyProperty PrintingPolicyProperty
+T CXRefQualifierKind RefQualifierKind
 T CXRemapping Remapping
+T CXReparse_Flags Reparse_Flags
+T CXResult Result
+T CXSaveError SaveError
+T CXSaveTranslationUnit_Flags SaveTranslationUnit_Flags
+T CXSymbolRole SymbolRole
+T CXTLSKind TLSKind
+T CXTUResourceUsage TUResourceUsage
+T CXTUResourceUsageEntry TUResourceUsageEntry
+T CXTUResourceUsageKind TUResourceUsageKind
+T CXTargetInfo TargetInfo
+T CXTargetInfoImpl TargetInfoImpl
+T CXTemplateArgumentKind TemplateArgumentKind
+T CXToken Token
+T CXTokenKind TokenKind
+T CXTranslationUnit TranslationUnit
+T CXTranslationUnitImpl TranslationUnitImpl
+T CXTranslationUnit_Flags TranslationUnit_Flags
+T CXType Type
+T CXTypeKind TypeKind
+T CXTypeLayoutError TypeLayoutError
+T CXTypeNullabilityKind TypeNullabilityKind
+T CXUnaryOperatorKind UnaryOperatorKind
+T CXUnsavedFile UnsavedFile
+T CXVersion Version
+T CXVisibilityKind VisibilityKind
+T CXVisitorResult VisitorResult
+T CX_BinaryOperatorKind X_BinaryOperatorKind
+T CX_CXXAccessSpecifier CXXAccessSpecifier
+T CX_StorageClass StorageClass
+T IndexerCallbacks IndexerCallbacks

@@ -1,0 +1,8 @@
+T api_callback_t Callback
+T api_handle_ptr_t HandlePtr
+T api_handle_t Handle
+T api_point_t Point
+T api_record_t Record
+T api_size_t Length
+T api_status_t Status
+T api_value_t Value

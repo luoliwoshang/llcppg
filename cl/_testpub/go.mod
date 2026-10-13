@@ -1,4 +1,4 @@
-module testpub
+module testcl
 
 go 1.27.0
 

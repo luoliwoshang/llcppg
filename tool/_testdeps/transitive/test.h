@@ -1,4 +1,4 @@
-#include "../a/test.h"
+#include "a/test.h"
 
 struct holder {
     struct a_view_t *view;
