@@ -10,7 +10,7 @@ require (
 	github.com/goplus/mod v0.22.1
 	github.com/llarhub/clang-c v0.9.1
 	github.com/qiniu/x v1.19.2
-	golang.org/x/mod v0.41.0
+	golang.org/x/mod v0.42.0
 	golang.org/x/text v0.42.0
 )
 
