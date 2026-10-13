@@ -1,2 +1,4 @@
-T struct CXString String
-T struct CXStringSet StringSet
+D clang/ExternC
+D clang/Platform
+T CXString String
+T CXStringSet StringSet

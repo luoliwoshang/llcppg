@@ -183,6 +183,11 @@ func testSingleFile(t *testing.T, idx clang.Index, pkgDir, headerDir, headerFile
 	os.Mkdir(pkgDir, 0755)
 	exp, _ := os.ReadFile(pkgDir + "/out.go")
 	testGenGo(t, pkg.Package, pkgDir, "", exp)
+	pubExp, err := os.ReadFile(pkgDir + "/llcppg.pub")
+	if err == nil {
+		pub := cl.PubFile(pkg.Public)
+		testDiff(t, pkgDir, "/llcppg.pub.txt", bytes.NewBuffer(pub), pubExp)
+	}
 }
 
 func testFromDir(t *testing.T, sel, relDir string, single bool, subPkg ...string) {
@@ -262,6 +267,19 @@ func testFromDir(t *testing.T, sel, relDir string, single bool, subPkg ...string
 			pkgName = pkgName[pos+1:]
 			os.MkdirAll(destDir, 0755)
 		}
+
+		pubExp, errPubExp := os.ReadFile(destDir + "/llcppg.pub")
+		if errPubExp == nil {
+			const localPrefix = "testcl/"
+			conf.IncludeDir = func(pkgPath string) (includeDir string, err error) {
+				if strings.HasPrefix(pkgPath, localPrefix) {
+					includeDir = filepath.Join(pkgDir, "..", pkgPath[len(localPrefix):], "include")
+					return includeDir, nil
+				}
+				return "", os.ErrNotExist
+			}
+		}
+
 		pkg, lang, err := conf.NewPackage("", pkgName, pkgDir, idx)
 		if err != nil {
 			t.Error("conf.NewPackage:", err)
@@ -278,6 +296,10 @@ func testFromDir(t *testing.T, sel, relDir string, single bool, subPkg ...string
 		wrap, _ := os.ReadFile(destDir + wrapFile)
 		if pkg.Wrap != nil {
 			testDiff(t, destDir, wrapFile+".txt", &pkg.Wrap.Content, wrap)
+		}
+		if errPubExp == nil {
+			pub := cl.PubFile(pkg.Public)
+			testDiff(t, destDir, "/llcppg.pub.txt", bytes.NewBuffer(pub), pubExp)
 		}
 	})
 }
@@ -302,6 +324,10 @@ func TestSingleC(t *testing.T) {
 
 func TestPython(t *testing.T) {
 	testFromDir(t, "", "./_testc/python-3.14.8", false)
+}
+
+func TestDeps(t *testing.T) {
+	testFromDir(t, "", "./_testdeps", false)
 }
 
 func TestCpp_LLVMSystem(t *testing.T) {

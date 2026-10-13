@@ -1,7 +1,9 @@
 D clang/CXSourceLocation
 D clang/CXString
+D clang/ExternC
+D clang/Platform
 T CXDiagnostic Diagnostic
+T CXDiagnosticDisplayOptions DiagnosticDisplayOptions
 T CXDiagnosticSet DiagnosticSet
-T enum CXDiagnosticSeverity DiagnosticSeverity
-T enum CXLoadDiag_Error LoadDiag_Error
-T enum CXDiagnosticDisplayOptions DiagnosticDisplayOptions
+T CXDiagnosticSeverity DiagnosticSeverity
+T CXLoadDiag_Error LoadDiag_Error

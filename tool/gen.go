@@ -108,17 +108,23 @@ func (cfg *Config) NewPackage(pkgPath, pkgName, workDir string, index clang.Inde
 	nTotal := 1 + len(cfg.Deps) + len(stdlibDirs)
 	pkgPaths := make([]string, 1, nTotal)
 	incDirs := make([]string, 1, nTotal)
-	for _, dep := range cfg.Deps {
-		if !strings.Contains(dep, "/") {
-			dep = llarhubPrefix + dep
+	if len(cfg.Deps) != 0 {
+		includeDir := cfg.IncludeDir
+		if includeDir == nil {
+			includeDir = mod.IncludeDir
 		}
-		incDir, err := mod.IncludeDir(dep)
-		if err != nil {
-			log.Println("[WARN]", err)
-			continue
+		for _, dep := range cfg.Deps {
+			if !strings.Contains(dep, "/") {
+				dep = llarhubPrefix + dep
+			}
+			incDir, err := includeDir(dep)
+			if err != nil {
+				log.Println("[WARN]", err)
+				continue
+			}
+			pkgPaths = append(pkgPaths, dep)
+			incDirs = append(incDirs, incDir)
 		}
-		pkgPaths = append(pkgPaths, dep)
-		incDirs = append(incDirs, incDir)
 	}
 	nDeps := len(pkgPaths)
 	for _, stdlibDir := range stdlibDirs {
