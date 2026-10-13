@@ -116,25 +116,8 @@ var (
 )
 
 func toType(ctx *pkgCtx, pkg *types.Package, typ lc.Type, flags int, scope *scopeCtx) types.Type {
-	underlying := typ
-	if underlying.Kind == lc.Type_Elaborated {
-		underlying = underlying.Named()
-	}
-	decl := underlying.Declaration()
 	var feats int
-	var ret types.Type
-	switch {
-	case decl.Kind == lc.Cursor_UnionDecl && decl.IsAnonymous() != 0:
-		return emitUnion(ctx, decl, ctx.nextAnonName())
-	case decl.Kind == lc.Cursor_StructDecl && decl.IsAnonymous() != 0:
-		var ok bool
-		ret, ok = emitClass(ctx, decl, ctx.nextAnonName(), scope)
-		if !ok {
-			feats |= featExplicitIgnore
-		}
-	default:
-		ret = toTypeEx(ctx, pkg, typ, flags, &feats, scope)
-	}
+	ret := toTypeEx(ctx, pkg, typ, flags, &feats, scope)
 	if feats&featAllIgnore != 0 {
 		panic("unsupported type - " + clang.String(typ))
 	}
@@ -194,10 +177,20 @@ func toTypeEx(ctx *pkgCtx, pkg *types.Package, typ lc.Type, flags int, feats *in
 		if t, ok := namedType(ctx, typ, feats); ok {
 			return t
 		}
-	case lc.Type_Elaborated:
-		if t, ok := namedType(ctx, typ.Named(), feats); ok {
-			return t
+		// struct { int x; } items[64] needs an element type. A registered
+		// typedef such as Alias keeps its existing type through namedType.
+		if decl := typ.Declaration(); decl.IsAnonymous() != 0 && *feats&featAllIgnore == 0 {
+			switch decl.Kind {
+			case lc.Cursor_UnionDecl:
+				return emitUnion(ctx, decl, ctx.nextAnonName())
+			case lc.Cursor_StructDecl:
+				if t, ok := emitClass(ctx, decl, ctx.nextAnonName(), scope); ok {
+					return t
+				}
+			}
 		}
+	case lc.Type_Elaborated:
+		return toTypeEx(ctx, pkg, typ.Named(), flags, feats, scope)
 	case lc.Type_IncompleteArray, lc.Type_VariableArray:
 		// T[] (and VLAs) have no known extent, so they behave like T*. Clear
 		// flagIsParam before recursing since decay applies only to this level.
