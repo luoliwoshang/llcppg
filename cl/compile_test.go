@@ -188,14 +188,9 @@ func TestPub(t *testing.T) {
 // definition is loaded from another header/file. Imports used by the completed
 // type must stay with the file that owns the type declaration.
 func TestMultiFileTypeImports(t *testing.T) {
-	dir := t.TempDir()
-	for name, content := range map[string]string{
-		"a.h": "#pragma once\nstruct point;\n",
-		"b.h": "#pragma once\nstruct point { int x; void *data; };\n",
-	} {
-		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0644); err != nil {
-			t.Fatal(err)
-		}
+	dir, err := filepath.Abs("./_testc/_multi_file_imports")
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	idx := clang.CreateIndex(1, 1)
@@ -239,19 +234,18 @@ func TestMultiFileTypeImports(t *testing.T) {
 		t.Fatal("cl.NewPackage:", err)
 	}
 
-	var a, b bytes.Buffer
-	if err := pkg.Package.WriteTo(&a, "a.go"); err != nil {
-		t.Fatal("write a.go:", err)
-	}
-	if err := pkg.Package.WriteTo(&b, "b.go"); err != nil {
-		t.Fatal("write b.go:", err)
-	}
-	aout, bout := a.String(), b.String()
-	if !strings.Contains(aout, `"github.com/goplus/lib/c"`) || !strings.Contains(aout, `"unsafe"`) {
-		t.Fatalf("a.go is missing imports for the completed type:\n%s", aout)
-	}
-	if strings.Contains(bout, `github.com/goplus/lib/c`) || strings.Contains(bout, `"unsafe"`) {
-		t.Fatalf("b.go unexpectedly owns a.go's type imports:\n%s", bout)
+	for _, fname := range []string{"a.go", "b.go"} {
+		var got bytes.Buffer
+		if err := pkg.Package.WriteTo(&got, fname); err != nil {
+			t.Fatal("write "+fname+":", err)
+		}
+		expected, err := os.ReadFile(filepath.Join(dir, fname))
+		if err != nil {
+			t.Fatal("read "+fname+":", err)
+		}
+		if test.Diff(t, filepath.Join(dir, fname+".txt"), got.Bytes(), expected) {
+			t.Error(fname, ": unexpected result")
+		}
 	}
 }
 
