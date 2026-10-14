@@ -195,6 +195,7 @@ func loadClass(ctx *pkgCtx, cName string, this *classCtx, cls clang.Cursor) {
 // -----------------------------------------------------------------------------
 
 func newType(ctx *pkgCtx, cls clang.Cursor, cName, goName string, tparams ...*types.TypeParam) (ret typDecl) {
+	ret.file = ctx.pkg.CurFile()
 	ret.defs = ctx.pkg.NewTypeDefs()
 	ret.TypeDecl = ret.defs.NewType(goName, tparams, goNode(ctx, cls))
 	if cName != "" {

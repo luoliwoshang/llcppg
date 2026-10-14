@@ -32,10 +32,12 @@ import (
 
 // Config represents the lltest configuration.
 type Config struct {
-	LLGoPackage    string   `json:"LLGoPackage"`
-	WrapFileHeader string   `json:"WrapFileHeader"`
-	CFlags         string   `json:"CFlags"`
-	Files          []string `json:"Files"`
+	LLGoPackage    string            `json:"LLGoPackage"`
+	WrapFileHeader string            `json:"WrapFileHeader"`
+	CFlags         string            `json:"CFlags"`
+	Files          []string          `json:"Files"`
+	GoFiles        map[string]string `json:"GoFiles"`
+	GoldenFiles    map[string]string `json:"GoldenFiles"`
 
 	// NSPrefix specifies the prefix to remove from C/C++ namespace names when generating
 	// Go package names (optional).

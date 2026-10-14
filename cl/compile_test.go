@@ -59,6 +59,20 @@ func testGenGo(t *testing.T, pkg *gogen.Package, dir string, exp any) {
 	testDiff(t, dir, "/out.go.txt", &b, exp)
 }
 
+func testGenGoFiles(t *testing.T, pkg *gogen.Package, dir string, golden map[string]string) {
+	for fname, outname := range golden {
+		var b bytes.Buffer
+		if err := pkg.WriteTo(&b, fname); err != nil {
+			t.Fatal("gogen.WriteTo failed:", err)
+		}
+		exp, err := os.ReadFile(filepath.Join(dir, outname))
+		if err != nil {
+			t.Fatal("read golden file:", err)
+		}
+		testDiff(t, dir, "/"+outname, &b, exp)
+	}
+}
+
 func testFromDir(t *testing.T, sel, relDir string, lang cl.Language, genPubFile ...bool) {
 	idx := clang.CreateIndex(1, 1)
 	defer idx.Dispose()
@@ -140,13 +154,28 @@ func testFromDir(t *testing.T, sel, relDir string, lang cl.Language, genPubFile 
 				}
 				return
 			},
+			GoFileOf: func(headerFile string) (fname string, ok bool) {
+				if len(conf.GoFiles) == 0 {
+					return "", true
+				}
+				rel, err := filepath.Rel(pkgDir, headerFile)
+				if err != nil {
+					return
+				}
+				fname, ok = conf.GoFiles[filepath.ToSlash(rel)]
+				return
+			},
 		})
 		if err != nil {
 			t.Error("cl.NewPackage:", err)
 			return
 		}
-		exp, _ := os.ReadFile(pkgDir + "/out.go")
-		testGenGo(t, pkg.Package, pkgDir, exp)
+		if len(conf.GoldenFiles) != 0 {
+			testGenGoFiles(t, pkg.Package, pkgDir, conf.GoldenFiles)
+		} else {
+			exp, _ := os.ReadFile(pkgDir + "/out.go")
+			testGenGo(t, pkg.Package, pkgDir, exp)
+		}
 		wrapFile := "/wrap" + langExts[lang]
 		wrap, _ := os.ReadFile(pkgDir + wrapFile)
 		if pkg.Wrap != nil {

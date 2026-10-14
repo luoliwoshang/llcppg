@@ -101,6 +101,16 @@ type typeObj struct {
 type typDecl struct {
 	*gogen.TypeDecl
 	defs *gogen.TypeDefs
+	file *gogen.File
+}
+
+// InitType initializes the type while keeping the imports associated with the
+// file that owns its declaration. A declaration can be created from a forward
+// declaration and initialized later from a definition in another source file.
+func (p typDecl) InitType(pkg *gogen.Package, typ types.Type) *types.Named {
+	old := pkg.RestoreCurFile(p.file)
+	defer pkg.RestoreCurFile(old)
+	return p.TypeDecl.InitType(pkg, typ)
 }
 
 type pkgCtx struct {
