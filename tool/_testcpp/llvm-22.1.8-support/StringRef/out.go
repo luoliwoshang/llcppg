@@ -8,11 +8,6 @@ import (
 const XGoPackage = true
 const LLGoPackage = "link: -L$(llvm-config --libdir) -lLLVM; -lLLVM"
 
-type APInt struct {
-}
-type HashCode struct {
-}
-
 // StringRef - Represent a constant reference to a string, i.e. a character
 // array and a length, which need not be null terminated.
 //
@@ -24,10 +19,6 @@ type StringRef struct {
 	Data   *c.Char
 	Length c.SizeT
 }
-type StringRefIterator = *c.Char
-type StringRefConstIterator = *c.Char
-type StringRefSizeType = c.SizeT
-type StringRefValueType = c.Char
 
 // A wrapper around a string literal that serves as a proxy for constructing
 // global tables of StringRefs with the length computed at compile time.
@@ -38,6 +29,14 @@ type StringRefValueType = c.Char
 type StringLiteral struct {
 	StringRef
 }
+type APInt struct {
+}
+type HashCode struct {
+}
+type StringRefIterator = *c.Char
+type StringRefConstIterator = *c.Char
+type StringRefSizeType = c.SizeT
+type StringRefValueType = c.Char
 
 // Helper functions for StringRef::getAsInteger.
 //

@@ -328,12 +328,19 @@ func TestPython(t *testing.T) {
 	testFromDir(t, "", "./_testc/python-3.14.8", false)
 }
 
+func TestDeclare(t *testing.T) {
+	testFromDir(t, "", "./_testc/declare", false)
+}
+
 func TestDeps(t *testing.T) {
 	testFromDir(t, "", "./_testdeps", false)
 }
 
 func TestCpp_LLVMSystem(t *testing.T) {
+	old := cl.InlineFuncIgnore
+	cl.InlineFuncIgnore = cl.QuietIgnore
 	testFromDir(t, "", "./_testcpp", false, "system")
+	cl.InlineFuncIgnore = old
 }
 
 func TestLLVM_AMDGPUAddrSpace(t *testing.T) {

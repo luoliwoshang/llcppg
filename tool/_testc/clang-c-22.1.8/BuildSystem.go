@@ -7,14 +7,14 @@ import (
 	"unsafe"
 )
 
+type ModuleMapDescriptorImpl struct {
+}
 type VirtualFileOverlayImpl struct {
 }
 
 // Object encapsulating information about overlaying virtual
 // file/directories over the real file system.
 type VirtualFileOverlay = *VirtualFileOverlayImpl
-type ModuleMapDescriptorImpl struct {
-}
 
 // Object encapsulating information about a module.modulemap file.
 type ModuleMapDescriptor = *ModuleMapDescriptorImpl

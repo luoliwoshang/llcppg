@@ -11,9 +11,6 @@ type Packet struct {
 	Kind c.Int
 	Data _llcppg_anon_0
 }
-type _llcppg_anon_0 struct {
-	_xgo_union [1]uint32
-}
 type Anonymous struct {
 	_xgo_union [1]uint32
 }
@@ -27,19 +24,22 @@ type Envelope struct {
 	Kind c.Int
 	_llcppg_anon_1
 }
-type _llcppg_anon_1 struct {
-	_xgo_union [1]uint32
-}
 type Tagged struct {
 	_xgo_union [1]uint32
 }
-type Alias = Tagged
 type References struct {
 	_xgo_union [1]uint32
 }
 type Holder struct {
 	Value Alias
 }
+type _llcppg_anon_0 struct {
+	_xgo_union [1]uint32
+}
+type _llcppg_anon_1 struct {
+	_xgo_union [1]uint32
+}
+type Alias = Tagged
 
 func (p *_llcppg_anon_0) XGof_ref_i() *c.Int {
 	return (*c.Int)(unsafe.Pointer(p))

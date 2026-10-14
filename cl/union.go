@@ -53,8 +53,7 @@ const unionRefPrefix = "XGof_ref_"
 // Whether the union is global, in a namespace, or nested inside a class only
 // affects naming: ns carries the enclosing prefix, so the union type name goes
 // through getPubName like a struct's.
-func loadUnion(ctx *pkgCtx, decl clang.Cursor) {
-	cName := cNameOf(decl)
+func loadUnion(ctx *pkgCtx, cName string, decl clang.Cursor) {
 	if debugCompileDecl {
 		ctx.logf(decl, "union %s", cName)
 	}

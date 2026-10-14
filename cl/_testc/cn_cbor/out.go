@@ -37,7 +37,6 @@ const (
 	CN_CBOR_FL_OWNER CnCborFlags = 128
 )
 
-type Uint8T = uint8
 type CnCbor struct {
 	Type       CnCborType
 	Flags      CnCborFlags
@@ -48,6 +47,7 @@ type CnCbor struct {
 	Next       *CnCbor
 	Parent     *CnCbor
 }
+type Uint8T = uint8
 type _llcppg_anon_0 struct {
 	_xgo_union [1]uint64
 }

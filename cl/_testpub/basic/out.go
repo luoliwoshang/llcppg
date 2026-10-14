@@ -7,14 +7,6 @@ import (
 
 const XGoPackage = true
 
-type Status c.Uint
-
-const (
-	OK    Status = 0
-	ERROR Status = 1
-)
-
-type Length = c.Ulong
 type Point struct {
 	X c.Int
 	Y c.Int
@@ -23,11 +15,19 @@ type Record struct {
 	Origin Point
 	Count  Length
 }
+type Status c.Uint
+
+const (
+	OK    Status = 0
+	ERROR Status = 1
+)
+
 type Value struct {
 	_xgo_union [1]uint32
 }
 type Handle struct {
 }
+type Length = c.Ulong
 type HandlePtr = *Handle
 
 // llgo:type C

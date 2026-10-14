@@ -26,6 +26,12 @@ const (
 	FlagC = 4
 )
 
+type PyStatus struct {
+	X_type   _llcppg_anon_0
+	Func     *c.Char
+	ErrMsg   *c.Char
+	Exitcode c.Int
+}
 type CXCompilationDatabase_Error c.Uint
 
 const (
@@ -33,12 +39,6 @@ const (
 	CXCompilationDatabase_CanNotLoadDatabase CXCompilationDatabase_Error = 1
 )
 
-type PyStatus struct {
-	X_type   _llcppg_anon_0
-	Func     *c.Char
-	ErrMsg   *c.Char
-	Exitcode c.Int
-}
 type _llcppg_anon_0 c.Uint
 
 const (

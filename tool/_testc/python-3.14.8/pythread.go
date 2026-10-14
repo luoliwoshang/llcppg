@@ -18,31 +18,9 @@ const (
 	LOCK_INTR     LockStatus = 2
 )
 
-type MemAllocatorDomain c.Uint
-
-const (
-	// PyMem_RawMalloc(), PyMem_RawRealloc() and PyMem_RawFree()
-	PYMEM_DOMAIN_RAW MemAllocatorDomain = 0
-	// PyMem_Malloc(), PyMem_Realloc() and PyMem_Free()
-	PYMEM_DOMAIN_MEM MemAllocatorDomain = 1
-	// PyObject_Malloc(), PyObject_Realloc() and PyObject_Free()
-	PYMEM_DOMAIN_OBJ MemAllocatorDomain = 2
-)
-
-type ThreadTypeLock uintptr
-
-// When Py_LIMITED_API is not defined, the type layout of Py_tss_t is
-// exposed to allow static allocation in the API clients.  Even in this case,
-// you must handle TSS keys through API functions due to compatibility.
-type X_tssT struct {
-	X_isInitialized c.Int
-	X_key           pthread.Key
-}
-type TssT = X_tssT
 type X_object struct {
 	ObRefcnt SsizeT
 }
-type Object = X_object
 type ByteArrayObject struct {
 	ObBase X_object
 	ObSize SsizeT
@@ -55,6 +33,16 @@ type DictObject struct {
 	ObBase X_object
 	MaUsed SsizeT
 }
+type MemAllocatorDomain c.Uint
+
+const (
+	// PyMem_RawMalloc(), PyMem_RawRealloc() and PyMem_RawFree()
+	PYMEM_DOMAIN_RAW MemAllocatorDomain = 0
+	// PyMem_Malloc(), PyMem_Realloc() and PyMem_Free()
+	PYMEM_DOMAIN_MEM MemAllocatorDomain = 1
+	// PyObject_Malloc(), PyObject_Realloc() and PyObject_Free()
+	PYMEM_DOMAIN_OBJ MemAllocatorDomain = 2
+)
 
 // llgo:type C
 type MemAllocatorEx struct {
@@ -64,6 +52,17 @@ type MemAllocatorEx struct {
 	Realloc func(_llcppg_param1 unsafe.Pointer, _llcppg_param2 unsafe.Pointer, _llcppg_param3 c.SizeT) unsafe.Pointer
 	Free    func(_llcppg_param1 unsafe.Pointer, _llcppg_param2 unsafe.Pointer)
 }
+
+// When Py_LIMITED_API is not defined, the type layout of Py_tss_t is
+// exposed to allow static allocation in the API clients.  Even in this case,
+// you must handle TSS keys through API functions due to compatibility.
+type X_tssT struct {
+	X_isInitialized c.Int
+	X_key           pthread.Key
+}
+type ThreadTypeLock uintptr
+type TssT = X_tssT
+type Object = X_object
 
 // Test if an object is the True singleton, the same as "x is True" in Python.
 //

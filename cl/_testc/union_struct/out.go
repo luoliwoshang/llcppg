@@ -11,14 +11,14 @@ type Foo struct {
 	U      _llcppg_anon_0
 	Shorts Shorts
 }
+type Bar struct {
+	_llcppg_anon_1
+}
 type Shorts struct {
 	_xgo_union [1]uint16
 }
 type _llcppg_anon_0 struct {
 	_xgo_union [1]float32
-}
-type Bar struct {
-	_llcppg_anon_1
 }
 type _llcppg_anon_1 struct {
 	_xgo_union [1]uint16
