@@ -140,6 +140,8 @@ type Config struct {
 
 	// TypeAbbr specifies abbreviated name for Go type names and will be used in function
 	// names (optional). See https://github.com/xgo-dev/llcppg/issues/958.
+	// An explicit abbreviation prefix can be followed by a lowercase letter;
+	// removing it capitalizes that letter to keep the generated method exported.
 	TypeAbbr []string
 
 	// TypePrefix/TypeSuffix specifies the prefix/suffix to remove from C/C++ type names
