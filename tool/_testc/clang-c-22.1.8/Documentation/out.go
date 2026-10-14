@@ -11,6 +11,12 @@ import (
 const XGoPackage = "clang/Index"
 const LLGoPackage = "link: -L$(llvm-config --libdir) -lclang; -lclang"
 
+// A parsed comment.
+type Comment struct {
+	ASTNode         unsafe.Pointer
+	TranslationUnit Index.TranslationUnit
+}
+
 // Describes the type of the comment AST node (\c CXComment).  A comment
 // node can be considered block content (e. g., paragraph), inline content
 // (plain text) or neither (the root AST node).
@@ -115,11 +121,6 @@ const (
 	CommentParamPassDirection_InOut CommentParamPassDirection = 2
 )
 
-// A parsed comment.
-type Comment struct {
-	ASTNode         unsafe.Pointer
-	TranslationUnit Index.TranslationUnit
-}
 type APISetImpl struct {
 }
 

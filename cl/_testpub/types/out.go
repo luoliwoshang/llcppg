@@ -7,12 +7,6 @@ import (
 
 const XGoPackage = true
 
-type Status c.Uint
-
-const B_OK Status = 0
-
-type Size = c.Ulong
-type Count = c.Int
 type Macro struct {
 	X c.Int
 }
@@ -23,19 +17,28 @@ type Point struct {
 	X c.Int
 	Y c.Int
 }
-type Alias = Point
 type Anon struct {
 	X c.Int
 }
+type Status c.Uint
+
+const B_OK Status = 0
+
 type Value struct {
 	_xgo_union [1]uint32
 }
-type Handle struct {
-}
-type HandlePtr = *Handle
 type Container struct {
 	Inner _llcppg_anon_0
 }
+type Cdbl struct {
+	V complex128
+}
+type Handle struct {
+}
+type Size = c.Ulong
+type Count = c.Int
+type Alias = Point
+type HandlePtr = *Handle
 type _llcppg_anon_0 struct {
 	X c.Int
 }
@@ -45,9 +48,6 @@ type Callback = func(_llcppg_param1 c.Int)
 type Configured = c.Long
 type private = c.Int
 type Cflt = complex64
-type Cdbl struct {
-	V complex128
-}
 
 func (p *Value) XGof_ref_n() *c.Int {
 	return (*c.Int)(unsafe.Pointer(p))

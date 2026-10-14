@@ -8,14 +8,14 @@ import (
 	_ "unsafe"
 )
 
-// A particular source file that is part of a translation unit.
-type File uintptr
-
 // Uniquely identifies a CXFile, that refers to the same underlying file,
 // across an indexing session.
 type FileUniqueID struct {
 	Data [3]c.UlongLong
 }
+
+// A particular source file that is part of a translation unit.
+type File uintptr
 
 // Retrieve the complete file and path name of the given file.
 //

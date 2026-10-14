@@ -11,18 +11,8 @@ type Device struct {
 	NativeDataFormats [64]_llcppg_anon_0
 	Sentinel          c.Int
 }
-type _llcppg_anon_0 struct {
-	Format     c.Int
-	Channels   c.Uint
-	SampleRate c.Uint
-	Flags      c.Uint
-}
 type Grid struct {
 	Cells [2][3]_llcppg_anon_1
-}
-type _llcppg_anon_1 struct {
-	X int16
-	Y int16
 }
 type Samples struct {
 	_xgo_union [6]uint64
@@ -30,21 +20,8 @@ type Samples struct {
 type Nested struct {
 	Entries [2]_llcppg_anon_2
 }
-type _llcppg_anon_2 struct {
-	Value _llcppg_anon_3
-	Inner [2]_llcppg_anon_4
-}
-type _llcppg_anon_3 struct {
-	_xgo_union [1]uint32
-}
-type _llcppg_anon_4 struct {
-	Code c.Int
-}
 type UnionArrays struct {
 	Values [2]_llcppg_anon_5
-}
-type _llcppg_anon_5 struct {
-	_xgo_union [1]uint32
 }
 type Tagged struct {
 	Code c.Int
@@ -63,17 +40,40 @@ type PointerArrays struct {
 	Pointers [2]*_llcppg_anon_6
 	Rows     *[2]_llcppg_anon_7
 }
-type _llcppg_anon_6 struct {
-	Code c.Int
-}
-type _llcppg_anon_7 struct {
-	Code c.Int
-}
 
 // llgo:type C
 type CallbackElements struct {
 	Handlers  [2]_llcppg_anon_8
 	Callbacks [2]func(_llcppg_param1 c.Int)
+}
+type _llcppg_anon_0 struct {
+	Format     c.Int
+	Channels   c.Uint
+	SampleRate c.Uint
+	Flags      c.Uint
+}
+type _llcppg_anon_1 struct {
+	X int16
+	Y int16
+}
+type _llcppg_anon_2 struct {
+	Value _llcppg_anon_3
+	Inner [2]_llcppg_anon_4
+}
+type _llcppg_anon_3 struct {
+	_xgo_union [1]uint32
+}
+type _llcppg_anon_4 struct {
+	Code c.Int
+}
+type _llcppg_anon_5 struct {
+	_xgo_union [1]uint32
+}
+type _llcppg_anon_6 struct {
+	Code c.Int
+}
+type _llcppg_anon_7 struct {
+	Code c.Int
 }
 
 // llgo:type C

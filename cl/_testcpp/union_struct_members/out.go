@@ -17,9 +17,6 @@ type Token struct {
 	Type c.Int
 	Data _llcppg_anon_0
 }
-type _llcppg_anon_0 struct {
-	_xgo_union [3]uint64
-}
 type Nested struct {
 	_xgo_union [4]uint32
 }
@@ -27,10 +24,13 @@ type Tagged struct {
 	Code  c.Int
 	Value c.Double
 }
-type Alias = Tagged
 type References struct {
 	_xgo_union [2]uint64
 }
+type _llcppg_anon_0 struct {
+	_xgo_union [3]uint64
+}
+type Alias = Tagged
 type _llcppg_anon_1 struct {
 	Code c.Int
 }

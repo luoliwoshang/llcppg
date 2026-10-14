@@ -6,6 +6,11 @@ type Foo struct {
 	u      _llcppg_anon_0
 	shorts FooShorts
 }
+type Bar struct {
+	_llcppg_anon_1
+	_llcppg_anon_2
+	_llcppg_anon_3
+}
 type FooShorts struct {
 	S  int16
 	Us uint16
@@ -13,11 +18,6 @@ type FooShorts struct {
 type _llcppg_anon_0 struct {
 	X c.Float
 	Y c.Float
-}
-type Bar struct {
-	_llcppg_anon_1
-	_llcppg_anon_2
-	_llcppg_anon_3
 }
 type _llcppg_anon_1 struct {
 	S  int16

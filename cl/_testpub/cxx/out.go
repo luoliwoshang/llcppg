@@ -7,13 +7,6 @@ import (
 
 const XGoPackage = true
 
-type Color c.Int
-
-const (
-	Color_red   Color = 0
-	Color_green Color = 1
-)
-
 type Widget struct {
 	x c.Int
 }
@@ -23,6 +16,13 @@ type Record struct {
 type Value struct {
 	_xgo_union [1]uint32
 }
+type Color c.Int
+
+const (
+	Color_red   Color = 0
+	Color_green Color = 1
+)
+
 type Index = c.Int
 type Box[T any] struct {
 	Value T

@@ -10,12 +10,34 @@ const XGoPackage = true
 type Direct struct {
 	_xgo_union [1]uint64
 }
+type Recursive struct {
+	_xgo_union [2]uint64
+}
+type Mixed struct {
+	_xgo_union [1]uint64
+}
+type NamedBoundary struct {
+	_xgo_union [1]uint64
+}
+type AllFloats struct {
+	_xgo_union [2]float32
+}
+type OnlyFloats struct {
+	_xgo_union [2]float64
+}
+type Envelope struct {
+	Kind c.Int
+	_llcppg_anon_11
+}
+type AnonymousUnion struct {
+	_xgo_union [1]uint64
+}
+type Alternatives struct {
+	_xgo_union [1]uint64
+}
 type _llcppg_anon_0 struct {
 	X c.Int
 	Y c.Int
-}
-type Recursive struct {
-	_xgo_union [2]uint64
 }
 type _llcppg_anon_1 struct {
 	Tag uint8
@@ -28,9 +50,6 @@ type _llcppg_anon_2 struct {
 type _llcppg_anon_3 struct {
 	_xgo_union [1]uint32
 }
-type Mixed struct {
-	_xgo_union [1]uint64
-}
 type _llcppg_anon_4 struct {
 	Kind c.Int
 	_llcppg_anon_5
@@ -42,9 +61,6 @@ type _llcppg_anon_6 struct {
 	X int16
 	Y int16
 }
-type NamedBoundary struct {
-	_xgo_union [1]uint64
-}
 type _llcppg_anon_7 struct {
 	Lead  c.Int
 	Named _llcppg_anon_8
@@ -52,23 +68,13 @@ type _llcppg_anon_7 struct {
 type _llcppg_anon_8 struct {
 	Value c.Int
 }
-type AllFloats struct {
-	_xgo_union [2]float32
-}
 type _llcppg_anon_9 struct {
 	X c.Float
 	Y c.Float
 }
-type OnlyFloats struct {
-	_xgo_union [2]float64
-}
 type _llcppg_anon_10 struct {
 	X c.Double
 	Y c.Double
-}
-type Envelope struct {
-	Kind c.Int
-	_llcppg_anon_11
 }
 type _llcppg_anon_11 struct {
 	_xgo_union [1]uint64
@@ -77,15 +83,9 @@ type _llcppg_anon_12 struct {
 	X c.Int
 	Y int16
 }
-type AnonymousUnion struct {
-	_xgo_union [1]uint64
-}
 type _llcppg_anon_13 struct {
 	X c.Int
 	Y c.Int
-}
-type Alternatives struct {
-	_xgo_union [1]uint64
 }
 type _llcppg_anon_14 struct {
 	X c.Int

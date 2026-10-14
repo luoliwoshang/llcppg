@@ -18,8 +18,10 @@ package cl
 
 import (
 	"go/types"
+	"log"
 	"sort"
 
+	"github.com/goplus/gogen"
 	"github.com/goplus/lib/c"
 	"github.com/goplus/llcppg/clang"
 	lc "github.com/llarhub/clang-c"
@@ -148,6 +150,61 @@ func (p *overloads) reorder() {
 
 // -----------------------------------------------------------------------------
 
+func (p *pkgCtx) declareType(cName string, decl clang.Cursor) (isDef bool) {
+	td, ok := p.typdecls[cName]
+	isDef = decl.IsCursorDefinition() != 0
+	if isDef {
+		if td.defs != nil {
+			p.errorf(decl, "multiple definitions for type %s", cName)
+			return false
+		}
+		goName := p.typeName(cName, true)
+		p.typdecls[cName] = newType(p, decl, cName, goName)
+	} else if !ok {
+		p.typdecls[cName] = typDecl{init: &typDeclInit{
+			decl: decl,
+			at:   p.pkg.CurFile(),
+		}}
+	}
+	return
+}
+
+func (p *pkgCtx) postPreload() {
+	if debugMajorProc {
+		log.Println("==> complete uninitialized type declarations")
+	}
+	pkg := p.pkg
+	uninited := []string(nil)
+	for cName, td := range p.typdecls {
+		if td.init != nil {
+			uninited = append(uninited, cName)
+		}
+	}
+	if len(uninited) == 0 {
+		return
+	}
+	sort.Strings(uninited)
+	for _, cName := range uninited {
+		init := p.typdecls[cName].init
+		pkg.RestoreCurFile(init.at)
+		goName := p.typeName(cName, true)
+		td := newType(p, init.decl, cName, goName)
+		td.TypeDecl.InitType(pkg, types.NewStruct(nil, nil))
+		p.typdecls[cName] = td
+	}
+}
+
+func (p *pkgCtx) postLoad() { // TODO(xsw): remove this
+	pkg := p.pkg
+	for _, typDecl := range p.typdecls {
+		if typDecl.State() == gogen.TyStateUninited {
+			typDecl.InitType(pkg, types.NewStruct(nil, nil))
+		}
+	}
+}
+
+// -----------------------------------------------------------------------------
+
 func loadDecl(ctx *pkgCtx, scope *scopeCtx, decl clang.Cursor) {
 	switch decl.Kind {
 	case lc.Cursor_ClassDecl, lc.Cursor_StructDecl:
@@ -175,9 +232,7 @@ func loadDecl(ctx *pkgCtx, scope *scopeCtx, decl clang.Cursor) {
 			loadVar(ctx, decl)
 		})
 	case lc.Cursor_UnionDecl:
-		ctx.addLoadUnit(func(ctx *pkgCtx) {
-			loadUnion(ctx, decl)
-		})
+		preloadUnion(ctx, decl)
 	case lc.Cursor_LinkageSpec: // extern "C" { ... }
 		loadLinkageSpec(ctx, scope, decl)
 	case lc.Cursor_MacroExpansion, lc.Cursor_StaticAssert,
@@ -289,16 +344,29 @@ func isPublic(decl clang.Cursor) bool {
 	return decl.CXXAccessSpecifier() == lc.CXXPublic
 }
 
+func preloadUnion(ctx *pkgCtx, decl clang.Cursor) {
+	cName := cNameOf(decl)
+	isDef := ctx.declareType(cName, decl)
+	if isDef {
+		ctx.addLoadUnit(func(ctx *pkgCtx) {
+			loadUnion(ctx, cName, decl)
+		})
+	}
+}
+
 func preloadClass(ctx *pkgCtx, scope *scopeCtx, cls clang.Cursor) {
 	cName := cNameOf(cls)
 	if cls.NumTemplateArguments() >= 0 { // note: -1 means not a template class
 		scope.addOverloadObj(ctx, cName, cls)
 		return
 	}
-	this := newClassCtx(ctx, cls, scope)
-	ctx.addLoadUnit(func(ctx *pkgCtx) {
-		loadClass(ctx, cName, this, cls)
-	})
+	isDef := ctx.declareType(cName, cls)
+	if isDef {
+		this := newClassCtx(ctx, cls, scope)
+		ctx.addLoadUnit(func(ctx *pkgCtx) {
+			loadClass(ctx, cName, this, cls)
+		})
+	}
 }
 
 func preloadTemplateClass(ctx *pkgCtx, scope *scopeCtx, cls clang.Cursor, global bool) {

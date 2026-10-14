@@ -98,9 +98,15 @@ type typeObj struct {
 	feats int // if feats == featTyIgnore, this type is tyIgnore
 }
 
+type typDeclInit struct {
+	decl clang.Cursor
+	at   *gogen.File
+}
+
 type typDecl struct {
 	*gogen.TypeDecl
 	defs *gogen.TypeDefs
+	init *typDeclInit
 }
 
 type pkgCtx struct {
@@ -241,16 +247,9 @@ func (p *pkgCtx) addCompileUnit(f compileFunc) {
 }
 
 func (p *pkgCtx) compile() {
+	p.postPreload()
 	doCompile(p, &p.loads)
-	if debugMajorProc {
-		log.Println("==> complete uninitialized type declarations")
-	}
-	pkg := p.pkg
-	for _, typDecl := range p.typdecls {
-		if typDecl.State() == gogen.TyStateUninited {
-			typDecl.InitType(pkg, types.NewStruct(nil, nil))
-		}
-	}
+	p.postLoad()
 	doCompile(p, &p.compiles)
 }
 

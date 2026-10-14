@@ -15,13 +15,13 @@ const (
 	Blue  Color = 2
 )
 
-type LongDouble = c.LongDouble
 type Matrix struct {
 	Rows c.Int
 	Cols c.Int
 	Data [16]c.Double
 	Name [32]c.Char
 }
+type LongDouble = c.LongDouble
 
 //go:linkname Primitives C.primitives
 func Primitives(ch c.Char, uc uint8, sc int8, s int16, us uint16, i c.Int, ui c.Uint, l c.Long, ul c.Ulong, ll c.LongLong, ull c.UlongLong, flt c.Float) c.Double

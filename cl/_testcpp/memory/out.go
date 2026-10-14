@@ -2,12 +2,12 @@ package foo
 
 import "github.com/goplus/lib/c"
 
+type X__SharedWeakCount struct {
+}
 type SizeT = c.Ulong
 type WeakPtr[_Tp any] struct {
 	__Ptr_   *_Tp
 	__Cntrl_ *SizeT
-}
-type X__SharedWeakCount struct {
 }
 type X__SharedPtrEmplace[_Tp any, _Alloc any] struct {
 	X__SharedWeakCount
