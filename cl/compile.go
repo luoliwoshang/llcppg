@@ -123,8 +123,19 @@ type Config struct {
 	// FuncIgnore specifies a list of C/C++ function names to be ignored (optional).
 	FuncIgnore []string
 
-	// TypeAlias specifies a mapping of C/C++ type names to a Go type name in pkgPath.Name
-	// format (pkgPath can be empty if Name is in current package), optional.
+	// FieldAlias overrides the Go name and type of C/C++ fields (optional).
+	// See https://github.com/xgo-dev/llcppg/issues/1019.
+	FieldAlias map[string]string
+
+	// TypeAlias specifies a mapping of C/C++ type names to a Go type name (alias) in
+	// pkgPath.Name format (pkgPath can be empty if Name is in current package), optional.
+	//
+	// alias = "void (ignore this type, as an empty class)"
+	// alias = ".StdBasicString[byte, c.Void, c.Void]"
+	// alias = ".Iterator"
+	// alias = "[_Derived, _Category, _Tp, _Distance, _Pointer, _Reference] = .Iterator[_Category, _Tp, _Distance, _Pointer, _Reference]"
+	//
+	// See https://github.com/xgo-dev/llcppg/issues/929.
 	TypeAlias map[string]string
 
 	// TypeAbbr specifies abbreviated name for Go type names and will be used in function
@@ -267,7 +278,8 @@ func NewPackage(pkgPath, pkgName string, files []Source, conf *Config) (ret Pack
 		keepDoc: !conf.DontKeepDoc, stdRecvName: conf.UseStdRecvName, cflags: conf.CFlags,
 		wrapFileHeader: conf.WrapFileHeader, forceCamelCase: conf.ForceCamelCase,
 		typeAbbr: typeAbbr, typeAlias: conf.TypeAlias, typeAliasCache: make(map[string]types.Type),
-		mthdCheck: methodCheck, typePrefix: conf.TypePrefix, typeSuffix: conf.TypeSuffix,
+		mthdCheck: methodCheck, fieldAlias: conf.FieldAlias,
+		typePrefix: conf.TypePrefix, typeSuffix: conf.TypeSuffix,
 		newCheck: newCheck, fnPrefix: conf.FuncPrefix, enumPrefix: conf.EnumPrefix, rename: rename,
 		nsPrefix: conf.NSPrefix, macroPrefix: conf.MacroPrefix, varPrefix: conf.VarPrefix,
 		nsIgnore: conf.NSIgnore, macroIgnore: conf.MacroIgnore, typeIgnore: conf.TypeIgnore,

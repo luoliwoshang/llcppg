@@ -134,6 +134,7 @@ type pkgCtx struct {
 	nonClasses  []string          // typedef names to be treated as non-classes
 	rename      map[string]string // C/C++ name => Go name
 	typeAlias   map[string]string // C/C++ type name => Go name
+	fieldAlias  map[string]string // C/C++ field name => Go name
 	typeIgnore  []string          // C/C++ type names to be ignored
 	macroIgnore []string          // C/C++ macro names to be ignored
 	fnIgnore    []string          // C/C++ function names to be ignored
@@ -403,6 +404,36 @@ func (p *pkgCtx) goTypeParams(typParams string) []*types.TypeParam {
 		ret[i] = types.NewTypeParam(tn, p.any())
 	}
 	return ret
+}
+
+func (p *pkgCtx) goTypeOf(alias string, scope *scopeCtx) (ret types.Type, found bool) {
+	typArgs := ""
+	if alias[len(alias)-1] == ']' { // has typeArgs
+		pos := strings.IndexByte(alias, '[')
+		if pos <= 0 {
+			return
+		}
+		typArgs = alias[pos+1 : len(alias)-1]
+		alias = alias[:pos]
+	}
+	obj, ok := p.goNamedTypeObj(alias, scope)
+	if !ok {
+		return
+	}
+	ret = obj.Type()
+	if typArgs != "" {
+		targs, ok := p.goTypeArgs(typArgs, scope)
+		if !ok {
+			return
+		}
+		inst, err := types.Instantiate(p.typeCtx(), ret, targs, true)
+		if err != nil {
+			return
+		}
+		ret = inst
+	}
+	found = true
+	return
 }
 
 var (

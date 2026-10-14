@@ -103,8 +103,19 @@ type Config struct {
 	// in the map, it will be renamed to the corresponding Go name.
 	Rename map[string]string `json:"Rename"`
 
-	// TypeAlias specifies a mapping of C/C++ type names to a Go type name in pkgPath.Name
-	// format (pkgPath can be empty if Name is in current package), optional.
+	// FieldAlias overrides the Go name and type of C/C++ fields (optional).
+	// See https://github.com/xgo-dev/llcppg/issues/1019.
+	FieldAlias map[string]string
+
+	// TypeAlias specifies a mapping of C/C++ type names to a Go type name (alias) in
+	// pkgPath.Name format (pkgPath can be empty if Name is in current package), optional.
+	//
+	// alias = "void (ignore this type, as an empty class)"
+	// alias = ".StdBasicString[byte, c.Void, c.Void]"
+	// alias = ".Iterator"
+	// alias = "[_Derived, _Category, _Tp, _Distance, _Pointer, _Reference] = .Iterator[_Category, _Tp, _Distance, _Pointer, _Reference]"
+	//
+	// See https://github.com/xgo-dev/llcppg/issues/929.
 	TypeAlias map[string]string `json:"TypeAlias"`
 
 	// TypeIgnore specifies a list of C/C++ type names to be ignored (optional).

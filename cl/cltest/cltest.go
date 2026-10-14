@@ -45,6 +45,10 @@ type Config struct {
 	// Go const names (optional).
 	EnumPrefix []string `json:"EnumPrefix"`
 
+	// FieldAlias overrides the Go name and type of C/C++ fields (optional).
+	// See https://github.com/xgo-dev/llcppg/issues/1019.
+	FieldAlias map[string]string
+
 	TypeAlias  map[string]string `json:"TypeAlias"`
 	TypeIgnore []string          `json:"TypeIgnore"`
 

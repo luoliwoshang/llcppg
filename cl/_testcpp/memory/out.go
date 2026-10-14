@@ -9,6 +9,13 @@ type WeakPtr[_Tp any] struct {
 }
 type X__SharedWeakCount struct {
 }
+type X__SharedPtrEmplace[_Tp any, _Alloc any] struct {
+	X__SharedWeakCount
+	X__Storage_ X__SharedPtrEmplace_Storage
+}
+type X__SharedPtrEmplace_Storage struct {
+	X__bufferRaw_ [1]X__SharedPtrEmplace_Storage_Data
+}
 type X__SharedPtrEmplace_Storage_Data struct {
 	X__Alloc_ _Alloc
 	X__Elem_  _Tp

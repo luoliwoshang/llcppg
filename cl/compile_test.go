@@ -114,6 +114,7 @@ func testFromDir(t *testing.T, sel, relDir string, lang cl.Language, genPubFile 
 			NSPrefix:        conf.NSPrefix,
 			EnumPrefix:      conf.EnumPrefix,
 			Rename:          conf.Rename,
+			FieldAlias:      conf.FieldAlias,
 			TypeAlias:       conf.TypeAlias,
 			TypeIgnore:      conf.TypeIgnore,
 			TypePrefix:      conf.TypePrefix,

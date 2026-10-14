@@ -454,7 +454,7 @@ func hasBaseOrNestedField(cls clang.Cursor) bool {
 // enum and method declarations through the ordinary member path so they are not
 // dropped. It returns false (leaving the type uninitialized) when the record has
 // no known layout, so the caller can fall back to the ordinary conversion.
-func initBitFieldType(ctx *pkgCtx, typDecl typDecl, this *classCtx, cls clang.Cursor) bool {
+func initBitFieldType(ctx *pkgCtx, typDecl typDecl, this *classCtx, cls clang.Cursor, cName string) bool {
 	pkg := ctx.pkg
 	pos := goNodePos(ctx, cls)
 
@@ -483,7 +483,7 @@ func initBitFieldType(ctx *pkgCtx, typDecl typDecl, this *classCtx, cls clang.Cu
 		if decl.Kind == lc.Cursor_FieldDecl {
 			return clang.Continue
 		}
-		loadClassMember(ctx, pkg.Types, this, typDecl.Type().Obj().Name(), decl, &feats)
+		loadClassMember(ctx, pkg.Types, this, cName, decl, &feats)
 		return clang.Continue
 	})
 
