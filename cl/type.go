@@ -128,8 +128,6 @@ func toTypeEx(ctx *pkgCtx, pkg *types.Package, typ lc.Type, flags int, feats *in
 	switch typ.Kind {
 	case lc.Type_Void:
 		return tyVoid
-	case lc.Type_Bool:
-		return types.Typ[types.Bool]
 	case lc.Type_Char_S:
 		return ctx.basicTyp(cChar)
 	case lc.Type_SChar:
@@ -213,6 +211,15 @@ func toTypeEx(ctx *pkgCtx, pkg *types.Package, typ lc.Type, flags int, feats *in
 	case lc.Type_Unexposed:
 		if t, ok := unexposedType(ctx, typ, feats, scope); ok {
 			return t
+		}
+	case lc.Type_Bool:
+		return types.Typ[types.Bool]
+	case lc.Type_Complex:
+		switch typ.Element().Kind {
+		case lc.Type_Double:
+			return types.Typ[types.Complex128]
+		case lc.Type_Float:
+			return types.Typ[types.Complex64]
 		}
 	case lc.Type_LongDouble:
 		return ctx.basicTyp(cLongDouble)

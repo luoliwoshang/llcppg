@@ -20,5 +20,5 @@ typedef int b_configured_t;
 typedef void b_void_t;
 typedef int b_private_t;
 typedef int b_ignored_t;
-typedef _Complex float b_bad_t;
-struct b_rejected_t { _Complex float unsupported; };
+typedef _Complex float b_cflt_t;
+struct b_cdbl_t { _Complex double v; };
