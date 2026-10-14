@@ -103,6 +103,10 @@ type Config struct {
 	// in the map, it will be renamed to the corresponding Go name.
 	Rename map[string]string `json:"Rename"`
 
+	// FieldAlias overrides the Go name and type of C/C++ fields (optional).
+	// See https://github.com/xgo-dev/llcppg/issues/1019.
+	FieldAlias map[string]string
+
 	// TypeAlias specifies a mapping of C/C++ type names to a Go type name in pkgPath.Name
 	// format (pkgPath can be empty if Name is in current package), optional.
 	TypeAlias map[string]string `json:"TypeAlias"`

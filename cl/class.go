@@ -19,6 +19,7 @@ package cl
 import (
 	"go/types"
 	"strconv"
+	"strings"
 	"unsafe"
 
 	"github.com/goplus/llcppg/clang"
@@ -205,7 +206,7 @@ func newType(ctx *pkgCtx, cls clang.Cursor, cName, goName string, tparams ...*ty
 
 func initClassType(ctx *pkgCtx, typDecl typDecl, this *classCtx, cName, goName string, tparams []*types.TypeParam) bool {
 	feats := 0
-	initClassTypeEx(ctx, typDecl, this, goName, tparams, &feats)
+	initClassTypeEx(ctx, typDecl, this, cName, goName, tparams, &feats)
 	if feats&featAllIgnore != 0 {
 		ctx.ignoref(feats, this.decl, "class %s: unsupported features, ignored", cName)
 		ctx.ignoreType(cName, feats)
@@ -215,7 +216,7 @@ func initClassType(ctx *pkgCtx, typDecl typDecl, this *classCtx, cName, goName s
 	return true
 }
 
-func initClassTypeEx(ctx *pkgCtx, typDecl typDecl, this *classCtx, goName string, tparams []*types.TypeParam, feats *int) {
+func initClassTypeEx(ctx *pkgCtx, typDecl typDecl, this *classCtx, cName, goName string, tparams []*types.TypeParam, feats *int) {
 	cls := this.decl
 
 	// Attach the doc at the TypeDefs (GenDecl) level rather than on the
@@ -239,13 +240,13 @@ func initClassTypeEx(ctx *pkgCtx, typDecl typDecl, this *classCtx, goName string
 	// C-style records (no bases, not polymorphic, no type params); anything more
 	// complex falls through to the ordinary conversion below.
 	if len(tparams) == 0 && !isPolymorphic(cls) && !hasBaseOrNestedField(cls) && hasBitField(cls) {
-		if initBitFieldType(ctx, typDecl, this, cls) {
+		if initBitFieldType(ctx, typDecl, this, cls, cName) {
 			return
 		}
 	}
 
 	clang.VisitChildren(cls, func(decl, parent clang.Cursor) clang.ChildVisitResult {
-		loadClassMember(ctx, pkgTypes, this, goName, decl, feats)
+		loadClassMember(ctx, pkgTypes, this, cName, decl, feats)
 		return clang.Continue
 	})
 	if *feats&featAllIgnore != 0 {
@@ -298,7 +299,7 @@ func emitClass(ctx *pkgCtx, cls clang.Cursor, goName string, parent *scopeCtx) (
 	return typDecl.Type(), true
 }
 
-func loadClassMember(ctx *pkgCtx, pkg *types.Package, this *classCtx, goName string, decl clang.Cursor, feats *int) {
+func loadClassMember(ctx *pkgCtx, pkg *types.Package, this *classCtx, cName string, decl clang.Cursor, feats *int) {
 	switch decl.Kind {
 	case lc.Cursor_CXXMethod, lc.Cursor_FunctionTemplate,
 		lc.Cursor_Constructor, lc.Cursor_Destructor, lc.Cursor_ConversionFunction:
@@ -306,31 +307,39 @@ func loadClassMember(ctx *pkgCtx, pkg *types.Package, this *classCtx, goName str
 
 	case lc.Cursor_FieldDecl:
 		var fldType types.Type
-		var ft = decl.Type()
-		if ftd := ft.Declaration(); ftd.IsAnonymous() != 0 {
-			switch {
-			case ftd.Kind == lc.Cursor_UnionDecl:
-				fldType = toType(ctx, pkg, ft, flagIsVarDef, this.scope())
-			case ft.Kind == lc.Type_Record:
-				var ok bool
-				fldType, ok = emitClass(ctx, ftd, ctx.nextAnonName(), this.scope())
-				if !ok {
-					*feats |= featExplicitIgnore
-					return
-				}
-			case ft.Kind == lc.Type_Enum:
-				fldType = emitEnum(ctx, ftd, ctx.nextAnonName())
-			default:
-				ctx.panicf(ftd, "unknown anonymous field type (%d: %s)", ft.Kind, clang.String(ft))
-			}
-		} else {
-			if fldType = toTypeEx(ctx, pkg, ft, flagIsVarDef, feats, this.scope()); *feats&featAllIgnore != 0 {
+		var fldGoName string
+		origName := clang.String(decl)
+		fldFullName := cNameWithNS(origName, cName)
+		if alias, ok := ctx.fieldAlias[fldFullName]; ok {
+			if fldGoName, fldType = fieldAlias(ctx, decl, alias, feats, this.scope()); *feats&featAllIgnore != 0 {
 				return
 			}
+		} else {
+			fldGoName = ctx.fieldName(origName, isPublic(decl))
+			ft := decl.Type()
+			if ftd := ft.Declaration(); ftd.IsAnonymous() != 0 {
+				switch {
+				case ftd.Kind == lc.Cursor_UnionDecl:
+					fldType = toType(ctx, pkg, ft, flagIsVarDef, this.scope())
+				case ft.Kind == lc.Type_Record:
+					var ok bool
+					fldType, ok = emitClass(ctx, ftd, ctx.nextAnonName(), this.scope())
+					if !ok {
+						*feats |= featExplicitIgnore
+						return
+					}
+				case ft.Kind == lc.Type_Enum:
+					fldType = emitEnum(ctx, ftd, ctx.nextAnonName())
+				default:
+					ctx.panicf(ftd, "unknown anonymous field type (%d: %s)", ft.Kind, clang.String(ft))
+				}
+			} else {
+				if fldType = toTypeEx(ctx, pkg, ft, flagIsVarDef, feats, this.scope()); *feats&featAllIgnore != 0 {
+					return
+				}
+			}
 		}
-		origName := clang.String(decl)
-		fldName := ctx.fieldName(origName, isPublic(decl))
-		fld := types.NewField(goNodePos(ctx, decl), pkg, fldName, fldType, false)
+		fld := types.NewField(goNodePos(ctx, decl), pkg, fldGoName, fldType, false)
 		this.fields = append(this.fields, fld)
 
 	case lc.Cursor_VarDecl:
@@ -420,8 +429,36 @@ func loadClassMember(ctx *pkgCtx, pkg *types.Package, this *classCtx, goName str
 		if decl.Kind >= lc.Cursor_FirstAttr && decl.Kind <= lc.Cursor_LastAttr {
 			return // noop
 		}
-		ctx.panicf(decl, "class %s: unknown child node kind - %v", goName, decl.Kind)
+		ctx.panicf(decl, "class %s: unknown child node kind - %v", cName, decl.Kind)
 	}
+}
+
+// alias = "__bufferRaw_ [1].X__SharedPtrEmplace_Storage_Data[_Tp, _Alloc]"
+func fieldAlias(ctx *pkgCtx, decl clang.Cursor, alias string, feats *int, scope *scopeCtx) (fldGoName string, fldType types.Type) {
+	found := false
+	pos := strings.IndexAny(alias, " \t")
+	if pos >= 0 {
+		fldGoName = alias[:pos]
+		aliasType := strings.TrimSpace(alias[pos+1:])
+		aliasType, isArrayOrSlice := strings.CutPrefix(aliasType, "[")
+		if isArrayOrSlice {
+			if end := strings.IndexByte(aliasType, ']'); end >= 0 {
+				idx := aliasType[:end]
+				if elem, ok := ctx.goTypeOf(aliasType[end+1:], scope); ok {
+					if n, err := strconv.ParseInt(idx, 10, 64); err == nil {
+						fldType, found = types.NewArray(elem, n), true
+					}
+				}
+			}
+		} else {
+			fldType, found = ctx.goTypeOf(aliasType, scope)
+		}
+	}
+	if !found {
+		ctx.ignoref(featExplicitIgnore, decl, "FieldAlias %q could not be resolved", alias)
+		*feats |= featExplicitIgnore
+	}
+	return
 }
 
 // primaryBase returns the base-specifier cursor of the primary base class of

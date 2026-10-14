@@ -224,12 +224,15 @@ func typeParamsAndInstantiate(ctx *pkgCtx, t types.Type) (tparams []*types.TypeP
 	return
 }
 
-// alias = void (ignore this type, as an empty class)
-// alias = .StdBasicString[byte, c.Void, c.Void]
-// alias = .Iterator
-// alias = [_Derived, _Category, _Tp, _Distance, _Pointer, _Reference] = .Iterator[_Category, _Tp, _Distance, _Pointer, _Reference]
+// alias = "void (ignore this type, as an empty class)"
+// alias = ".StdBasicString[byte, c.Void, c.Void]"
+// alias = ".Iterator"
+// alias = "[_Derived, _Category, _Tp, _Distance, _Pointer, _Reference] = .Iterator[_Category, _Tp, _Distance, _Pointer, _Reference]"
 func (p *pkgCtx) aliasType(name, alias string) (ret types.Type, found bool) {
-	var ok bool
+	if alias == "void" {
+		p.types[name] = typeObj{nil, featTyIgnore}
+		return tyIgnore, true
+	}
 	var scope *scopeCtx
 	if alias[0] == '[' { // has typeParams
 		pos := strings.IndexByte(alias, ']')
@@ -237,43 +240,18 @@ func (p *pkgCtx) aliasType(name, alias string) (ret types.Type, found bool) {
 			return
 		}
 		typParams := alias[1:pos]
-		alias, ok = strings.CutPrefix(strings.TrimSpace(alias[pos+1:]), "=")
-		if !ok {
+		alias, found = strings.CutPrefix(strings.TrimSpace(alias[pos+1:]), "=")
+		if !found {
 			return
 		}
 		alias = strings.TrimLeft(alias, " \t")
 		scope = &scopeCtx{tparams: p.goTypeParams(typParams)}
 	}
-	typArgs := ""
-	if alias[len(alias)-1] == ']' { // has typeArgs
-		pos := strings.IndexByte(alias, '[')
-		if pos <= 0 {
-			return
-		}
-		typArgs = alias[pos+1 : len(alias)-1]
-		alias = alias[:pos]
+	tunder, found := p.goTypeOf(alias, scope)
+	if found {
+		ret = doAliasType(p, name, tunder, scope)
 	}
-	obj, ok := p.goNamedTypeObj(alias, scope)
-	if !ok {
-		if alias == "void" {
-			p.types[name] = typeObj{nil, featTyIgnore}
-			return tyIgnore, true
-		}
-		return
-	}
-	ret = obj.Type()
-	if typArgs != "" {
-		targs, ok := p.goTypeArgs(typArgs, scope)
-		if !ok {
-			return
-		}
-		inst, err := types.Instantiate(p.typeCtx(), ret, targs, true)
-		if err != nil {
-			return
-		}
-		ret = inst
-	}
-	return doAliasType(p, name, ret, scope), true
+	return
 }
 
 // -----------------------------------------------------------------------------
