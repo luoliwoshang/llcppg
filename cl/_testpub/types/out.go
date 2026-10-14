@@ -44,6 +44,10 @@ type _llcppg_anon_0 struct {
 type Callback = func(_llcppg_param1 c.Int)
 type Configured = c.Long
 type private = c.Int
+type Cflt = complex64
+type Cdbl struct {
+	V complex128
+}
 
 func (p *Value) XGof_ref_n() *c.Int {
 	return (*c.Int)(unsafe.Pointer(p))

@@ -1,6 +1,8 @@
 T b_alias_t Alias
 T b_anon_t Anon
 T b_callback_t Callback
+T b_cdbl_t Cdbl
+T b_cflt_t Cflt
 T b_configured_t Configured
 T b_container_t Container
 T b_count_t Count
