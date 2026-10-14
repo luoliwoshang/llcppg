@@ -228,14 +228,16 @@ func (p *pkgCtx) funcName(cName string, order int, typName, typCName string, glo
 		name = p.cstyleToGo(name, underscoreStart, true)
 		if typName != "" {
 			var typSuffix []string
+			explicitAbbr := false
 			if abbrs, _ := p.typeAbbr.matchList(typName, true); len(abbrs) > 0 {
 				typName = abbrs[len(abbrs)-1]
 				typSuffix = abbrs
+				explicitAbbr = true
 			} else {
 				typSuffix = []string{typName}
 			}
 			name = cutSuffixes(name, typSuffix)
-			name = cutMethodPrefix(name, typName)
+			name = cutMethodPrefix(name, typName, explicitAbbr)
 		}
 	}
 	if order >= 0 {
@@ -330,10 +332,26 @@ func goNameOf(name string, underscoreStart, public bool) string {
 	return name
 }
 
-func cutMethodPrefix(name, objName string) string {
-	name = cutPrefix(name, objName)
+func cutMethodPrefix(name, objName string, explicitAbbr bool) string {
+	cut := cutPrefix
+	if explicitAbbr {
+		cut = cutAbbrPrefix
+	}
+	name = cut(name, objName)
 	name = cutPrefix(name, "Get")
-	return cutPrefix(name, objName)
+	return cut(name, objName)
+}
+
+func cutAbbrPrefix(name, prefix string) string {
+	// An explicit abbreviation supplies the word boundary even when the
+	// following letter is lowercase. Capitalize it to keep the method exported.
+	after := rmPrefix(name, []string{prefix})
+	if after != "" && after != name {
+		if c := after[0]; 'a' <= c && c <= 'z' {
+			return string(c-'a'+'A') + after[1:]
+		}
+	}
+	return cutPrefix(name, prefix)
 }
 
 func cutPrefix(name, prefix string) string {
