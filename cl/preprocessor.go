@@ -52,15 +52,8 @@ func loadInclude(ctx *pkgCtx, decl clang.Cursor) {
 
 // -----------------------------------------------------------------------------
 
-func loadMacro(ctx *pkgCtx, decl clang.Cursor) {
+func loadMacroConst(ctx *pkgCtx, decl clang.Cursor) {
 	origName := clang.String(decl)
-	if decl.IsMacroFunctionLike() != 0 {
-		if refName, ok := ctx.macroFunc[origName]; ok {
-			loadMacroFunc(ctx, decl, refName)
-		}
-		return
-	}
-
 	if ctx.isMacroIgnored(origName) {
 		if debugCompileDecl {
 			log.Println("macro", origName, "- ignored")

@@ -222,7 +222,11 @@ func loadDecl(ctx *pkgCtx, scope *scopeCtx, decl clang.Cursor) {
 	case lc.Cursor_EnumDecl:
 		loadEnum(ctx, decl)
 	case lc.Cursor_MacroDefinition:
-		loadMacro(ctx, decl)
+		if decl.IsMacroFunctionLike() != 0 {
+			preloadMacroFunc(ctx, decl)
+		} else {
+			loadMacroConst(ctx, decl)
+		}
 	case lc.Cursor_InclusionDirective:
 		loadInclude(ctx, decl)
 	case lc.Cursor_Namespace:
@@ -386,6 +390,15 @@ func preloadGlobalFunc(ctx *pkgCtx, scope *scopeCtx, fn clang.Cursor) {
 	if isNew {
 		ctx.addLoadUnit(func(ctx *pkgCtx) {
 			loadGlobalFunc(ctx, obj)
+		})
+	}
+}
+
+func preloadMacroFunc(ctx *pkgCtx, decl clang.Cursor) {
+	origName := clang.String(decl)
+	if refName, ok := ctx.macroFunc[origName]; ok {
+		ctx.addLoadUnit(func(ctx *pkgCtx) {
+			loadMacroFunc(ctx, decl, refName)
 		})
 	}
 }
