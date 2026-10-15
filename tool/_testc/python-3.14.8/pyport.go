@@ -6,7 +6,11 @@ import "github.com/goplus/lib/c"
 
 const HAVE_LONG_LONG = 1
 const PYLONG_BITS_IN_DIGIT = 30
+
+// Py_hash_t is the same size as a pointer.
 const SIZEOF_PY_HASH_T = 8
+
+// Py_uhash_t is the unsigned equivalent needed to calculate numeric hash.
 const SIZEOF_PY_UHASH_T = 8
 const FORMAT_SIZE_T = "z"
 const BIG_ENDIAN = 0
