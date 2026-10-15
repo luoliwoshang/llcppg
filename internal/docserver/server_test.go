@@ -52,7 +52,7 @@ func TestHandlerServesPackage(t *testing.T) {
 	dir := writeDir(t, map[string]string{
 		"a.go": "// Package foo is a fixture.\npackage foo\n\n// Bar does nothing.\nfunc Bar() {}\n",
 	})
-	srv := httptest.NewServer(newHandler(dir, false, nil, nil))
+	srv := httptest.NewServer(newHandler(dir, false, nil, nil, false, "", nil, nil))
 	defer srv.Close()
 
 	body := getBody(t, srv.URL+"/", http.StatusOK)
@@ -66,7 +66,7 @@ func TestHandlerServesPackage(t *testing.T) {
 
 func TestHandlerServesStatic(t *testing.T) {
 	dir := writeDir(t, map[string]string{"a.go": "package foo\n"})
-	srv := httptest.NewServer(newHandler(dir, false, nil, nil))
+	srv := httptest.NewServer(newHandler(dir, false, nil, nil, false, "", nil, nil))
 	defer srv.Close()
 
 	// llcppg's stylesheet, which styles both the shell chrome and the
@@ -95,7 +95,7 @@ func TestHandlerServesSource(t *testing.T) {
 	dir := writeDir(t, map[string]string{
 		"a.go": "// Package foo is a fixture.\npackage foo\n\n// Bar does nothing.\nfunc Bar() {}\n",
 	})
-	srv := httptest.NewServer(newHandler(dir, false, nil, nil))
+	srv := httptest.NewServer(newHandler(dir, false, nil, nil, false, "", nil, nil))
 	defer srv.Close()
 
 	// The documentation links symbols to /src/<file>#L<line>; that endpoint
@@ -110,7 +110,7 @@ func TestHandlerServesSource(t *testing.T) {
 
 	// Raw source text must be HTML-escaped, not emitted as markup.
 	escDir := writeDir(t, map[string]string{"b.go": "package foo\n\nvar X = \"<b>\"\n"})
-	esrv := httptest.NewServer(newHandler(escDir, false, nil, nil))
+	esrv := httptest.NewServer(newHandler(escDir, false, nil, nil, false, "", nil, nil))
 	defer esrv.Close()
 	ebody := getBody(t, esrv.URL+"/src/b.go", http.StatusOK)
 	if strings.Contains(ebody, `"<b>"`) || !strings.Contains(ebody, "&lt;b&gt;") {
@@ -123,7 +123,7 @@ func TestHandlerSourceRejectsBadPaths(t *testing.T) {
 		"a.go":      "package foo\n",
 		"notes.txt": "secret\n",
 	})
-	srv := httptest.NewServer(newHandler(dir, false, nil, nil))
+	srv := httptest.NewServer(newHandler(dir, false, nil, nil, false, "", nil, nil))
 	defer srv.Close()
 
 	// Only .go files directly in the package directory are served; a non-.go
@@ -149,7 +149,7 @@ func TestHandlerSourceRejectsOversizeFile(t *testing.T) {
 		"big.go":   "package foo\n",
 		"small.go": "package foo\n",
 	})
-	srv := httptest.NewServer(newHandler(dir, false, nil, nil))
+	srv := httptest.NewServer(newHandler(dir, false, nil, nil, false, "", nil, nil))
 	defer srv.Close()
 
 	// Lower the cap so a tiny file counts as "oversize" without writing a huge
@@ -178,7 +178,7 @@ func TestHandlerLiveRefresh(t *testing.T) {
 	if err := os.WriteFile(src, []byte("package foo\n\nfunc First() {}\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	srv := httptest.NewServer(newHandler(dir, false, nil, nil))
+	srv := httptest.NewServer(newHandler(dir, false, nil, nil, false, "", nil, nil))
 	defer srv.Close()
 
 	body := getBody(t, srv.URL+"/", http.StatusOK)
@@ -201,7 +201,7 @@ func TestHandlerLiveRefresh(t *testing.T) {
 
 func TestHandlerNotFound(t *testing.T) {
 	dir := writeDir(t, map[string]string{"a.go": "package foo\n"})
-	srv := httptest.NewServer(newHandler(dir, false, nil, nil))
+	srv := httptest.NewServer(newHandler(dir, false, nil, nil, false, "", nil, nil))
 	defer srv.Close()
 
 	resp, err := http.Get(srv.URL + "/does-not-exist")

@@ -167,7 +167,7 @@ func TestPageNoSourceFilesWhenEmpty(t *testing.T) {
 // assets like the stylesheet, so the sidebar is enhanced on a live server.
 func TestHandlerServesOutlineScript(t *testing.T) {
 	dir := writeDir(t, map[string]string{"a.go": "package foo\n"})
-	srv := httptest.NewServer(newHandler(dir, false, nil, nil))
+	srv := httptest.NewServer(newHandler(dir, false, nil, nil, false, "", nil, nil))
 	defer srv.Close()
 
 	body := getBody(t, srv.URL+"/static/outline.js", http.StatusOK)
@@ -194,7 +194,7 @@ func TestHandlerServesOutlineScript(t *testing.T) {
 // stub that fights the reader — exactly the behaviour the issue asked to change.
 func TestOutlineScriptHasCollapseBehavior(t *testing.T) {
 	dir := writeDir(t, map[string]string{"a.go": "package foo\n"})
-	srv := httptest.NewServer(newHandler(dir, false, nil, nil))
+	srv := httptest.NewServer(newHandler(dir, false, nil, nil, false, "", nil, nil))
 	defer srv.Close()
 
 	js := getBody(t, srv.URL+"/static/outline.js", http.StatusOK)
@@ -239,7 +239,7 @@ func TestOutlineScriptHasCollapseBehavior(t *testing.T) {
 // activation paths drift apart.
 func TestOutlineScriptSuppressesSpyOnActivation(t *testing.T) {
 	dir := writeDir(t, map[string]string{"a.go": "package foo\n"})
-	srv := httptest.NewServer(newHandler(dir, false, nil, nil))
+	srv := httptest.NewServer(newHandler(dir, false, nil, nil, false, "", nil, nil))
 	defer srv.Close()
 
 	js := getBody(t, srv.URL+"/static/outline.js", http.StatusOK)
@@ -270,7 +270,7 @@ func TestOutlineScriptSuppressesSpyOnActivation(t *testing.T) {
 // from pkgsite.
 func TestStylesheetHasPkgsiteTreeRules(t *testing.T) {
 	dir := writeDir(t, map[string]string{"a.go": "package foo\n"})
-	srv := httptest.NewServer(newHandler(dir, false, nil, nil))
+	srv := httptest.NewServer(newHandler(dir, false, nil, nil, false, "", nil, nil))
 	defer srv.Close()
 
 	css := getBody(t, srv.URL+"/static/page.css", http.StatusOK)
@@ -299,7 +299,7 @@ var treeRootRE = regexp.MustCompile(`(?s)\.go-Tree\s*\{(.*?)\}`)
 // has to be on the root block.
 func TestStylesheetResetsTreeRoot(t *testing.T) {
 	dir := writeDir(t, map[string]string{"a.go": "package foo\n"})
-	srv := httptest.NewServer(newHandler(dir, false, nil, nil))
+	srv := httptest.NewServer(newHandler(dir, false, nil, nil, false, "", nil, nil))
 	defer srv.Close()
 
 	css := getBody(t, srv.URL+"/static/page.css", http.StatusOK)
