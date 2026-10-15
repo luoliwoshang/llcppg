@@ -147,7 +147,7 @@ func toLineComments(raw string) []*ast.Comment {
 // whose only leading comment is the doc (types, consts), where no generated
 // directive needs to be preserved alongside it.
 func (p *pkgCtx) docCommentGroup(decl clang.Cursor) *ast.CommentGroup {
-	return p.docCommentGroupRaw(p.docComments(decl))
+	return docCommentGroupRaw(p.docComments(decl))
 }
 
 // docCommentGroupMacro is docCommentGroup for macro definitions. libclang does
@@ -157,10 +157,10 @@ func (p *pkgCtx) docCommentGroupMacro(decl clang.Cursor) *ast.CommentGroup {
 	if !p.keepDoc {
 		return nil
 	}
-	return p.docCommentGroupRaw(toLineComments(clang.MacroRawComment(decl)))
+	return docCommentGroupRaw(toLineComments(clang.MacroRawComment(decl)))
 }
 
-func (p *pkgCtx) docCommentGroupRaw(comments []*ast.Comment) *ast.CommentGroup {
+func docCommentGroupRaw(comments []*ast.Comment) *ast.CommentGroup {
 	if len(comments) == 0 {
 		return nil
 	}
