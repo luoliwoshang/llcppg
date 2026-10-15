@@ -311,6 +311,10 @@ var langExts = [...]string{
 	cl.LanguageCXX: ".cpp",
 }
 
+func TestZlib(t *testing.T) {
+	testFromDir(t, "", "./_testc/zlib-1.3.2", false)
+}
+
 func TestClang(t *testing.T) {
 	cl.SetDebug(cl.DbgFlagAll)
 	tool.SetDebug(tool.DbgFlagAll)
