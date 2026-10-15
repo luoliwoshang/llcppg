@@ -15,11 +15,11 @@ type GzFileS struct {
 	Next *uint8
 	Pos  c.Long
 }
-type ZStreamS struct {
+type StreamS struct {
 }
 type GzFile = *GzFileS
-type ZStream = ZStreamS
-type ZStreamp = *ZStream
+type Stream = StreamS
+type Streamp = *Stream
 
 // Read one byte, falling back to the real function.
 //
@@ -27,10 +27,10 @@ type ZStreamp = *ZStream
 func ZGzgetc(g GzFile) c.Int
 
 //go:linkname ZDeflateInit C._llcppg_z_deflateInit
-func ZDeflateInit(strm ZStreamp, level c.Int) c.Int
+func ZDeflateInit(strm Streamp, level c.Int) c.Int
 
 //go:linkname ZReset C._llcppg_z_reset
-func ZReset(strm ZStreamp, flags c.Int)
+func ZReset(strm Streamp, flags c.Int)
 
 // Read one byte, falling back to the real function.
 //
@@ -39,11 +39,11 @@ func (file GzFile) Gzgetc_() c.Int {
 	return 0
 }
 
-// llgo:link ZStreamp.DeflateInit_ C.deflateInit_
-func (strm ZStreamp) DeflateInit_(level c.Int, version *c.Char, stream_size c.Int) c.Int {
+// llgo:link Streamp.DeflateInit_ C.deflateInit_
+func (strm Streamp) DeflateInit_(level c.Int, version *c.Char, stream_size c.Int) c.Int {
 	return 0
 }
 
-// llgo:link ZStreamp.Reset_ C.reset_
-func (strm ZStreamp) Reset_(flags c.Int, version *c.Char) {
+// llgo:link Streamp.Reset_ C.reset_
+func (strm Streamp) Reset_(flags c.Int, version *c.Char) {
 }

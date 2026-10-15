@@ -30,7 +30,7 @@ import (
 // -----------------------------------------------------------------------------
 
 func (p *pkgCtx) markMacroFuncSeen(macroName string) {
-	p.macroFuncSeen[macroName] = none{}
+	p.macroFnSeen[macroName] = none{}
 }
 
 // validateMacroFunc reports every MacroFunc key that never matched a
@@ -42,7 +42,7 @@ func (p *pkgCtx) validateMacroFunc() {
 	}
 	missing := make([]string, 0, len(p.macroFunc))
 	for name := range p.macroFunc {
-		if _, ok := p.macroFuncSeen[name]; !ok {
+		if _, ok := p.macroFnSeen[name]; !ok {
 			missing = append(missing, name)
 		}
 	}
