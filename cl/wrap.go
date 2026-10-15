@@ -48,7 +48,7 @@ func newWrapFile(ctx *pkgCtx) *WrapFile {
 	return &WrapFile{Filename: filename}
 }
 
-func wrapInlineFunc(ctx *pkgCtx, manglingName string, fn clang.Cursor, cls *classCtx) string {
+func wrapInlineFunc[funcT fnCursor](ctx *pkgCtx, manglingName string, fn funcT, cls *classCtx) string {
 	first := ctx.wrap == nil
 	if first {
 		ctx.wrap = newWrapFile(ctx)
@@ -67,7 +67,7 @@ func wrapInlineFunc(ctx *pkgCtx, manglingName string, fn clang.Cursor, cls *clas
 
 type writerT = bytes.Buffer
 
-func writeFunc(b *writerT, name string, fn clang.Cursor, cls *classCtx, lang Language) {
+func writeFunc[funcT fnCursor](b *writerT, name string, fn funcT, cls *classCtx, lang Language) {
 	var call writerT
 	writeFuncProto(b, &call, name, fn, cls, lang)
 	b.WriteString(" {\n")
@@ -75,7 +75,7 @@ func writeFunc(b *writerT, name string, fn clang.Cursor, cls *classCtx, lang Lan
 	b.WriteString("}\n")
 }
 
-func writeFuncProto(out, call *writerT, name string, fn clang.Cursor, cls *classCtx, lang Language) {
+func writeFuncProto[funcT fnCursor](out, call *writerT, name string, fn funcT, cls *classCtx, lang Language) {
 	var b writerT
 	b.WriteString(name)
 	b.WriteByte('(')
@@ -92,12 +92,12 @@ func writeFuncProto(out, call *writerT, name string, fn clang.Cursor, cls *class
 		b.WriteString(clang.String(cls.decl.Type()))
 		b.WriteString("* this")
 		call.WriteString("this->")
-		call.WriteString(clang.String(fn))
+		call.WriteString(fn.Name())
 	} else {
-		call.WriteString(fullName(fn))
+		call.WriteString(fn.FullName())
 	}
 	call.WriteByte('(')
-	for i := range c.Uint(fn.NumArguments()) {
+	for i := range fn.NumArguments() {
 		if i > 0 {
 			call.WriteString(", ")
 		}
@@ -106,9 +106,8 @@ func writeFuncProto(out, call *writerT, name string, fn clang.Cursor, cls *class
 		} else {
 			notFirst = true
 		}
-		arg := fn.Argument(i)
-		argName := clang.String(arg)
-		writeParam(&b, arg.Type(), argName)
+		argTyp, argName := fn.Argument(i)
+		writeParam(&b, argTyp, argName)
 		call.WriteString(argName)
 	}
 	b.WriteByte(')')
@@ -117,19 +116,6 @@ func writeFuncProto(out, call *writerT, name string, fn clang.Cursor, cls *class
 		out.WriteString(`extern "C" `)
 	}
 	writeParam(out, retType, b.String())
-}
-
-func fullName(decl clang.Cursor) string {
-	name := clang.String(decl)
-	for {
-		parent := decl.SemanticParent()
-		if kind := parent.Kind; kind != lc.Cursor_Namespace && kind != lc.Cursor_ClassDecl && kind != lc.Cursor_StructDecl {
-			break
-		}
-		name = clang.String(parent) + "::" + name
-		decl = parent
-	}
-	return name
 }
 
 func writeParam(b *writerT, typ lc.Type, name string) {

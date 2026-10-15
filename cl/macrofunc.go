@@ -41,7 +41,7 @@ type macroFuncParam struct {
 // regardless of whether they precede or follow the macro in the headers.
 func loadMacroFunc(ctx *pkgCtx, decl clang.Cursor, refName string) {
 	macroName := clang.String(decl)
-	paramNames, variadic, ok := macroParamNames(ctx, decl)
+	paramNames, variadic, ok := macroParamNames(decl)
 	if !ok {
 		return
 	}
@@ -59,7 +59,7 @@ func loadMacroFunc(ctx *pkgCtx, decl clang.Cursor, refName string) {
 // ")", ... so the parameters are the identifiers between the first "(" (which
 // immediately follows the macro name for a function-like macro) and the
 // matching ")".
-func macroParamNames(ctx *pkgCtx, decl clang.Cursor) (names []string, variadic, ok bool) {
+func macroParamNames(decl clang.Cursor) (names []string, variadic, ok bool) {
 	tu := clang.TU(decl)
 	tokens, dispose := tu.Tokenize(decl.Extent())
 	defer dispose()
