@@ -116,6 +116,15 @@ type Config struct {
 	// MacroIgnore specifies a list of C/C++ macro names to be ignored (optional).
 	MacroIgnore []string
 
+	// MacroFunc maps a function-like C macro name to the name of a reference
+	// function declared in the processed headers (optional). Each listed macro is
+	// wrapped as a function the same way static inline functions are: llcppg emits
+	// a C wrapper whose body invokes the macro, and a Go declaration linking to it.
+	// The reference function supplies the wrapper's return type and the parameter
+	// types (matched to the macro's parameters by name, then by position).
+	// See https://github.com/goplus/llcppg/issues/1051.
+	MacroFunc map[string]string
+
 	// TypeIgnore specifies a list of C/C++ type names to be ignored (optional).
 	TypeIgnore []string
 
@@ -282,11 +291,13 @@ func NewPackage(pkgPath, pkgName string, files []Source, conf *Config) (ret Pack
 		newCheck: newCheck, fnPrefix: conf.FuncPrefix, enumPrefix: conf.EnumPrefix, rename: rename,
 		nsPrefix: conf.NSPrefix, macroPrefix: conf.MacroPrefix, varPrefix: conf.VarPrefix,
 		nsIgnore: conf.NSIgnore, macroIgnore: conf.MacroIgnore, typeIgnore: conf.TypeIgnore,
-		fnIgnore: conf.FuncIgnore, classes: conf.Class, nonClasses: conf.NonClass, typdecls: typdecls,
+		macroFunc: conf.MacroFunc,
+		fnIgnore:  conf.FuncIgnore, classes: conf.Class, nonClasses: conf.NonClass, typdecls: typdecls,
 		pkgOf: conf.PackageOf, nameLookup: nameLookup, pubLookup: conf.PubFileLookup,
 		fileBases: make(map[clang.File]int), ovobjs: make(map[string]*overloadObj),
 		macroVals: make(map[string]any), types: make(map[string]typeObj),
-		lastSeen: make(map[string]none), impPkgs: make(map[string]none),
+		macroFuncSeen: make(map[string]none),
+		lastSeen:      make(map[string]none), impPkgs: make(map[string]none),
 		pubDeps: make(map[string]none), pubTyps: make(map[string]none),
 	}
 

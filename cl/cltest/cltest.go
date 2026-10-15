@@ -63,6 +63,10 @@ type Config struct {
 
 	MacroIgnore []string `json:"MacroIgnore"`
 
+	// MacroFunc maps a function-like C macro name to the name of a reference
+	// function declared in the processed headers (optional).
+	MacroFunc map[string]string `json:"MacroFunc"`
+
 	// convert capitalized, underscore-joined names to camel case, except names whose final
 	// segment is all-uppercase (acronyms/macros), which are kept as-is.
 	ForceCamelCase bool `json:"ForceCamelCase"`

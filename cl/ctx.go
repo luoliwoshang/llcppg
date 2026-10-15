@@ -143,6 +143,7 @@ type pkgCtx struct {
 	fieldAlias  map[string]string // C/C++ field name => Go name
 	typeIgnore  []string          // C/C++ type names to be ignored
 	macroIgnore []string          // C/C++ macro names to be ignored
+	macroFunc   map[string]string // function-like macro name => reference function name
 	fnIgnore    []string          // C/C++ function names to be ignored
 	nsIgnore    []string          // C/C++ namespace names to be ignored
 
@@ -155,15 +156,16 @@ type pkgCtx struct {
 
 	fileBases map[clang.File]int // clang.File => base
 
-	macroVals    map[string]any          // macroName => value
-	ovobjs       map[string]*overloadObj // objUSR => overload object
-	types        map[string]typeObj      // c/c++ fullName => type name object (include external types)
-	typdecls     map[string]typDecl      // c/c++ fullName => type declaration object (only local types)
-	impPkgs      map[string]none         // all loaded pub package paths, including transitive dependencies
-	pubDeps      map[string]none         // directly imported pub package paths
-	implicitPkgs map[string]none         // packages loaded by the default libc pub import
-	lastSeen     map[string]none         // last seen include file set (loaded include files)
-	thisSeen     map[string]none         // include file set seen in this translation unit
+	macroVals     map[string]any          // macroName => value
+	macroFuncSeen map[string]none         // MacroFunc keys matched to a macro definition
+	ovobjs        map[string]*overloadObj // objUSR => overload object
+	types         map[string]typeObj      // c/c++ fullName => type name object (include external types)
+	typdecls      map[string]typDecl      // c/c++ fullName => type declaration object (only local types)
+	impPkgs       map[string]none         // all loaded pub package paths, including transitive dependencies
+	pubDeps       map[string]none         // directly imported pub package paths
+	implicitPkgs  map[string]none         // packages loaded by the default libc pub import
+	lastSeen      map[string]none         // last seen include file set (loaded include files)
+	thisSeen      map[string]none         // include file set seen in this translation unit
 
 	loads    []compileUnit
 	compiles []compileUnit
@@ -247,6 +249,7 @@ func (p *pkgCtx) addCompileUnit(f compileFunc) {
 }
 
 func (p *pkgCtx) compile() {
+	p.validateMacroFunc()
 	p.postPreload()
 	doCompile(p, &p.loads)
 	p.postLoad()

@@ -53,11 +53,22 @@ func loadInclude(ctx *pkgCtx, decl clang.Cursor) {
 // -----------------------------------------------------------------------------
 
 func loadMacro(ctx *pkgCtx, decl clang.Cursor) {
+	origName := clang.String(decl)
 	if decl.IsMacroFunctionLike() != 0 {
+		if refName, ok := ctx.macroFunc[origName]; ok {
+			ctx.markMacroFuncSeen(origName)
+			loadMacroFunc(ctx, decl, refName)
+		}
 		return
 	}
 
-	origName := clang.String(decl)
+	if _, ok := ctx.macroFunc[origName]; ok {
+		// A MacroFunc key must name a function-like macro.
+		ctx.markMacroFuncSeen(origName)
+		ctx.errorf(decl, "MacroFunc %s: not a function-like macro", origName)
+		return
+	}
+
 	if ctx.isMacroIgnored(origName) {
 		if debugCompileDecl {
 			log.Println("macro", origName, "- ignored")
