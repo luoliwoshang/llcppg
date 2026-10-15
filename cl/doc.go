@@ -147,7 +147,20 @@ func toLineComments(raw string) []*ast.Comment {
 // whose only leading comment is the doc (types, consts), where no generated
 // directive needs to be preserved alongside it.
 func (p *pkgCtx) docCommentGroup(decl clang.Cursor) *ast.CommentGroup {
-	comments := p.docComments(decl)
+	return docCommentGroupRaw(p.docComments(decl))
+}
+
+// docCommentGroupMacro is docCommentGroup for macro definitions. libclang does
+// not attach doc comments to macro cursors, so the raw comment is recovered
+// from the source text preceding the #define rather than via RawComment.
+func (p *pkgCtx) docCommentGroupMacro(decl clang.Cursor) *ast.CommentGroup {
+	if !p.keepDoc {
+		return nil
+	}
+	return docCommentGroupRaw(toLineComments(clang.MacroRawComment(decl)))
+}
+
+func docCommentGroupRaw(comments []*ast.Comment) *ast.CommentGroup {
 	if len(comments) == 0 {
 		return nil
 	}

@@ -160,7 +160,7 @@ type clangMacroFunc struct {
 }
 
 func (fn *clangMacroFunc) RawComment() string {
-	raw := clang.RawComment(fn.Cursor)
+	raw := clang.MacroRawComment(fn.Cursor)
 	if raw == "" {
 		raw = clang.RawComment(fn.ref)
 	}

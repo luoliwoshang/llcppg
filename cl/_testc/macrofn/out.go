@@ -25,6 +25,8 @@ func (g GzFile) Gzgetc() c.Int {
 	return 0
 }
 
+// Initialize for deflation, filling in the version and stream size.
+//
 // llgo:link Streamp.DeflateInit C._llcppg_z_deflateInit
 func (strm Streamp) DeflateInit(level c.Int) c.Int {
 	return 0

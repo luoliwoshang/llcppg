@@ -2,4 +2,7 @@
 
 package zlib
 
-const LLGoPackage = "link: $(pkg-config --libs zlib); -lz"
+const (
+	LLGoPackage = "link: $(pkg-config --libs zlib); -lz"
+	LLGoFiles   = "-I/path/foo/include: _wrap/llcppg.c"
+)

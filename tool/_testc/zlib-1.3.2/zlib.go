@@ -35,6 +35,8 @@ const DEFAULT_STRATEGY = 0
 const BINARY = 0
 const TEXT = 1
 const ASCII = 1
+
+// for compatibility with 1.2.2 and earlier
 const UNKNOWN = 2
 const DEFLATED = 8
 const NULL = 0
@@ -69,6 +71,39 @@ type Off64T = c.LongLong
 type Stream = StreamS
 type Streamp = *Stream
 type GzFile = *GzFileS
+
+// deflateInit and inflateInit are macros to allow checking the zlib version
+// and the compiler's view of z_stream:
+//
+// llgo:link Streamp.DeflateInit C._llcppg_deflateInit
+func (self Streamp) DeflateInit(level c.Int) c.Int {
+	return 0
+}
+
+// llgo:link Streamp.InflateInit C._llcppg_inflateInit
+func (self Streamp) InflateInit() c.Int {
+	return 0
+}
+
+// llgo:link Streamp.DeflateInit2 C._llcppg_deflateInit2
+func (self Streamp) DeflateInit2(level c.Int, method c.Int, windowBits c.Int, memLevel c.Int, strategy c.Int) c.Int {
+	return 0
+}
+
+// llgo:link Streamp.InflateInit2 C._llcppg_inflateInit2
+func (self Streamp) InflateInit2(windowBits c.Int) c.Int {
+	return 0
+}
+
+// llgo:link Streamp.InflateBackInit C._llcppg_inflateBackInit
+func (self Streamp) InflateBackInit(windowBits c.Int, window *uint8) c.Int {
+	return 0
+}
+
+// llgo:link GzFile.Gzgetc C._llcppg_gzgetc
+func (self GzFile) Gzgetc() c.Int {
+	return 0
+}
 
 // basic functions
 //

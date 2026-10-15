@@ -2,395 +2,1187 @@
 
 package py
 
+// The normal alignment of 'long', in bytes.
 const ALIGNOF_LONG = 8
+
+// The normal alignment of 'max_align_t', in bytes.
 const ALIGNOF_MAX_ALIGN_T = 8
+
+// The normal alignment of 'size_t', in bytes.
 const ALIGNOF_SIZE_T = 8
+
+// Define if C doubles are 64-bit IEEE 754 binary format, stored with the
+// least significant byte first
 const DOUBLE_IS_LITTLE_ENDIAN_IEEE754 = 1
+
+// Define if --enable-ipv6 is specified
 const ENABLE_IPV6 = 1
+
+// Define if you have the 'accept' function.
 const HAVE_ACCEPT = 1
+
+// Define to 1 if you have the 'acosh' function.
 const HAVE_ACOSH = 1
+
+// struct addrinfo (netdb.h)
 const HAVE_ADDRINFO = 1
+
+// Define to 1 if you have the 'alarm' function.
 const HAVE_ALARM = 1
+
+// Define to 1 if you have the <alloca.h> header file.
 const HAVE_ALLOCA_H = 1
+
+// Define to 1 if you have the 'asinh' function.
 const HAVE_ASINH = 1
+
+// Define to 1 if you have the 'atanh' function.
 const HAVE_ATANH = 1
+
+// Define to 1 if you have the 'backtrace' function.
 const HAVE_BACKTRACE = 1
+
+// Define if you have the 'bind' function.
 const HAVE_BIND = 1
+
+// define to 1 if your sem_getvalue is broken.
 const HAVE_BROKEN_SEM_GETVALUE = 1
+
+// Has builtin __atomic_load_n() and __atomic_store_n() functions
 const HAVE_BUILTIN_ATOMIC = 1
+
+// Define to 1 if you have the 'chflags' function.
 const HAVE_CHFLAGS = 1
+
+// Define to 1 if you have the 'chmod' function.
 const HAVE_CHMOD = 1
+
+// Define to 1 if you have the 'chown' function.
 const HAVE_CHOWN = 1
+
+// Define if you have the 'chroot' function.
 const HAVE_CHROOT = 1
+
+// Define to 1 if you have the 'clock' function.
 const HAVE_CLOCK = 1
+
+// Define to 1 if you have the 'clock_getres' function.
 const HAVE_CLOCK_GETRES = 1
+
+// Define to 1 if you have the 'clock_gettime' function.
 const HAVE_CLOCK_GETTIME = 1
+
+// Define to 1 if you have the 'clock_settime' function.
 const HAVE_CLOCK_SETTIME = 1
+
+// Define to 1 if the system has the type 'clock_t'.
 const HAVE_CLOCK_T = 1
+
+// Define if the C compiler supports computed gotos.
 const HAVE_COMPUTED_GOTOS = 1
+
+// Define to 1 if you have the 'confstr' function.
 const HAVE_CONFSTR = 1
+
+// Define if you have the 'connect' function.
 const HAVE_CONNECT = 1
+
+// Define to 1 if you have the 'ctermid' function.
 const HAVE_CTERMID = 1
+
+// Define if you have the 'ctermid_r' function.
 const HAVE_CTERMID_R = 1
+
+// Define if you have the 'ESCDELAY' variable.
 const HAVE_CURSES_ESCDELAY = 1
+
+// Define if you have the 'filter' function.
 const HAVE_CURSES_FILTER = 1
+
+// Define if you have the 'getmouse' function with the X/Open signature.
 const HAVE_CURSES_GETMOUSE = 1
+
+// Define to 1 if you have the <curses.h> header file.
 const HAVE_CURSES_H = 1
+
+// Define if you have the 'has_key' function.
 const HAVE_CURSES_HAS_KEY = 1
+
+// Define if you have the 'immedok' function.
 const HAVE_CURSES_IMMEDOK = 1
+
+// Define if you have the 'is_pad' function.
 const HAVE_CURSES_IS_PAD = 1
+
+// Define if you have the 'is_term_resized' function.
 const HAVE_CURSES_IS_TERM_RESIZED = 1
+
+// Define if you have the 'resizeterm' function.
 const HAVE_CURSES_RESIZETERM = 1
+
+// Define if you have the 'resize_term' function.
 const HAVE_CURSES_RESIZE_TERM = 1
+
+// Define if you have the 'set_escdelay' function.
 const HAVE_CURSES_SET_ESCDELAY = 1
+
+// Define if you have the 'set_tabsize' function.
 const HAVE_CURSES_SET_TABSIZE = 1
+
+// Define if you have the 'syncok' function.
 const HAVE_CURSES_SYNCOK = 1
+
+// Define if you have the 'TABSIZE' variable.
 const HAVE_CURSES_TABSIZE = 1
+
+// Define if you have the 'typeahead' function.
 const HAVE_CURSES_TYPEAHEAD = 1
+
+// Define if you have the 'use_env' function.
 const HAVE_CURSES_USE_ENV = 1
+
+// Define if you have the 'wchgat' function.
 const HAVE_CURSES_WCHGAT = 1
+
+// Define to 1 if you have the <db.h> header file.
 const HAVE_DB_H = 1
+
+// Define to 1 if you have the declaration of 'RTLD_DEEPBIND', and to 0 if you
+// don't.
 const HAVE_DECL_RTLD_DEEPBIND = 0
+
+// Define to 1 if you have the declaration of 'RTLD_GLOBAL', and to 0 if you
+// don't.
 const HAVE_DECL_RTLD_GLOBAL = 1
+
+// Define to 1 if you have the declaration of 'RTLD_LAZY', and to 0 if you
+// don't.
 const HAVE_DECL_RTLD_LAZY = 1
+
+// Define to 1 if you have the declaration of 'RTLD_LOCAL', and to 0 if you
+// don't.
 const HAVE_DECL_RTLD_LOCAL = 1
+
+// Define to 1 if you have the declaration of 'RTLD_MEMBER', and to 0 if you
+// don't.
 const HAVE_DECL_RTLD_MEMBER = 0
+
+// Define to 1 if you have the declaration of 'RTLD_NODELETE', and to 0 if you
+// don't.
 const HAVE_DECL_RTLD_NODELETE = 1
+
+// Define to 1 if you have the declaration of 'RTLD_NOLOAD', and to 0 if you
+// don't.
 const HAVE_DECL_RTLD_NOLOAD = 1
+
+// Define to 1 if you have the declaration of 'RTLD_NOW', and to 0 if you
+// don't.
 const HAVE_DECL_RTLD_NOW = 1
+
+// Define to 1 if you have the declaration of 'UT_NAMESIZE', and to 0 if you
+// don't.
 const HAVE_DECL_UT_NAMESIZE = 1
+
+// Define to 1 if you have the device macros.
 const HAVE_DEVICE_MACROS = 1
+
+// Define to 1 if you have the /dev/ptmx device file.
 const HAVE_DEV_PTMX = 1
+
+// Define to 1 if the dirent structure has a d_type field
 const HAVE_DIRENT_D_TYPE = 1
+
+// Define to 1 if you have the <dirent.h> header file, and it defines 'DIR'.
 const HAVE_DIRENT_H = 1
+
+// Define if you have the 'dirfd' function or macro.
 const HAVE_DIRFD = 1
+
+// Define to 1 if you have the 'dladdr' function.
 const HAVE_DLADDR = 1
+
+// Define to 1 if you have the <dlfcn.h> header file.
 const HAVE_DLFCN_H = 1
+
+// Define to 1 if you have the 'dlopen' function.
 const HAVE_DLOPEN = 1
+
+// Define to 1 if you have the 'dup' function.
 const HAVE_DUP = 1
+
+// Define to 1 if you have the 'dup2' function.
 const HAVE_DUP2 = 1
+
+// Define if you have the '_dyld_shared_cache_contains_path' function.
 const HAVE_DYLD_SHARED_CACHE_CONTAINS_PATH = 1
+
+// Defined when any dynamic module loading is enabled.
 const HAVE_DYNAMIC_LOADING = 1
+
+// Define to 1 if you have the 'erf' function.
 const HAVE_ERF = 1
+
+// Define to 1 if you have the 'erfc' function.
 const HAVE_ERFC = 1
+
+// Define to 1 if you have the <errno.h> header file.
 const HAVE_ERRNO_H = 1
+
+// Define to 1 if you have the <execinfo.h> header file.
 const HAVE_EXECINFO_H = 1
+
+// Define to 1 if you have the 'execv' function.
 const HAVE_EXECV = 1
+
+// Define to 1 if you have the 'expm1' function.
 const HAVE_EXPM1 = 1
+
+// Define to 1 if you have the 'faccessat' function.
 const HAVE_FACCESSAT = 1
+
+// Define if you have the 'fchdir' function.
 const HAVE_FCHDIR = 1
+
+// Define to 1 if you have the 'fchmod' function.
 const HAVE_FCHMOD = 1
+
+// Define to 1 if you have the 'fchmodat' function.
 const HAVE_FCHMODAT = 1
+
+// Define to 1 if you have the 'fchown' function.
 const HAVE_FCHOWN = 1
+
+// Define to 1 if you have the 'fchownat' function.
 const HAVE_FCHOWNAT = 1
+
+// Define to 1 if you have the <fcntl.h> header file.
 const HAVE_FCNTL_H = 1
+
+// Define to 1 if you have the 'fdopendir' function.
 const HAVE_FDOPENDIR = 1
+
+// Define if you have the 'ffi_closure_alloc' function.
 const HAVE_FFI_CLOSURE_ALLOC = 1
+
+// Define if you have the 'ffi_prep_cif_var' function.
 const HAVE_FFI_PREP_CIF_VAR = 1
+
+// Define if you have the 'ffi_prep_closure_loc' function.
 const HAVE_FFI_PREP_CLOSURE_LOC = 1
+
+// Define to 1 if you have the 'flock' function.
 const HAVE_FLOCK = 1
+
+// Define to 1 if you have the 'fork' function.
 const HAVE_FORK = 1
+
+// Define to 1 if you have the 'forkpty' function.
 const HAVE_FORKPTY = 1
+
+// Define to 1 if you have the 'fpathconf' function.
 const HAVE_FPATHCONF = 1
+
+// Define to 1 if you have the 'fseeko' function.
 const HAVE_FSEEKO = 1
+
+// Define to 1 if you have the 'fstatat' function.
 const HAVE_FSTATAT = 1
+
+// Define to 1 if you have the 'fstatvfs' function.
 const HAVE_FSTATVFS = 1
+
+// Define if you have the 'fsync' function.
 const HAVE_FSYNC = 1
+
+// Define to 1 if you have the 'ftello' function.
 const HAVE_FTELLO = 1
+
+// Define to 1 if you have the 'ftime' function.
 const HAVE_FTIME = 1
+
+// Define to 1 if you have the 'ftruncate' function.
 const HAVE_FTRUNCATE = 1
+
+// Define to 1 if you have the 'futimens' function.
 const HAVE_FUTIMENS = 1
+
+// Define to 1 if you have the 'futimes' function.
 const HAVE_FUTIMES = 1
+
+// Define to 1 if you have the 'gai_strerror' function.
 const HAVE_GAI_STRERROR = 1
+
+// Define if your compiler provides __uint128_t
 const HAVE_GCC_UINT128_T = 1
+
+// Define if you have the getaddrinfo function.
 const HAVE_GETADDRINFO = 1
+
+// Define this if you have flockfile(), getc_unlocked(), and funlockfile()
 const HAVE_GETC_UNLOCKED = 1
+
+// Define to 1 if you have the 'getegid' function.
 const HAVE_GETEGID = 1
+
+// Define to 1 if you have the 'getentropy' function.
 const HAVE_GETENTROPY = 1
+
+// Define to 1 if you have the 'geteuid' function.
 const HAVE_GETEUID = 1
+
+// Define to 1 if you have the 'getgid' function.
 const HAVE_GETGID = 1
+
+// Define to 1 if you have the 'getgrent' function.
 const HAVE_GETGRENT = 1
+
+// Define to 1 if you have the 'getgrgid' function.
 const HAVE_GETGRGID = 1
+
+// Define to 1 if you have the 'getgrgid_r' function.
 const HAVE_GETGRGID_R = 1
+
+// Define to 1 if you have the 'getgrnam_r' function.
 const HAVE_GETGRNAM_R = 1
+
+// Define to 1 if you have the 'getgrouplist' function.
 const HAVE_GETGROUPLIST = 1
+
+// Define to 1 if you have the 'getgroups' function.
 const HAVE_GETGROUPS = 1
+
+// Define if you have the 'gethostbyaddr' function.
 const HAVE_GETHOSTBYADDR = 1
+
+// Define to 1 if you have the 'gethostbyname' function.
 const HAVE_GETHOSTBYNAME = 1
+
+// Define to 1 if you have the 'gethostname' function.
 const HAVE_GETHOSTNAME = 1
+
+// Define to 1 if you have the 'getitimer' function.
 const HAVE_GETITIMER = 1
+
+// Define to 1 if you have the 'getloadavg' function.
 const HAVE_GETLOADAVG = 1
+
+// Define to 1 if you have the 'getlogin' function.
 const HAVE_GETLOGIN = 1
+
+// Define to 1 if you have the 'getlogin_r' function.
 const HAVE_GETLOGIN_R = 1
+
+// Define to 1 if you have the 'getnameinfo' function.
 const HAVE_GETNAMEINFO = 1
+
+// Define if you have the 'getpagesize' function.
 const HAVE_GETPAGESIZE = 1
+
+// Define if you have the 'getpeername' function.
 const HAVE_GETPEERNAME = 1
+
+// Define to 1 if you have the 'getpgid' function.
 const HAVE_GETPGID = 1
+
+// Define to 1 if you have the 'getpgrp' function.
 const HAVE_GETPGRP = 1
+
+// Define to 1 if you have the 'getpid' function.
 const HAVE_GETPID = 1
+
+// Define to 1 if you have the 'getppid' function.
 const HAVE_GETPPID = 1
+
+// Define to 1 if you have the 'getpriority' function.
 const HAVE_GETPRIORITY = 1
+
+// Define if you have the 'getprotobyname' function.
 const HAVE_GETPROTOBYNAME = 1
+
+// Define to 1 if you have the 'getpwent' function.
 const HAVE_GETPWENT = 1
+
+// Define to 1 if you have the 'getpwnam_r' function.
 const HAVE_GETPWNAM_R = 1
+
+// Define to 1 if you have the 'getpwuid' function.
 const HAVE_GETPWUID = 1
+
+// Define to 1 if you have the 'getpwuid_r' function.
 const HAVE_GETPWUID_R = 1
+
+// Define to 1 if you have the 'getrusage' function.
 const HAVE_GETRUSAGE = 1
+
+// Define if you have the 'getservbyname' function.
 const HAVE_GETSERVBYNAME = 1
+
+// Define if you have the 'getservbyport' function.
 const HAVE_GETSERVBYPORT = 1
+
+// Define to 1 if you have the 'getsid' function.
 const HAVE_GETSID = 1
+
+// Define if you have the 'getsockname' function.
 const HAVE_GETSOCKNAME = 1
+
+// Define to 1 if you have the 'getuid' function.
 const HAVE_GETUID = 1
+
+// Define to 1 if you have the 'getwd' function.
 const HAVE_GETWD = 1
+
+// Define to 1 if you have the 'grantpt' function.
 const HAVE_GRANTPT = 1
+
+// Define to 1 if you have the <grp.h> header file.
 const HAVE_GRP_H = 1
+
+// Define if you have the 'hstrerror' function.
 const HAVE_HSTRERROR = 1
+
+// Define to 1 if you have the 'if_nameindex' function.
 const HAVE_IF_NAMEINDEX = 1
+
+// Define if you have the 'inet_aton' function.
 const HAVE_INET_ATON = 1
+
+// Define if you have the 'inet_ntoa' function.
 const HAVE_INET_NTOA = 1
+
+// Define if you have the 'inet_pton' function.
 const HAVE_INET_PTON = 1
+
+// Define to 1 if you have the 'initgroups' function.
 const HAVE_INITGROUPS = 1
+
+// Define to 1 if you have the <inttypes.h> header file.
 const HAVE_INTTYPES_H = 1
+
+// Define to 1 if you have the 'kill' function.
 const HAVE_KILL = 1
+
+// Define to 1 if you have the 'killpg' function.
 const HAVE_KILLPG = 1
+
+// Define if you have the 'kqueue' function.
 const HAVE_KQUEUE = 1
+
+// Define to 1 if you have the <langinfo.h> header file.
 const HAVE_LANGINFO_H = 1
+
+// Define to 1 if you have the 'lchflags' function.
 const HAVE_LCHFLAGS = 1
+
+// Define to 1 if you have the 'lchmod' function.
 const HAVE_LCHMOD = 1
+
+// Define to 1 if you have the 'lchown' function.
 const HAVE_LCHOWN = 1
+
+// Define to 1 if you have the 'dl' library (-ldl).
 const HAVE_LIBDL = 1
+
+// Define to 1 if you have the 'sqlite3' library (-lsqlite3).
 const HAVE_LIBSQLITE3 = 1
+
+// Define if you have the 'link' function.
 const HAVE_LINK = 1
+
+// Define to 1 if you have the 'linkat' function.
 const HAVE_LINKAT = 1
+
+// Define if you have the 'listen' function.
 const HAVE_LISTEN = 1
+
+// Define to 1 if you have the 'lockf' function.
 const HAVE_LOCKF = 1
+
+// Define to 1 if you have the 'log1p' function.
 const HAVE_LOG1P = 1
+
+// Define to 1 if you have the 'log2' function.
 const HAVE_LOG2 = 1
+
+// Define to 1 if you have the `login_tty' function.
 const HAVE_LOGIN_TTY = 1
+
+// Define to 1 if the system has the type 'long double'.
 const HAVE_LONG_DOUBLE = 1
+
+// Define to 1 if you have the 'lstat' function.
 const HAVE_LSTAT = 1
+
+// Define to 1 if you have the 'lutimes' function.
 const HAVE_LUTIMES = 1
+
+// Define to 1 if you have the 'madvise' function.
 const HAVE_MADVISE = 1
+
+// Define this if you have the makedev macro.
 const HAVE_MAKEDEV = 1
+
+// Define if you have the 'MAXLOGNAME' constant.
 const HAVE_MAXLOGNAME = 1
+
+// Define to 1 if you have the 'mbrtowc' function.
 const HAVE_MBRTOWC = 1
+
+// Define to 1 if you have the 'mkdirat' function.
 const HAVE_MKDIRAT = 1
+
+// Define to 1 if you have the 'mkfifo' function.
 const HAVE_MKFIFO = 1
+
+// Define to 1 if you have the 'mkfifoat' function.
 const HAVE_MKFIFOAT = 1
+
+// Define to 1 if you have the 'mknod' function.
 const HAVE_MKNOD = 1
+
+// Define to 1 if you have the 'mknodat' function.
 const HAVE_MKNODAT = 1
+
+// Define to 1 if you have the 'mktime' function.
 const HAVE_MKTIME = 1
+
+// Define to 1 if you have the 'mmap' function.
 const HAVE_MMAP = 1
+
+// Define to 1 if you have the 'nanosleep' function.
 const HAVE_NANOSLEEP = 1
+
+// Define if you have the 'ncursesw' library
 const HAVE_NCURSESW = 1
+
+// Define to 1 if you have the <ncurses.h> header file.
 const HAVE_NCURSES_H = 1
+
+// Define to 1 if you have the <ndbm.h> header file.
 const HAVE_NDBM_H = 1
+
+// Define to 1 if you have the <netdb.h> header file.
 const HAVE_NETDB_H = 1
+
+// Define to 1 if you have the <netinet/in.h> header file.
 const HAVE_NETINET_IN_H = 1
+
+// Define to 1 if you have the <net/ethernet.h> header file.
 const HAVE_NET_ETHERNET_H = 1
+
+// Define to 1 if you have the <net/if.h> header file.
 const HAVE_NET_IF_H = 1
+
+// Define to 1 if you have the 'nice' function.
 const HAVE_NICE = 1
+
+// Define to 1 if you have the 'openat' function.
 const HAVE_OPENAT = 1
+
+// Define to 1 if you have the 'opendir' function.
 const HAVE_OPENDIR = 1
+
+// Define to 1 if you have the 'openpty' function.
 const HAVE_OPENPTY = 1
+
+// Define to 1 if you have the <panel.h> header file.
 const HAVE_PANEL_H = 1
+
+// Define to 1 if you have the 'pathconf' function.
 const HAVE_PATHCONF = 1
+
+// Define to 1 if you have the 'pause' function.
 const HAVE_PAUSE = 1
+
+// Define to 1 if you have the 'pipe' function.
 const HAVE_PIPE = 1
+
+// Define to 1 if you have the 'poll' function.
 const HAVE_POLL = 1
+
+// Define to 1 if you have the <poll.h> header file.
 const HAVE_POLL_H = 1
+
+// Define to 1 if you have the 'posix_openpt' function.
 const HAVE_POSIX_OPENPT = 1
+
+// Define to 1 if you have the 'posix_spawn' function.
 const HAVE_POSIX_SPAWN = 1
+
+// Define to 1 if you have the 'posix_spawnp' function.
 const HAVE_POSIX_SPAWNP = 1
+
+// Define to 1 if you have the 'pread' function.
 const HAVE_PREAD = 1
+
+// Define to 1 if you have the 'preadv' function.
 const HAVE_PREADV = 1
+
+// Define if your compiler supports function prototype
 const HAVE_PROTOTYPES = 1
+
+// Define to 1 if you have the 'pthread_cond_timedwait_relative_np' function.
 const HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE_NP = 1
+
+// Define to 1 if you have the 'pthread_getname_np' function.
 const HAVE_PTHREAD_GETNAME_NP = 1
+
+// Define to 1 if you have the <pthread.h> header file.
 const HAVE_PTHREAD_H = 1
+
+// Define to 1 if you have the 'pthread_kill' function.
 const HAVE_PTHREAD_KILL = 1
+
+// Define to 1 if you have the 'pthread_setname_np' function.
 const HAVE_PTHREAD_SETNAME_NP = 1
+
+// Define to 1 if you have the 'pthread_sigmask' function.
 const HAVE_PTHREAD_SIGMASK = 1
+
+// Define to 1 if you have the 'ptsname' function.
 const HAVE_PTSNAME = 1
+
+// Define to 1 if you have the 'ptsname_r' function.
 const HAVE_PTSNAME_R = 1
+
+// Define to 1 if you have the 'pwrite' function.
 const HAVE_PWRITE = 1
+
+// Define to 1 if you have the 'pwritev' function.
 const HAVE_PWRITEV = 1
+
+// Define to 1 if you have the 'readlink' function.
 const HAVE_READLINK = 1
+
+// Define to 1 if you have the 'readlinkat' function.
 const HAVE_READLINKAT = 1
+
+// Define to 1 if you have the 'readv' function.
 const HAVE_READV = 1
+
+// Define to 1 if you have the 'realpath' function.
 const HAVE_REALPATH = 1
+
+// Define if you have the 'recvfrom' function.
 const HAVE_RECVFROM = 1
+
+// Define to 1 if you have the 'renameat' function.
 const HAVE_RENAMEAT = 1
+
+// Define if you have readline 2.2
 const HAVE_RL_COMPLETION_APPEND_CHARACTER = 1
+
+// Define if you have readline 4.0
 const HAVE_RL_COMPLETION_DISPLAY_MATCHES_HOOK = 1
+
+// Define if you have readline 4.2
 const HAVE_RL_COMPLETION_MATCHES = 1
+
+// Define if you have readline 4.0
 const HAVE_RL_PRE_INPUT_HOOK = 1
+
+// Define to 1 if you have the 'sched_get_priority_max' function.
 const HAVE_SCHED_GET_PRIORITY_MAX = 1
+
+// Define to 1 if you have the <sched.h> header file.
 const HAVE_SCHED_H = 1
+
+// Define to 1 if you have the 'sem_getvalue' function.
 const HAVE_SEM_GETVALUE = 1
+
+// Define to 1 if you have the 'sem_open' function.
 const HAVE_SEM_OPEN = 1
+
+// Define to 1 if you have the 'sem_unlink' function.
 const HAVE_SEM_UNLINK = 1
+
+// Define to 1 if you have the 'sendfile' function.
 const HAVE_SENDFILE = 1
+
+// Define if you have the 'sendto' function.
 const HAVE_SENDTO = 1
+
+// Define to 1 if you have the 'setegid' function.
 const HAVE_SETEGID = 1
+
+// Define to 1 if you have the 'seteuid' function.
 const HAVE_SETEUID = 1
+
+// Define to 1 if you have the 'setgid' function.
 const HAVE_SETGID = 1
+
+// Define if you have the 'setgroups' function.
 const HAVE_SETGROUPS = 1
+
+// Define to 1 if you have the 'sethostname' function.
 const HAVE_SETHOSTNAME = 1
+
+// Define to 1 if you have the 'setitimer' function.
 const HAVE_SETITIMER = 1
+
+// Define to 1 if you have the <setjmp.h> header file.
 const HAVE_SETJMP_H = 1
+
+// Define to 1 if you have the 'setlocale' function.
 const HAVE_SETLOCALE = 1
+
+// Define to 1 if you have the 'setpgid' function.
 const HAVE_SETPGID = 1
+
+// Define to 1 if you have the 'setpgrp' function.
 const HAVE_SETPGRP = 1
+
+// Define to 1 if you have the 'setpriority' function.
 const HAVE_SETPRIORITY = 1
+
+// Define to 1 if you have the 'setregid' function.
 const HAVE_SETREGID = 1
+
+// Define to 1 if you have the 'setreuid' function.
 const HAVE_SETREUID = 1
+
+// Define to 1 if you have the 'setsid' function.
 const HAVE_SETSID = 1
+
+// Define if you have the 'setsockopt' function.
 const HAVE_SETSOCKOPT = 1
+
+// Define to 1 if you have the 'setuid' function.
 const HAVE_SETUID = 1
+
+// Define to 1 if you have the 'setvbuf' function.
 const HAVE_SETVBUF = 1
+
+// Define to 1 if you have the 'shm_open' function.
 const HAVE_SHM_OPEN = 1
+
+// Define to 1 if you have the 'shm_unlink' function.
 const HAVE_SHM_UNLINK = 1
+
+// Define to 1 if you have the 'shutdown' function.
 const HAVE_SHUTDOWN = 1
+
+// Define to 1 if you have the 'sigaction' function.
 const HAVE_SIGACTION = 1
+
+// Define to 1 if you have the 'sigaltstack' function.
 const HAVE_SIGALTSTACK = 1
+
+// Define to 1 if you have the 'sigfillset' function.
 const HAVE_SIGFILLSET = 1
+
+// Define to 1 if 'si_band' is a member of 'siginfo_t'.
 const HAVE_SIGINFO_T_SI_BAND = 1
+
+// Define to 1 if you have the 'siginterrupt' function.
 const HAVE_SIGINTERRUPT = 1
+
+// Define to 1 if you have the <signal.h> header file.
 const HAVE_SIGNAL_H = 1
+
+// Define to 1 if you have the 'sigpending' function.
 const HAVE_SIGPENDING = 1
+
+// Define to 1 if you have the 'sigrelse' function.
 const HAVE_SIGRELSE = 1
+
+// Define to 1 if you have the 'sigwait' function.
 const HAVE_SIGWAIT = 1
+
+// Define to 1 if you have the 'snprintf' function.
 const HAVE_SNPRINTF = 1
+
+// Define if sockaddr has sa_len member
 const HAVE_SOCKADDR_SA_LEN = 1
+
+// struct sockaddr_storage (sys/socket.h)
 const HAVE_SOCKADDR_STORAGE = 1
+
+// Define if you have the 'socket' function.
 const HAVE_SOCKET = 1
+
+// Define if you have the 'socketpair' function.
 const HAVE_SOCKETPAIR = 1
+
+// Define to 1 if the system has the type 'socklen_t'.
 const HAVE_SOCKLEN_T = 1
+
+// Define to 1 if you have the <spawn.h> header file.
 const HAVE_SPAWN_H = 1
+
+// Define to 1 if the system has the type 'ssize_t'.
 const HAVE_SSIZE_T = 1
+
+// Define to 1 if you have the 'statvfs' function.
 const HAVE_STATVFS = 1
+
+// Define if you have struct stat.st_mtimensec
 const HAVE_STAT_TV_NSEC2 = 1
+
+// Define to 1 if you have the <stdint.h> header file.
 const HAVE_STDINT_H = 1
+
+// Define to 1 if you have the <stdio.h> header file.
 const HAVE_STDIO_H = 1
+
+// Define to 1 if you have the <stdlib.h> header file.
 const HAVE_STDLIB_H = 1
+
+// Has stdatomic.h with atomic_int and atomic_uintptr_t
 const HAVE_STD_ATOMIC = 1
+
+// Define to 1 if you have the 'strftime' function.
 const HAVE_STRFTIME = 1
+
+// Define to 1 if you have the <strings.h> header file.
 const HAVE_STRINGS_H = 1
+
+// Define to 1 if you have the <string.h> header file.
 const HAVE_STRING_H = 1
+
+// Define to 1 if you have the 'strlcpy' function.
 const HAVE_STRLCPY = 1
+
+// Define to 1 if you have the 'strsignal' function.
 const HAVE_STRSIGNAL = 1
+
+// Define to 1 if 'pw_gecos' is a member of 'struct passwd'.
 const HAVE_STRUCT_PASSWD_PW_GECOS = 1
+
+// Define to 1 if 'pw_passwd' is a member of 'struct passwd'.
 const HAVE_STRUCT_PASSWD_PW_PASSWD = 1
+
+// Define to 1 if 'st_birthtime' is a member of 'struct stat'.
 const HAVE_STRUCT_STAT_ST_BIRTHTIME = 1
+
+// Define to 1 if 'st_blksize' is a member of 'struct stat'.
 const HAVE_STRUCT_STAT_ST_BLKSIZE = 1
+
+// Define to 1 if 'st_blocks' is a member of 'struct stat'.
 const HAVE_STRUCT_STAT_ST_BLOCKS = 1
+
+// Define to 1 if 'st_flags' is a member of 'struct stat'.
 const HAVE_STRUCT_STAT_ST_FLAGS = 1
+
+// Define to 1 if 'st_gen' is a member of 'struct stat'.
 const HAVE_STRUCT_STAT_ST_GEN = 1
+
+// Define to 1 if 'st_rdev' is a member of 'struct stat'.
 const HAVE_STRUCT_STAT_ST_RDEV = 1
+
+// Define to 1 if 'tm_zone' is a member of 'struct tm'.
 const HAVE_STRUCT_TM_TM_ZONE = 1
+
+// Define if you have the 'symlink' function.
 const HAVE_SYMLINK = 1
+
+// Define to 1 if you have the 'symlinkat' function.
 const HAVE_SYMLINKAT = 1
+
+// Define to 1 if you have the 'sync' function.
 const HAVE_SYNC = 1
+
+// Define to 1 if you have the 'sysconf' function.
 const HAVE_SYSCONF = 1
+
+// Define to 1 if you have the 'sysctlbyname' function.
 const HAVE_SYSCTLBYNAME = 1
+
+// Define to 1 if you have the <sysexits.h> header file.
 const HAVE_SYSEXITS_H = 1
+
+// Define to 1 if you have the <syslog.h> header file.
 const HAVE_SYSLOG_H = 1
+
+// Define to 1 if you have the 'system' function.
 const HAVE_SYSTEM = 1
+
+// Define to 1 if you have the <sys/event.h> header file.
 const HAVE_SYS_EVENT_H = 1
+
+// Define to 1 if you have the <sys/file.h> header file.
 const HAVE_SYS_FILE_H = 1
+
+// Define to 1 if you have the <sys/ioctl.h> header file.
 const HAVE_SYS_IOCTL_H = 1
+
+// Define to 1 if you have the <sys/kern_control.h> header file.
 const HAVE_SYS_KERN_CONTROL_H = 1
+
+// Define to 1 if you have the <sys/lock.h> header file.
 const HAVE_SYS_LOCK_H = 1
+
+// Define to 1 if you have the <sys/mman.h> header file.
 const HAVE_SYS_MMAN_H = 1
+
+// Define to 1 if you have the <sys/param.h> header file.
 const HAVE_SYS_PARAM_H = 1
+
+// Define to 1 if you have the <sys/poll.h> header file.
 const HAVE_SYS_POLL_H = 1
+
+// Define to 1 if you have the <sys/random.h> header file.
 const HAVE_SYS_RANDOM_H = 1
+
+// Define to 1 if you have the <sys/resource.h> header file.
 const HAVE_SYS_RESOURCE_H = 1
+
+// Define to 1 if you have the <sys/select.h> header file.
 const HAVE_SYS_SELECT_H = 1
+
+// Define to 1 if you have the <sys/socket.h> header file.
 const HAVE_SYS_SOCKET_H = 1
+
+// Define to 1 if you have the <sys/statvfs.h> header file.
 const HAVE_SYS_STATVFS_H = 1
+
+// Define to 1 if you have the <sys/stat.h> header file.
 const HAVE_SYS_STAT_H = 1
+
+// Define to 1 if you have the <sys/syscall.h> header file.
 const HAVE_SYS_SYSCALL_H = 1
+
+// Define to 1 if you have the <sys/sysctl.h> header file.
 const HAVE_SYS_SYSCTL_H = 1
+
+// Define to 1 if you have the <sys/sys_domain.h> header file.
 const HAVE_SYS_SYS_DOMAIN_H = 1
+
+// Define to 1 if you have the <sys/times.h> header file.
 const HAVE_SYS_TIMES_H = 1
+
+// Define to 1 if you have the <sys/time.h> header file.
 const HAVE_SYS_TIME_H = 1
+
+// Define to 1 if you have the <sys/types.h> header file.
 const HAVE_SYS_TYPES_H = 1
+
+// Define to 1 if you have the <sys/uio.h> header file.
 const HAVE_SYS_UIO_H = 1
+
+// Define to 1 if you have the <sys/un.h> header file.
 const HAVE_SYS_UN_H = 1
+
+// Define to 1 if you have the <sys/utsname.h> header file.
 const HAVE_SYS_UTSNAME_H = 1
+
+// Define to 1 if you have the <sys/wait.h> header file.
 const HAVE_SYS_WAIT_H = 1
+
+// Define to 1 if you have the <sys/xattr.h> header file.
 const HAVE_SYS_XATTR_H = 1
+
+// Define to 1 if you have the 'tcgetpgrp' function.
 const HAVE_TCGETPGRP = 1
+
+// Define to 1 if you have the 'tcsetpgrp' function.
 const HAVE_TCSETPGRP = 1
+
+// Define to 1 if you have the 'tempnam' function.
 const HAVE_TEMPNAM = 1
+
+// Define to 1 if you have the <termios.h> header file.
 const HAVE_TERMIOS_H = 1
+
+// Define to 1 if you have the <term.h> header file.
 const HAVE_TERM_H = 1
+
+// Define to 1 if you have the 'timegm' function.
 const HAVE_TIMEGM = 1
+
+// Define to 1 if you have the 'times' function.
 const HAVE_TIMES = 1
+
+// Define to 1 if you have the 'tmpfile' function.
 const HAVE_TMPFILE = 1
+
+// Define to 1 if you have the 'tmpnam' function.
 const HAVE_TMPNAM = 1
+
+// Define to 1 if your 'struct tm' has 'tm_zone'. Deprecated, use
+// 'HAVE_STRUCT_TM_TM_ZONE' instead.
 const HAVE_TM_ZONE = 1
+
+// Define to 1 if you have the 'truncate' function.
 const HAVE_TRUNCATE = 1
+
+// Define to 1 if you have the 'ttyname_r' function.
 const HAVE_TTYNAME_R = 1
+
+// Define to 1 if you have the 'umask' function.
 const HAVE_UMASK = 1
+
+// Define to 1 if you have the 'uname' function.
 const HAVE_UNAME = 1
+
+// Define to 1 if you have the <unistd.h> header file.
 const HAVE_UNISTD_H = 1
+
+// Define to 1 if you have the 'unlinkat' function.
 const HAVE_UNLINKAT = 1
+
+// Define to 1 if you have the 'unlockpt' function.
 const HAVE_UNLOCKPT = 1
+
+// Define to 1 if you have the <util.h> header file.
 const HAVE_UTIL_H = 1
+
+// Define to 1 if you have the 'utimensat' function.
 const HAVE_UTIMENSAT = 1
+
+// Define to 1 if you have the 'utimes' function.
 const HAVE_UTIMES = 1
+
+// Define to 1 if you have the <utime.h> header file.
 const HAVE_UTIME_H = 1
+
+// Define to 1 if you have the <utmp.h> header file.
 const HAVE_UTMP_H = 1
+
+// Define if you have the 'HAVE_UT_NAMESIZE' constant.
 const HAVE_UT_NAMESIZE = 1
+
+// Define to 1 if you have the <uuid/uuid.h> header file.
 const HAVE_UUID_UUID_H = 1
+
+// Define to 1 if you have the 'vfork' function.
 const HAVE_VFORK = 1
+
+// Define to 1 if you have the 'wait' function.
 const HAVE_WAIT = 1
+
+// Define to 1 if you have the 'wait3' function.
 const HAVE_WAIT3 = 1
+
+// Define to 1 if you have the 'wait4' function.
 const HAVE_WAIT4 = 1
+
+// Define to 1 if you have the 'waitid' function.
 const HAVE_WAITID = 1
+
+// Define to 1 if you have the 'waitpid' function.
 const HAVE_WAITPID = 1
+
+// Define if the compiler provides a wchar.h header file.
 const HAVE_WCHAR_H = 1
+
+// Define to 1 if you have the 'wcscoll' function.
 const HAVE_WCSCOLL = 1
+
+// Define to 1 if you have the 'wcsftime' function.
 const HAVE_WCSFTIME = 1
+
+// Define to 1 if you have the 'wcsxfrm' function.
 const HAVE_WCSXFRM = 1
+
+// Define to 1 if you have the 'wmemcmp' function.
 const HAVE_WMEMCMP = 1
+
+// Define if tzset() actually switches the local timezone in a meaningful way.
 const HAVE_WORKING_TZSET = 1
+
+// Define to 1 if you have the 'writev' function.
 const HAVE_WRITEV = 1
+
+// Define if the zlib library has inflateCopy
 const HAVE_ZLIB_COPY = 1
+
+// Define to 1 if the system has the type '__uint128_t'.
 const HAVE___UINT128_T = 1
+
+// Define if mvwdelch in curses.h is an expression.
 const MVWDELCH_IS_EXPRESSION = 1
+
+// Defined if PTHREAD_SCOPE_SYSTEM supported.
 const PTHREAD_SYSTEM_SCHED_SUPPORTED = 1
+
+// enabled builtin hash modules
 const BUILTIN_HASHLIB_HASHES = "md5,sha1,sha2,sha3,blake2"
+
+// Define if you want to coerce the C locale to a UTF-8 based locale
 const COERCE_C_LOCALE = 1
+
+// Define to 1 to build the sqlite module with loadable extensions support.
 const SQLITE_ENABLE_LOAD_EXTENSION = 1
+
+// Define if SQLite was compiled with the serialize API
 const SQLITE_HAVE_SERIALIZE = 1
+
+// Default cipher suites list for ssl module. 1: Python's preferred selection,
+// 2: leave OpenSSL defaults untouched, 0: custom string
 const SSL_DEFAULT_CIPHERS = 1
+
+// PEP 11 Support tier (1, 2, 3 or 0 for unsupported)
 const SUPPORT_TIER = 1
+
+// Define if you want to enable remote debugging support.
 const REMOTE_DEBUG = 1
+
+// Define if rl_startup_hook takes arguments
 const RL_STARTUP_HOOK_TAKES_ARGS = 1
+
+// The size of 'double', as computed by sizeof.
 const SIZEOF_DOUBLE = 8
+
+// The size of 'float', as computed by sizeof.
 const SIZEOF_FLOAT = 4
+
+// The size of 'fpos_t', as computed by sizeof.
 const SIZEOF_FPOS_T = 8
+
+// The size of 'int', as computed by sizeof.
 const SIZEOF_INT = 4
+
+// The size of 'long', as computed by sizeof.
 const SIZEOF_LONG = 8
+
+// The size of 'long double', as computed by sizeof.
 const SIZEOF_LONG_DOUBLE = 8
+
+// The size of 'long long', as computed by sizeof.
 const SIZEOF_LONG_LONG = 8
+
+// The size of 'off_t', as computed by sizeof.
 const SIZEOF_OFF_T = 8
+
+// The size of 'pid_t', as computed by sizeof.
 const SIZEOF_PID_T = 4
+
+// The size of 'pthread_key_t', as computed by sizeof.
 const SIZEOF_PTHREAD_KEY_T = 8
+
+// The size of 'pthread_t', as computed by sizeof.
 const SIZEOF_PTHREAD_T = 8
+
+// The size of 'short', as computed by sizeof.
 const SIZEOF_SHORT = 2
+
+// The size of 'size_t', as computed by sizeof.
 const SIZEOF_SIZE_T = 8
+
+// The size of 'time_t', as computed by sizeof.
 const SIZEOF_TIME_T = 8
+
+// The size of 'uintptr_t', as computed by sizeof.
 const SIZEOF_UINTPTR_T = 8
+
+// The size of 'void *', as computed by sizeof.
 const SIZEOF_VOID_P = 8
+
+// The size of 'wchar_t', as computed by sizeof.
 const SIZEOF_WCHAR_T = 4
+
+// The size of '_Bool', as computed by sizeof.
 const SIZEOF__BOOL = 1
+
+// Define to 1 if you have the ANSI C header files.
 const STDC_HEADERS = 1
+
+// Define if you can safely include both <sys/select.h> and <sys/time.h>
+// (which you can't on SCO ODT 3.0).
 const SYS_SELECT_WITH_SYS_TIME = 1
+
+// Custom thread stack size depending on chosen sanitizer runtimes.
 const THREAD_STACK_SIZE = 16777216
 const X_ALL_SOURCE = 1
 const X_DARWIN_C_SOURCE = 1
@@ -409,20 +1201,58 @@ const X__STDC_WANT_IEC_60559_TYPES_EXT__ = 1
 const X__STDC_WANT_LIB_EXT2__ = 1
 const X__STDC_WANT_MATH_SPEC_FUNCS__ = 1
 const X_TANDEM_SOURCE = 1
+
+// Define if WINDOW in curses.h offers a field _flags.
 const WINDOW_HAS_FLAGS = 1
+
+// Define if you want build the _decimal module using a coroutine-local rather
+// than a thread-local context
 const WITH_DECIMAL_CONTEXTVAR = 1
+
+// Define if you want documentation strings in extension modules
 const WITH_DOC_STRINGS = 1
+
+// Define if you want to compile in DTrace support
 const WITH_DTRACE = 1
+
+// Define if you want to use the new-style (Openstep, Rhapsody, MacOS) dynamic
+// linker (dyld) instead of the old-style (NextStep) dynamic linker (rld).
+// Dyld is necessary to support frameworks.
 const WITH_DYLD = 1
+
+// Define to build the readline module against libedit.
 const WITH_EDITLINE = 1
+
+// Define if you want to compile in mimalloc memory allocator.
 const WITH_MIMALLOC = 1
+
+// Define if you want to produce an OpenStep/Rhapsody framework (shared
+// library plus accessory files).
 const WITH_NEXT_FRAMEWORK = 1
+
+// Define if you want to compile in Python-specific mallocs
 const WITH_PYMALLOC = 1
+
+// This must be set to 64 on some systems to enable large file support.
 const X_FILE_OFFSET_BITS = 64
+
+// This must be defined on some systems to enable large file support.
 const X_LARGEFILE_SOURCE = 1
+
+// framework name
 const X_PYTHONFRAMEWORK = "Python"
+
+// Maximum length in bytes of a thread name
 const X_PYTHREAD_NAME_MAXLEN = 63
+
+// Defined if _Complex C type can be used with libffi.
 const X_FFI_SUPPORT_C_COMPLEX = 1
+
+// Define to 1 if the machine stack grows down (default); 0 if it grows up.
 const X_STACK_GROWS_DOWN = 1
+
+// Define to force use of thread-safe errno, h_errno, and other functions
 const X_REENTRANT = 1
+
+// Define on FreeBSD to activate all library features
 const X__BSD_VISIBLE = 1

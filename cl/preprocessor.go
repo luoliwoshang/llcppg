@@ -78,7 +78,7 @@ func loadMacroConst(ctx *pkgCtx, decl clang.Cursor) {
 			pkgTypes := pkg.Types
 			name := ctx.macroName(origName)
 			defs := pkg.NewConstDefs(pkgTypes.Scope())
-			if doc := ctx.docCommentGroup(decl); doc != nil {
+			if doc := ctx.docCommentGroupMacro(decl); doc != nil {
 				defs.SetComments(doc)
 			}
 			defs.New(func(cb *gogen.CodeBuilder) int {

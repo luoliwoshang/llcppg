@@ -6,7 +6,11 @@ import (
 )
 
 const LLGoPackage = "link: -L/path/foo -lfoo"
+
+// Maximum size limit.
 const MAX_SIZE = 100
+
+// Default timeout value.
 const TIMEOUT = 30
 
 // A documented enum type.

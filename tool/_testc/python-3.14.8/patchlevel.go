@@ -2,13 +2,20 @@
 
 package py
 
+// Values for PY_RELEASE_LEVEL
 const RELEASE_LEVEL_ALPHA = 10
 const RELEASE_LEVEL_BETA = 11
 const RELEASE_LEVEL_GAMMA = 12
+
+// For release candidates
 const RELEASE_LEVEL_FINAL = 15
+
+// --start constants--
 const MAJOR_VERSION = 3
 const MINOR_VERSION = 14
 const MICRO_VERSION = 8
 const RELEASE_LEVEL = 15
 const RELEASE_SERIAL = 0
+
+// Version as a string
 const VERSION = "3.14.8"
