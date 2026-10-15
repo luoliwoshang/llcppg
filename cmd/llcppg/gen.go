@@ -17,7 +17,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,6 +30,41 @@ import (
 	"github.com/goplus/llcppg/tool"
 	"github.com/qiniu/x/errors"
 )
+
+// -----------------------------------------------------------------------------
+
+func runGen() {
+	args := flag.Args()
+	if len(args) < 1 {
+		fmt.Println("usage: llcppg [-v -debug] <dest-gopkg-dir> [<src-header-files-and-cfg-dir>]")
+		fmt.Println("       llcppg -init [<module-name>]")
+		fmt.Println("       llcppg -doc [-http addr] [-open=false] [-all] [-autoexit=false]")
+		return
+	}
+	destDir := args[0]
+	srcDir := "."
+	if len(args) >= 2 {
+		srcDir = args[1]
+	}
+
+	log.SetFlags(0)
+	if *debug {
+		cl.SetDebug(cl.DbgFlagAll)
+		tool.SetDebug(tool.DbgFlagAll)
+		gogen.SetDebug(gogen.DbgFlagAll)
+	} else if *verbose {
+		cl.SetDebug(cl.DbgFlagMajorProc)
+		tool.SetDebug(tool.DbgFlagSettings)
+	}
+
+	idx := clang.CreateIndex(1, 1)
+	defer idx.Dispose()
+	err := Gen(destDir, srcDir, idx, *verbose || *debug)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
 
 // -----------------------------------------------------------------------------
 
