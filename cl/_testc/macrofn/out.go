@@ -18,8 +18,6 @@ type GzFile = *GzFileS
 type Stream = StreamS
 type Streamp = *Stream
 
-// Read one byte, falling back to the real function.
-//
 // llgo:link GzFile.Gzgetc C._llcppg_z_gzgetc
 func (g GzFile) Gzgetc() c.Int {
 	return 0
@@ -36,6 +34,12 @@ func (strm Streamp) DeflateInit(level c.Int) c.Int {
 func (strm Streamp) Reset(flags c.Int) {
 }
 
+// Flush any pending output.
+//
+// llgo:link Streamp.Flush C._llcppg_z_flush
+func (strm Streamp) Flush() {
+}
+
 // Read one byte, falling back to the real function.
 //
 // llgo:link GzFile.Gzgetc_ C.gzgetc_
@@ -50,4 +54,19 @@ func (strm Streamp) DeflateInit_(level c.Int, version *c.Char, stream_size c.Int
 
 // llgo:link Streamp.Reset_ C.reset_
 func (strm Streamp) Reset_(flags c.Int, version *c.Char) {
+}
+
+// llgo:link Streamp.Flush_ C.flush_
+func (strm Streamp) Flush_() {
+}
+
+// Return the library version.
+//
+//go:linkname Version_ C.version_
+func Version_() c.Int
+
+// Release internal buffers.
+//
+// llgo:link Streamp.Cleanup_ C.cleanup_
+func (strm Streamp) Cleanup_() {
 }

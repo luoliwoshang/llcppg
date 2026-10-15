@@ -72,9 +72,6 @@ type Stream = StreamS
 type Streamp = *Stream
 type GzFile = *GzFileS
 
-// deflateInit and inflateInit are macros to allow checking the zlib version
-// and the compiler's view of z_stream:
-//
 // llgo:link Streamp.DeflateInit C._llcppg_deflateInit
 func (self Streamp) DeflateInit(level c.Int) c.Int {
 	return 0
