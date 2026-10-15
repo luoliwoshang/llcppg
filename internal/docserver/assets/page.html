@@ -75,5 +75,15 @@
 </footer>
 <script src="/static/outline.js"></script>
 {{if .LiveReload}}<script src="/static/live.js"></script>{{end}}
+{{if .AutoExit}}<script>
+// Auto-exit: when llcppg -doc opens this page it is served once with Monitor
+// set. We record that in sessionStorage, which is per tab, survives reloads,
+// and starts empty in any newly opened tab. On close, a monitored tab beacons
+// /_doc/bye so the server can shut down. Pages opened later by hand are not
+// served with Monitor, so they have no marker and never send bye.
+if ({{.Monitor}}) sessionStorage.setItem("llcppg-doc", "1");
+if (sessionStorage.getItem("llcppg-doc"))
+  addEventListener("pagehide", function () { navigator.sendBeacon("/_doc/bye"); });
+</script>{{end}}
 </body>
 </html>

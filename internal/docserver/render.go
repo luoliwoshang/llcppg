@@ -39,6 +39,20 @@ type pageData struct {
 	// reload existed.
 	LiveReload bool
 
+	// AutoExit is true when the server runs in auto-exit mode. The page then
+	// carries the small script that records a per-tab marker and beacons
+	// /_doc/bye on close. When false the page carries no such script, exactly
+	// as it did before auto-exit existed. It is set by the handler, not by
+	// render. See internal/docserver/server.go.
+	AutoExit bool
+
+	// Monitor is true only on the first page served in auto-exit mode. That
+	// page sets the per-tab marker so it (and its reloads) beacon /_doc/bye on
+	// close; later pages the user opens by hand are served with Monitor false
+	// and so are never monitored. It is set by the handler, not by render,
+	// because it depends on request order rather than on the package.
+	Monitor bool
+
 	// Body is the package documentation rendered by internal/godoc.
 	Body template.HTML
 

@@ -54,6 +54,13 @@ type Options struct {
 	// types and padding fields.
 	AllDecls bool
 
+	// AutoExit shuts the server down when the page it opened automatically is
+	// closed, so `llcppg -doc` does not keep blocking the terminal after the
+	// author is done reading. The first page served is monitored; closing it
+	// (or its reloads) exits the server. When false the server keeps serving
+	// until the context is cancelled (SIGINT), as it did before this existed.
+	AutoExit bool
+
 	// Stdout receives the one-line startup message ("serving documentation
 	// ... at http://..."). Empty means os.Stdout.
 	Stdout io.Writer
@@ -121,7 +128,15 @@ func Run(ctx context.Context, dir string, opts Options) error {
 		return fmt.Errorf("llcppg: cannot listen on %s: %w", addr, err)
 	}
 
-	url := "http://" + ln.Addr().String()
+	// Derive a cancelable context so auto-exit can trigger the same graceful
+	// shutdown as SIGINT: the bye handler calls cancel, which closes
+	// ctx.Done() exactly as an interrupt does. cancel is also called on return
+	// so a shutdown via SIGINT releases the auto-exit timer goroutine.
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	listenAddr := ln.Addr().String()
+	url := "http://" + listenAddr
 
 	// Start the file watcher for live reload. If it cannot be created (for
 	// example the OS inotify limit is reached), we fall back to a degraded
@@ -140,7 +155,11 @@ func Run(ctx context.Context, dir string, opts Options) error {
 	// Pass p.Dir (the absolute directory load() resolved) rather than the raw
 	// dir so the source handler serves files against the same path the symbol
 	// links were generated from, and so it agrees with the file watcher above.
-	handler := newHandler(p.Dir, opts.AllDecls, b, ctx.Done())
+	//
+	// When auto-exit is on, the handler validates the bye beacon's Host against
+	// the resolved listen address (so a forwarded host simply does not trigger
+	// exit) and calls cancel to shut down, printing the notice to Stdout.
+	handler := newHandler(p.Dir, opts.AllDecls, b, ctx.Done(), opts.AutoExit, listenAddr, cancel, opts.stdout())
 
 	// ReadHeaderTimeout bounds how long a client may take to send request
 	// headers. It is harmless on the loopback default and prevents a trivial
@@ -152,6 +171,9 @@ func Run(ctx context.Context, dir string, opts Options) error {
 	fmt.Fprintf(opts.stdout(), "llcppg: serving documentation for %s at %s\n", p.ImportPath, url)
 	if b != nil {
 		fmt.Fprintf(opts.stdout(), "llcppg: watching *.go in %s (live reload on)\n", p.Dir)
+	}
+	if opts.AutoExit {
+		fmt.Fprintf(opts.stdout(), "llcppg: will exit when the opened page is closed (use -autoexit=false to keep serving)\n")
 	}
 
 	if opts.OpenBrowser {

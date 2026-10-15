@@ -40,7 +40,7 @@ func TestLiveReloadEndToEnd(t *testing.T) {
 	b := newBroker("inst-1")
 	go b.run(w)
 
-	srv := httptest.NewServer(newHandler(dir, false, b, nil))
+	srv := httptest.NewServer(newHandler(dir, false, b, nil, false, "", nil, nil))
 	defer srv.Close()
 
 	// The page must advertise live reload.
@@ -76,7 +76,7 @@ func TestLiveReloadEndToEnd(t *testing.T) {
 // returns 404.
 func TestDegradedModeNoLiveReload(t *testing.T) {
 	dir := writeDir(t, map[string]string{"a.go": "package foo\n\nfunc Bar() {}\n"})
-	srv := httptest.NewServer(newHandler(dir, false, nil, nil))
+	srv := httptest.NewServer(newHandler(dir, false, nil, nil, false, "", nil, nil))
 	defer srv.Close()
 
 	body := getBody(t, srv.URL+"/", http.StatusOK)

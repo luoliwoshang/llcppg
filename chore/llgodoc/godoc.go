@@ -27,9 +27,10 @@ import (
 )
 
 var (
-	docHTTP = flag.String("http", docserver.DefaultAddr, "listen address for -doc (loopback only unless an explicit non-loopback host is given)")
-	docOpen = flag.Bool("open", true, "launch the default browser for -doc; use -open=false to only print the URL")
-	docAll  = flag.Bool("all", false, "include unexported declarations")
+	docHTTP     = flag.String("http", docserver.DefaultAddr, "listen address for -doc (loopback only unless an explicit non-loopback host is given)")
+	docOpen     = flag.Bool("open", true, "launch the default browser for -doc; use -open=false to only print the URL")
+	docAll      = flag.Bool("all", false, "include unexported declarations")
+	docAutoExit = flag.Bool("autoexit", true, "exit when the auto-opened page is closed; use -autoexit=false to keep serving until Ctrl-C")
 )
 
 func main() {
@@ -49,6 +50,7 @@ func runDoc() {
 		Addr:        *docHTTP,
 		OpenBrowser: *docOpen,
 		AllDecls:    *docAll,
+		AutoExit:    *docAutoExit,
 	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
