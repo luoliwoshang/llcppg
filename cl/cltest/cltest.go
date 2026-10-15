@@ -41,6 +41,10 @@ type Config struct {
 	// Go package names (optional).
 	NSPrefix []string `json:"NSPrefix"` // C/C++ namespace prefix to remove
 
+	// FuncPrefix specifies the prefix to remove from C/C++ global function names when
+	// generating Go function names (optional).
+	FuncPrefix []string
+
 	// EnumPrefix specifies the prefix to remove from C/C++ enum value names when generating
 	// Go const names (optional).
 	EnumPrefix []string `json:"EnumPrefix"`

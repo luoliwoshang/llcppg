@@ -84,6 +84,19 @@ func (p *scopeCtx) addOverloadObj(ctx *pkgCtx, name string, decl clang.Cursor) (
 	return
 }
 
+// lookupFuncDecl finds a declared global function cursor by its C name among the
+// parsed declarations.
+func (p *scopeCtx) lookupFuncDecl(cName string) (ret clang.Cursor, ok bool) {
+	if ovs, ok := p.overloads[cName]; ok {
+		for _, obj := range ovs.items {
+			if obj.decl.Kind == lc.Cursor_FunctionDecl {
+				return obj.decl, true
+			}
+		}
+	}
+	return
+}
+
 func (p *scopeCtx) reorder() {
 	for _, o := range p.overloads {
 		o.reorder()
@@ -395,10 +408,10 @@ func preloadGlobalFunc(ctx *pkgCtx, scope *scopeCtx, fn clang.Cursor) {
 }
 
 func preloadMacroFunc(ctx *pkgCtx, decl clang.Cursor) {
-	origName := clang.String(decl)
-	if refName, ok := ctx.macroFunc[origName]; ok {
+	macroName := clang.String(decl)
+	if refName, ok := ctx.macroFunc[macroName]; ok {
 		ctx.addLoadUnit(func(ctx *pkgCtx) {
-			loadMacroFunc(ctx, decl, refName)
+			loadMacroFunc(ctx, decl, macroName, refName)
 		})
 	}
 }

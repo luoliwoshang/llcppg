@@ -1,9 +1,6 @@
 package foo
 
-import (
-	"github.com/goplus/lib/c"
-	_ "unsafe"
-)
+import "github.com/goplus/lib/c"
 
 const (
 	LLGoPackage = "link: -L/path/foo -lfoo"
@@ -23,14 +20,19 @@ type Streamp = *Stream
 
 // Read one byte, falling back to the real function.
 //
-//go:linkname ZGzgetc C._llcppg_z_gzgetc
-func ZGzgetc(g GzFile) c.Int
+// llgo:link GzFile.Gzgetc C._llcppg_z_gzgetc
+func (g GzFile) Gzgetc() c.Int {
+	return 0
+}
 
-//go:linkname ZDeflateInit C._llcppg_z_deflateInit
-func ZDeflateInit(strm Streamp, level c.Int) c.Int
+// llgo:link Streamp.DeflateInit C._llcppg_z_deflateInit
+func (strm Streamp) DeflateInit(level c.Int) c.Int {
+	return 0
+}
 
-//go:linkname ZReset C._llcppg_z_reset
-func ZReset(strm Streamp, flags c.Int)
+// llgo:link Streamp.Reset C._llcppg_z_reset
+func (strm Streamp) Reset(flags c.Int) {
+}
 
 // Read one byte, falling back to the real function.
 //

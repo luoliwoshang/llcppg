@@ -112,6 +112,7 @@ func testFromDir(t *testing.T, sel, relDir string, lang cl.Language, genPubFile 
 			Language:        lang,
 			WrapFileHeader:  conf.WrapFileHeader,
 			NSPrefix:        conf.NSPrefix,
+			FuncPrefix:      conf.FuncPrefix,
 			EnumPrefix:      conf.EnumPrefix,
 			Rename:          conf.Rename,
 			FieldAlias:      conf.FieldAlias,
