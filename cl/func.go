@@ -166,7 +166,7 @@ func compileFuncOrMethod(ctx *pkgCtx, obj *overloadObj, this *classCtx) {
 					if isPtr && cls != "" && cls != typName {
 						if t := obj.Type(); isTypeFromBase(t, typRecv) {
 							recv = types.NewParam(recv.Pos(), pkgTypes, recv.Name(), types.NewPointer(t))
-							typRecv = types.Unalias(t).(*types.Named)
+							typRecv = unalias(t).(*types.Named)
 							typName = cls
 						}
 					}
@@ -236,7 +236,7 @@ func compileFuncOrMethod(ctx *pkgCtx, obj *overloadObj, this *classCtx) {
 }
 
 func isTypeFromBase(t types.Type, base *types.Named) bool {
-	if t, ok := types.Unalias(t).(*types.Named); ok {
+	if t, ok := unalias(t).(*types.Named); ok {
 		if t == base {
 			return true
 		}
@@ -271,11 +271,11 @@ func tryNewResults(pkgTypes *types.Package, obj types.Object, results *types.Tup
 	if obj == nil || results.Len() != 1 {
 		return
 	}
-	realRet, ok := types.Unalias(results.At(0).Type()).(*types.Pointer)
+	realRet, ok := unalias(results.At(0).Type()).(*types.Pointer)
 	if !ok {
 		return
 	}
-	if base, ok := types.Unalias(realRet.Elem()).(*types.Named); ok {
+	if base, ok := unalias(realRet.Elem()).(*types.Named); ok {
 		if t := obj.Type(); isTypeFromBase(t, base) {
 			result := types.NewParam(token.NoPos, pkgTypes, "", types.NewPointer(t))
 			return types.NewTuple(result), true
@@ -313,10 +313,10 @@ func tryToMethod(ctx *pkgCtx, pkgTypes *types.Package, params []*types.Var) ([]*
 			if nonClass(ctx, pkgTypes, t.Obj()) {
 				break
 			}
-			ta := types.Unalias(t)
+			ta := unalias(t)
 			if !isPtr {
 				if tp, ok := ta.(*types.Pointer); ok {
-					ta = tp.Elem()
+					ta = unalias(tp.Elem())
 				}
 			}
 			if tn, ok := ta.(*types.Named); ok && tn.Obj().Pkg() == pkgTypes {
@@ -373,6 +373,16 @@ func avoidKeyword(name string) string {
 		return name + "_"
 	}
 	return name
+}
+
+func unalias(t types.Type) types.Type {
+	for {
+		if ta, ok := t.(*types.Alias); ok {
+			t = types.Unalias(ta)
+		} else {
+			return t
+		}
+	}
 }
 
 // -----------------------------------------------------------------------------

@@ -63,8 +63,8 @@ ZEXTERN const char * ZEXPORT zlibVersion(void);
    compatible with the zlib.h header file used by the application.  This check
    is automatically made by deflateInit and inflateInit.
  */
- 
- typedef struct z_stream_s {
+
+typedef struct z_stream_s {
     int     data_type;  /* best guess about the data type: binary or text
                            for deflate, or the decoding state for inflate */
 } z_stream;

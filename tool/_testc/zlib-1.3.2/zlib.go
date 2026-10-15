@@ -92,8 +92,10 @@ func DeflateCopy(dest Streamp, source Streamp) c.Int
 // (such as zalloc being Z_NULL).  msg is left unchanged in both source and
 // destination.
 //
-//go:linkname DeflateReset C.deflateReset
-func DeflateReset(strm Streamp) c.Int
+// llgo:link Streamp.DeflateReset C.deflateReset
+func (self Streamp) DeflateReset() c.Int {
+	return 0
+}
 
 // This function is equivalent to deflateEnd followed by deflateInit, but
 // does not free and reallocate the internal compression state.  The stream
@@ -103,29 +105,43 @@ func DeflateReset(strm Streamp) c.Int
 // deflateReset returns Z_OK if success, or Z_STREAM_ERROR if the source
 // stream state was inconsistent (such as zalloc or state being Z_NULL).
 //
-//go:linkname DeflateBound C.deflateBound
-func DeflateBound(strm Streamp, sourceLen ULong) ULong
+// llgo:link Streamp.DeflateBound C.deflateBound
+func (self Streamp) DeflateBound(sourceLen ULong) ULong {
+	return 0
+}
 
-//go:linkname DeflateBoundZ C.deflateBound_z
-func DeflateBoundZ(strm Streamp, sourceLen SizeT) SizeT
+// llgo:link Streamp.DeflateBoundZ C.deflateBound_z
+func (self Streamp) DeflateBoundZ(sourceLen SizeT) SizeT {
+	return 0
+}
 
 // deflateInit and inflateInit are macros to allow checking the zlib version
 // and the compiler's view of z_stream:
 //
-//go:linkname DeflateInit_ C.deflateInit_
-func DeflateInit_(strm Streamp, level c.Int, version *c.Char, stream_size c.Int) c.Int
+// llgo:link Streamp.DeflateInit_ C.deflateInit_
+func (self Streamp) DeflateInit_(level c.Int, version *c.Char, stream_size c.Int) c.Int {
+	return 0
+}
 
-//go:linkname InflateInit_ C.inflateInit_
-func InflateInit_(strm Streamp, version *c.Char, stream_size c.Int) c.Int
+// llgo:link Streamp.InflateInit_ C.inflateInit_
+func (self Streamp) InflateInit_(version *c.Char, stream_size c.Int) c.Int {
+	return 0
+}
 
-//go:linkname DeflateInit2_ C.deflateInit2_
-func DeflateInit2_(strm Streamp, level c.Int, method c.Int, windowBits c.Int, memLevel c.Int, strategy c.Int, version *c.Char, stream_size c.Int) c.Int
+// llgo:link Streamp.DeflateInit2_ C.deflateInit2_
+func (self Streamp) DeflateInit2_(level c.Int, method c.Int, windowBits c.Int, memLevel c.Int, strategy c.Int, version *c.Char, stream_size c.Int) c.Int {
+	return 0
+}
 
-//go:linkname InflateInit2_ C.inflateInit2_
-func InflateInit2_(strm Streamp, windowBits c.Int, version *c.Char, stream_size c.Int) c.Int
+// llgo:link Streamp.InflateInit2_ C.inflateInit2_
+func (self Streamp) InflateInit2_(windowBits c.Int, version *c.Char, stream_size c.Int) c.Int {
+	return 0
+}
 
-//go:linkname InflateBackInit_ C.inflateBackInit_
-func InflateBackInit_(strm Streamp, windowBits c.Int, window *uint8, version *c.Char, stream_size c.Int) c.Int
+// llgo:link Streamp.InflateBackInit_ C.inflateBackInit_
+func (self Streamp) InflateBackInit_(windowBits c.Int, window *uint8, version *c.Char, stream_size c.Int) c.Int {
+	return 0
+}
 
 //go:linkname Gzdopen C.gzdopen
 func Gzdopen(fd c.Int, mode *c.Char) GzFile
