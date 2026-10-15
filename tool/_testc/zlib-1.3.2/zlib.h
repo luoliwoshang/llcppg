@@ -63,8 +63,8 @@ ZEXTERN const char * ZEXPORT zlibVersion(void);
    compatible with the zlib.h header file used by the application.  This check
    is automatically made by deflateInit and inflateInit.
  */
- 
- typedef struct z_stream_s {
+
+typedef struct z_stream_s {
     int     data_type;  /* best guess about the data type: binary or text
                            for deflate, or the decoding state for inflate */
 } z_stream;
@@ -226,8 +226,8 @@ ZEXTERN int ZEXPORT gzgetc_(gzFile file);       /* backward compatibility */
 #ifdef Z_PREFIX_SET
 #  undef z_gzgetc
 #  define z_gzgetc(g) \
-          ((g)->have ? ((g)->have--, (g)->pos++, *((g)->next)++) : (gzgetc)(g))
+          ((g)->have ? ((g)->have--, (g)->pos++, *((g)->next)++) : (gzgetc_)(g))
 #else
 #  define gzgetc(g) \
-          ((g)->have ? ((g)->have--, (g)->pos++, *((g)->next)++) : (gzgetc)(g))
+          ((g)->have ? ((g)->have--, (g)->pos++, *((g)->next)++) : (gzgetc_)(g))
 #endif

@@ -316,7 +316,7 @@ func tryToMethod(ctx *pkgCtx, pkgTypes *types.Package, params []*types.Var) ([]*
 			ta := types.Unalias(t)
 			if !isPtr {
 				if tp, ok := ta.(*types.Pointer); ok {
-					ta = tp.Elem()
+					ta = types.Unalias(tp.Elem())
 				}
 			}
 			if tn, ok := ta.(*types.Named); ok && tn.Obj().Pkg() == pkgTypes {
