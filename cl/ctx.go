@@ -165,7 +165,6 @@ type pkgCtx struct {
 	implicitPkgs map[string]none         // packages loaded by the default libc pub import
 	lastSeen     map[string]none         // last seen include file set (loaded include files)
 	thisSeen     map[string]none         // include file set seen in this translation unit
-	macroFnSeen  map[string]none         // MacroFunc keys matched to a macro definition
 
 	loads    []compileUnit
 	compiles []compileUnit
@@ -249,7 +248,6 @@ func (p *pkgCtx) addCompileUnit(f compileFunc) {
 }
 
 func (p *pkgCtx) compile() {
-	p.validateMacroFunc()
 	p.postPreload()
 	doCompile(p, &p.loads)
 	p.postLoad()

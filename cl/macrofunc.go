@@ -19,8 +19,6 @@ package cl
 import (
 	"go/ast"
 	"go/types"
-	"log"
-	"sort"
 
 	"github.com/goplus/lib/c"
 	"github.com/goplus/llcppg/clang"
@@ -28,31 +26,6 @@ import (
 )
 
 // -----------------------------------------------------------------------------
-
-func (p *pkgCtx) markMacroFuncSeen(macroName string) {
-	p.macroFnSeen[macroName] = none{}
-}
-
-// validateMacroFunc reports every MacroFunc key that never matched a
-// function-like macro definition among the parsed headers. Keys matched to an
-// object-like macro are reported separately (as they are seen) in loadMacro.
-func (p *pkgCtx) validateMacroFunc() {
-	if len(p.macroFunc) == 0 {
-		return
-	}
-	missing := make([]string, 0, len(p.macroFunc))
-	for name := range p.macroFunc {
-		if _, ok := p.macroFnSeen[name]; !ok {
-			missing = append(missing, name)
-		}
-	}
-	sort.Strings(missing)
-	for _, name := range missing {
-		p.errCnt++
-		log.Printf("MacroFunc %s: macro not defined in the processed headers", name)
-		p.checkFailFast()
-	}
-}
 
 // macroFuncParam describes one parameter of a function-like macro listed in
 // MacroFunc, together with the reference-function parameter whose type it uses.

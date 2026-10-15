@@ -56,16 +56,8 @@ func loadMacro(ctx *pkgCtx, decl clang.Cursor) {
 	origName := clang.String(decl)
 	if decl.IsMacroFunctionLike() != 0 {
 		if refName, ok := ctx.macroFunc[origName]; ok {
-			ctx.markMacroFuncSeen(origName)
 			loadMacroFunc(ctx, decl, refName)
 		}
-		return
-	}
-
-	if _, ok := ctx.macroFunc[origName]; ok {
-		// A MacroFunc key must name a function-like macro.
-		ctx.markMacroFuncSeen(origName)
-		ctx.errorf(decl, "MacroFunc %s: not a function-like macro", origName)
 		return
 	}
 

@@ -295,8 +295,8 @@ func NewPackage(pkgPath, pkgName string, files []Source, conf *Config) (ret Pack
 		pkgOf: conf.PackageOf, nameLookup: nameLookup, pubLookup: conf.PubFileLookup,
 		fileBases: make(map[clang.File]int), ovobjs: make(map[string]*overloadObj),
 		lastSeen: make(map[string]none), types: make(map[string]typeObj),
-		macroFnSeen: make(map[string]none), macroVals: make(map[string]any),
-		impPkgs: make(map[string]none), pubDeps: make(map[string]none), pubTyps: make(map[string]none),
+		macroVals: make(map[string]any), impPkgs: make(map[string]none),
+		pubDeps: make(map[string]none), pubTyps: make(map[string]none),
 	}
 
 	if conf.LoadLibcPubFile {
