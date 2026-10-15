@@ -84,6 +84,19 @@ func (p *scopeCtx) addOverloadObj(ctx *pkgCtx, name string, decl clang.Cursor) (
 	return
 }
 
+// lookupFuncDecl finds a declared global function cursor by its C name among the
+// parsed declarations.
+func (p *scopeCtx) lookupFuncDecl(cName string) (ret clang.Cursor, ok bool) {
+	if ovs, ok := p.overloads[cName]; ok {
+		for _, obj := range ovs.items {
+			if obj.decl.Kind == lc.Cursor_FunctionDecl {
+				return obj.decl, true
+			}
+		}
+	}
+	return
+}
+
 func (p *scopeCtx) reorder() {
 	for _, o := range p.overloads {
 		o.reorder()
@@ -222,7 +235,11 @@ func loadDecl(ctx *pkgCtx, scope *scopeCtx, decl clang.Cursor) {
 	case lc.Cursor_EnumDecl:
 		loadEnum(ctx, decl)
 	case lc.Cursor_MacroDefinition:
-		loadMacro(ctx, decl)
+		if decl.IsMacroFunctionLike() != 0 {
+			preloadMacroFunc(ctx, decl)
+		} else {
+			loadMacroConst(ctx, decl)
+		}
 	case lc.Cursor_InclusionDirective:
 		loadInclude(ctx, decl)
 	case lc.Cursor_Namespace:
@@ -386,6 +403,15 @@ func preloadGlobalFunc(ctx *pkgCtx, scope *scopeCtx, fn clang.Cursor) {
 	if isNew {
 		ctx.addLoadUnit(func(ctx *pkgCtx) {
 			loadGlobalFunc(ctx, obj)
+		})
+	}
+}
+
+func preloadMacroFunc(ctx *pkgCtx, decl clang.Cursor) {
+	macroName := clang.String(decl)
+	if refName, ok := ctx.macroFunc[macroName]; ok {
+		ctx.addLoadUnit(func(ctx *pkgCtx) {
+			loadMacroFunc(ctx, decl, macroName, refName)
 		})
 	}
 }

@@ -73,6 +73,40 @@ func goNodePos(ctx *pkgCtx, v clang.Cursor) token.Pos {
 
 // -----------------------------------------------------------------------------
 
+type nodeCursor interface {
+	Name() string
+	FullName() string
+	NodePos(ctx *pkgCtx) token.Pos
+	Position(ctx *pkgCtx) token.Position
+	RawComment() string
+}
+
+type clangNode struct {
+	clang.Cursor
+}
+
+func (n clangNode) RawComment() string {
+	return clang.RawComment(n.Cursor)
+}
+
+func (n clangNode) NodePos(ctx *pkgCtx) token.Pos {
+	return goNodePos(ctx, n.Cursor)
+}
+
+func (n clangNode) Position(ctx *pkgCtx) token.Position {
+	return ctx.nodePosition(n.Cursor)
+}
+
+func (n clangNode) Name() string {
+	return clang.String(n.Cursor)
+}
+
+func (n clangNode) FullName() string {
+	return cNameOf(n.Cursor)
+}
+
+// -----------------------------------------------------------------------------
+
 type nodeInterp struct {
 	fset *token.FileSet
 }
@@ -143,6 +177,7 @@ type pkgCtx struct {
 	fieldAlias  map[string]string // C/C++ field name => Go name
 	typeIgnore  []string          // C/C++ type names to be ignored
 	macroIgnore []string          // C/C++ macro names to be ignored
+	macroFunc   map[string]string // function-like macro name => reference function name
 	fnIgnore    []string          // C/C++ function names to be ignored
 	nsIgnore    []string          // C/C++ namespace names to be ignored
 
@@ -185,27 +220,43 @@ func (p *pkgCtx) checkFailFast() {
 	}
 }
 
-func (p *pkgCtx) ignoref(feats int, decl clang.Cursor, format string, args ...any) {
+func (p *pkgCtx) exIgnoref[nodeT nodeCursor](feats int, decl nodeT, format string, args ...any) {
 	if feats&featQuietIgnore == 0 || debugQuietIgnore {
-		p.logf(decl, format, args...)
+		p.exLogf(decl, format, args...)
 		p.checkFailFast()
 	}
 }
 
-func (p *pkgCtx) logf(decl clang.Cursor, format string, args ...any) {
-	pos := p.nodePosition(decl)
+func (p *pkgCtx) exErrorf[nodeT nodeCursor](decl nodeT, format string, args ...any) {
+	p.errCnt++
+	p.exLogf(decl, format, args...)
+	p.checkFailFast()
+}
+
+func (p *pkgCtx) exLogf[nodeT nodeCursor](decl nodeT, format string, args ...any) {
+	pos := decl.Position(p)
 	log.Printf("%s: %s", pos, fmt.Sprintf(format, args...))
 }
 
+func (p *pkgCtx) exPanicf[nodeT nodeCursor](decl nodeT, format string, args ...any) {
+	p.exLogf(decl, format, args...)
+	log.Panicf("%s: %s", decl.Position(p), fmt.Sprintf(format, args...))
+}
+
+func (p *pkgCtx) ignoref(feats int, decl clang.Cursor, format string, args ...any) {
+	p.exIgnoref(feats, clangNode{decl}, format, args...)
+}
+
+func (p *pkgCtx) logf(decl clang.Cursor, format string, args ...any) {
+	p.exLogf(clangNode{decl}, format, args...)
+}
+
 func (p *pkgCtx) panicf(decl clang.Cursor, format string, args ...any) {
-	pos := p.nodePosition(decl)
-	log.Panicf("%s: %s", pos, fmt.Sprintf(format, args...))
+	p.exPanicf(clangNode{decl}, format, args...)
 }
 
 func (p *pkgCtx) errorf(decl clang.Cursor, format string, args ...any) {
-	p.errCnt++
-	p.logf(decl, format, args...)
-	p.checkFailFast()
+	p.exErrorf(clangNode{decl}, format, args...)
 }
 
 func (p *pkgCtx) logtf(typ lc.Type, format string, args ...any) {

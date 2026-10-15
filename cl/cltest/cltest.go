@@ -41,6 +41,10 @@ type Config struct {
 	// Go package names (optional).
 	NSPrefix []string `json:"NSPrefix"` // C/C++ namespace prefix to remove
 
+	// FuncPrefix specifies the prefix to remove from C/C++ global function names when
+	// generating Go function names (optional).
+	FuncPrefix []string
+
 	// EnumPrefix specifies the prefix to remove from C/C++ enum value names when generating
 	// Go const names (optional).
 	EnumPrefix []string `json:"EnumPrefix"`
@@ -62,6 +66,10 @@ type Config struct {
 	Rename map[string]string `json:"Rename"`
 
 	MacroIgnore []string `json:"MacroIgnore"`
+
+	// MacroFunc maps a function-like C macro name to the name of a reference
+	// function declared in the processed headers (optional).
+	MacroFunc map[string]string `json:"MacroFunc"`
 
 	// convert capitalized, underscore-joined names to camel case, except names whose final
 	// segment is all-uppercase (acronyms/macros), which are kept as-is.

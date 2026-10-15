@@ -52,11 +52,7 @@ func loadInclude(ctx *pkgCtx, decl clang.Cursor) {
 
 // -----------------------------------------------------------------------------
 
-func loadMacro(ctx *pkgCtx, decl clang.Cursor) {
-	if decl.IsMacroFunctionLike() != 0 {
-		return
-	}
-
+func loadMacroConst(ctx *pkgCtx, decl clang.Cursor) {
 	origName := clang.String(decl)
 	if ctx.isMacroIgnored(origName) {
 		if debugCompileDecl {

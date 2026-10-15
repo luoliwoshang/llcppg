@@ -34,10 +34,14 @@ import (
 // leading Go doc comment. Callers place these comments before any generated
 // directive (e.g. //go:linkname), which must stay adjacent to its declaration.
 func (p *pkgCtx) docComments(decl clang.Cursor) []*ast.Comment {
+	return p.docCommentsEx(clangNode{decl})
+}
+
+func (p *pkgCtx) docCommentsEx[nodeT nodeCursor](decl nodeT) []*ast.Comment {
 	if !p.keepDoc {
 		return nil
 	}
-	raw := clang.RawComment(decl)
+	raw := decl.RawComment()
 	if raw == "" {
 		return nil
 	}
@@ -162,7 +166,11 @@ func (p *pkgCtx) docCommentGroup(decl clang.Cursor) *ast.CommentGroup {
 // of the whole group so the blank line separates the doc block from the
 // preceding code, and the directive follows the doc with no blank line.
 func (p *pkgCtx) directiveComments(decl clang.Cursor, directive string) *ast.CommentGroup {
-	doc := p.docComments(decl)
+	return p.directiveCommentsEx(clangNode{decl}, directive)
+}
+
+func (p *pkgCtx) directiveCommentsEx[nodeT nodeCursor](decl nodeT, directive string) *ast.CommentGroup {
+	doc := p.docCommentsEx(decl)
 	if len(doc) == 0 {
 		return &ast.CommentGroup{List: []*ast.Comment{{Text: directive}}}
 	}

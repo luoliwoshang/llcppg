@@ -127,6 +127,13 @@ type Config struct {
 	// MacroIgnore specifies a list of C/C++ macro names to be ignored (optional).
 	MacroIgnore []string `json:"MacroIgnore"`
 
+	// MacroFunc maps a function-like C macro name to the name of a reference
+	// function declared in the processed headers (optional). Each listed macro is
+	// wrapped as a function the same way static inline functions are: llcppg emits
+	// a C wrapper whose body invokes the macro, and a Go declaration linking to it.
+	// See https://github.com/goplus/llcppg/issues/1051.
+	MacroFunc map[string]string `json:"MacroFunc"`
+
 	// NSIgnore specifies a list of C/C++ namespaces to be ignored (optional).
 	NSIgnore []string `json:"NSIgnore"`
 

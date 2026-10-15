@@ -85,8 +85,7 @@ func compileFuncOrMethod(ctx *pkgCtx, obj *overloadObj, this *classCtx) {
 		return
 	}
 
-	name := obj.name
-	isOp := isOperator(name)
+	isOp := isOperator(obj.name)
 	if debugCompileDecl {
 		fnType := clang.String(fn.Type())
 		ctx.logf(fn, "func %s: %s - isOp: %v", cName, fnType, isOp)
@@ -107,26 +106,32 @@ func compileFuncOrMethod(ctx *pkgCtx, obj *overloadObj, this *classCtx) {
 		return
 	}
 
+	doCompileFunc(ctx, cName, manglingName, clangFunc{Cursor: fn}, obj, this)
+}
+
+func doCompileFunc[funcT fnCursor](ctx *pkgCtx, cName, manglingName string, fn funcT, obj *overloadObj, this *classCtx) {
+	name := obj.name
+
 	pkg := ctx.pkg
 	pkgTypes := pkg.Types
 
 	feats := 0
 	scope := this.scope()
-	params, variadic := newParams(ctx, pkgTypes, fn, &feats, scope)
+	params, variadic := newParamsEx(ctx, pkgTypes, fn, &feats, scope)
 	results := toFuncResults(ctx, pkgTypes, fn.ResultType(), &feats, scope)
 	if feats&featAllIgnore != 0 {
-		ctx.ignoref(feats, fn, "func %s (%d): function with unsupported features, ignored", cName, fn.Kind)
+		ctx.exIgnoref(feats, fn, "func %s: function with unsupported features, ignored", cName)
 		return
 	}
 
 	if fn.IsFunctionInlined() != 0 {
 		if ctx.cflags == "" {
-			ctx.ignoref(InlineFuncIgnore, fn, "func %s: inline function but no CFlags in config, ignored", cName)
+			ctx.exIgnoref(InlineFuncIgnore, fn, "func %s: inline function but no CFlags in config, ignored", cName)
 			return
 		}
 		manglingName = wrapInlineFunc(ctx, manglingName, fn, this)
 	} else if _, ok := ctx.nameLookup(manglingName); !ok {
-		ctx.ignoref(featExplicitIgnore, fn, "func %s: symbol not found in lib files, ignored", cName)
+		ctx.exIgnoref(featExplicitIgnore, fn, "func %s: symbol not found in lib files, ignored", cName)
 		return
 	}
 
@@ -157,7 +162,7 @@ func compileFuncOrMethod(ctx *pkgCtx, obj *overloadObj, this *classCtx) {
 				// try to method for C global functions
 				params, recv, typRecv, typName = tryToMethod(ctx, pkgTypes, params)
 				if typRecv != nil {
-					recvCType := fn.Argument(0).Type()
+					recvCType := fn.ArgumentType(0)
 					isPtr := recvCType.Kind == lc.Type_Pointer
 					if isPtr {
 						recvCType = recvCType.Pointee()
@@ -175,7 +180,7 @@ func compileFuncOrMethod(ctx *pkgCtx, obj *overloadObj, this *classCtx) {
 		}
 	} else {
 		typNamed := this.typNamed
-		recv = types.NewParam(goNodePos(ctx, fn), pkgTypes, "this", types.NewPointer(typNamed))
+		recv = types.NewParam(fn.NodePos(ctx), pkgTypes, "this", types.NewPointer(typNamed))
 		typName = typNamed.Obj().Name()
 	}
 
@@ -193,7 +198,7 @@ func compileFuncOrMethod(ctx *pkgCtx, obj *overloadObj, this *classCtx) {
 					if isField {
 						newName = "Get" + fnName
 					} else {
-						ctx.errorf(fn, "%s redeclared in this block\n\t%v: other declaration of %s", fnName, ctx.position(pos), fnName)
+						ctx.exErrorf(fn, "%s redeclared in this block\n\t%v: other declaration of %s", fnName, ctx.position(pos), fnName)
 						return
 					}
 				}
@@ -208,18 +213,18 @@ func compileFuncOrMethod(ctx *pkgCtx, obj *overloadObj, this *classCtx) {
 		}
 	}
 	sig := types.NewSignatureType(recv, nil, nil, types.NewTuple(params...), results, variadic)
-	f, err := pkg.NewFuncWith(goNodePos(ctx, fn), fnName, sig, nil)
+	f, err := pkg.NewFuncWith(fn.NodePos(ctx), fnName, sig, nil)
 	if err != nil {
-		ctx.errorf(fn, "%v", err)
+		ctx.exErrorf(fn, "%v", err)
 		return
 	}
 
 	if recv == nil {
 		ctx.forceImportUnsafe()
-		f.SetComments(pkg, ctx.directiveComments(fn,
+		f.SetComments(pkg, ctx.directiveCommentsEx(fn,
 			"\n//go:linkname "+nameInPkg+" C."+manglingName))
 	} else {
-		f.SetComments(pkg, ctx.directiveComments(fn,
+		f.SetComments(pkg, ctx.directiveCommentsEx(fn,
 			"\n// llgo:link "+nameInPkg+" C."+manglingName))
 		cb := f.BodyStart(pkg)
 		if n := results.Len(); n > 0 {
@@ -337,11 +342,37 @@ func nonClass(ctx *pkgCtx, pkgTypes *types.Package, tn *types.TypeName) bool {
 	return contains(tn.Name(), ctx.nonClasses)
 }
 
+type fnCursor interface {
+	nodeCursor
+	NumArguments() c.Int
+	ArgumentType(i c.Int) lc.Type
+	Argument(i c.Int) (typ lc.Type, name string)
+	ResultType() lc.Type
+	IsVariadic() c.Uint
+	IsFunctionInlined() c.Uint
+}
+
+type clangFunc struct {
+	clangNode
+}
+
+func (fn clangFunc) ArgumentType(i c.Int) lc.Type {
+	return fn.Cursor.Argument(c.Uint(i)).Type()
+}
+
+func (fn clangFunc) Argument(i c.Int) (typ lc.Type, name string) {
+	item := fn.Cursor.Argument(c.Uint(i))
+	return item.Type(), clang.String(item)
+}
+
 func newParams(ctx *pkgCtx, pkg *types.Package, fn clang.Cursor, feats *int, scope *scopeCtx) (params []*types.Var, variadic bool) {
+	return newParamsEx(ctx, pkg, clangFunc{Cursor: fn}, feats, scope)
+}
+
+func newParamsEx[funcT fnCursor](ctx *pkgCtx, pkg *types.Package, fn funcT, feats *int, scope *scopeCtx) (params []*types.Var, variadic bool) {
 	n := fn.NumArguments()
 	for i := range n {
-		item := fn.Argument(c.Uint(i))
-		param := newParam(ctx, pkg, item, i, feats, scope)
+		param := newParam(ctx, pkg, fn, i, feats, scope)
 		params = append(params, param)
 	}
 	variadic = fn.IsVariadic() != 0
@@ -351,9 +382,8 @@ func newParams(ctx *pkgCtx, pkg *types.Package, fn clang.Cursor, feats *int, sco
 	return
 }
 
-func newParam(ctx *pkgCtx, pkg *types.Package, decl clang.Cursor, i c.Int, feats *int, scope *scopeCtx) *types.Var {
-	declName := clang.String(decl)
-	declTyp := decl.Type()
+func newParam[funcT fnCursor](ctx *pkgCtx, pkg *types.Package, fn funcT, i c.Int, feats *int, scope *scopeCtx) *types.Var {
+	declTyp, declName := fn.Argument(i)
 	if debugCompileDecl {
 		log.Println("  => param", declName, "-", clang.String(declTyp))
 	}
@@ -363,7 +393,7 @@ func newParam(ctx *pkgCtx, pkg *types.Package, decl clang.Cursor, i c.Int, feats
 	} else {
 		declName = "_llcppg_param" + strconv.Itoa(int(i)+1)
 	}
-	return types.NewParam(goNodePos(ctx, decl), pkg, declName, typ)
+	return types.NewParam(fn.NodePos(ctx), pkg, declName, typ)
 }
 
 func avoidKeyword(name string) string {
