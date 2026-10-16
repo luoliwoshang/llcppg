@@ -17,9 +17,56 @@
 package clang
 
 import (
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+	"os"
 	"strings"
 	"testing"
+
+	lc "github.com/llarhub/clang-c"
+	"github.com/qiniu/x/test"
+	"github.com/qiniu/x/test/testutil"
 )
+
+type declDoc struct {
+	Name string `json:"name"`
+	RawComments
+}
+
+func TestRawComments(t *testing.T) {
+	testutil.FromDir(t, "", "./_testcomment", func(t *testing.T, pkgDir string) {
+		idx := CreateIndex(1, 1)
+		defer idx.Dispose()
+
+		hfile := pkgDir + "/in.h"
+		tu, err := idx.ParseTranslationUnit(DetailedPreprocessingRecord, hfile, "-x", "c++", "-fparse-all-comments")
+		if err != nil {
+			t.Fatalf("failed to parse translation unit: %v", err)
+		}
+		defer tu.Dispose()
+
+		var doc []declDoc
+		VisitChildren(tu.Cursor(), func(cur, parent Cursor) ChildVisitResult {
+			at := PresumedFile(cur.Location())
+			if at != hfile {
+				return Continue
+			}
+			switch cur.Kind {
+			case lc.Cursor_MacroDefinition, lc.Cursor_FunctionDecl, lc.Cursor_VarDecl,
+				lc.Cursor_ClassDecl, lc.Cursor_StructDecl, lc.Cursor_EnumDecl:
+				doc = append(doc, declDoc{
+					Name:        String(cur),
+					RawComments: RawCommentsOf(cur),
+				})
+			}
+			return Continue
+		})
+
+		b, _ := json.Marshal(doc, jsontext.Multiline(true))
+		bExp, _ := os.ReadFile(pkgDir + "/out.json")
+		test.Diff(t, pkgDir+"/out.json.txt", b, bExp)
+	})
+}
 
 // TestPrecedingComment exercises the source-scanning that recovers a macro's
 // doc comment, which libclang does not associate with macro cursors. The marker
@@ -89,7 +136,7 @@ func TestPrecedingComment(t *testing.T) {
 				t.Fatalf("test source missing '@' marker")
 			}
 			src := tt.src[:at] + tt.src[at+1:]
-			got := precedingComment([]byte(src), at)
+			got := precedingRawComment([]byte(src), at)
 			if got != tt.want {
 				t.Errorf("precedingComment:\n got: %q\nwant: %q", got, tt.want)
 			}
@@ -186,8 +233,8 @@ func TestFollowingComment(t *testing.T) {
 				t.Fatalf("test source missing '@' marker")
 			}
 			src := tt.src[:at] + tt.src[at+1:]
-			got := followingComment([]byte(src), at)
-			if got != tt.want {
+			isTrailing, got := followingRawComment([]byte(src), at)
+			if isTrailing != 0 && got != tt.want {
 				t.Errorf("followingComment:\n got: %q\nwant: %q", got, tt.want)
 			}
 		})

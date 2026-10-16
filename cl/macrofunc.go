@@ -159,16 +159,9 @@ type clangMacroFunc struct {
 	ref    clang.Cursor
 }
 
-// RawComment returns the macro's own documentation comment, resolved in the
-// order defined by issue #1056: a leading comment above the #define, otherwise a
-// trailing comment on the line below it (macros have no inline position). A
-// macro does not inherit the comment of the function it references: that comment
-// documents a different declaration, so attaching it here would misattribute it.
 func (fn *clangMacroFunc) RawComment() string {
-	if raw := clang.MacroRawComment(fn.Cursor); raw != "" {
-		return raw
-	}
-	return clang.MacroTrailingComment(fn.Cursor)
+	raw := clang.RawCommentsOf(fn.Cursor)
+	return raw.Text()
 }
 
 func (fn *clangMacroFunc) NumArguments() c.Int {

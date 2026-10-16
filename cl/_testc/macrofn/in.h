@@ -20,8 +20,8 @@ void flush_(z_streamp strm);
 
 int version_(void); // Return the library version.
 
-void cleanup_(z_streamp strm);
 // Release internal buffers.
+void cleanup_(z_streamp strm);
 
 #define z_gzgetc(g) \
         ((g)->have ? ((g)->have--, (g)->pos++, *((g)->next)++) : (gzgetc_)(g))

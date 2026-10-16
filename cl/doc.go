@@ -157,7 +157,8 @@ func (p *pkgCtx) docCommentGroupMacro(decl clang.Cursor) *ast.CommentGroup {
 	if !p.keepDoc {
 		return nil
 	}
-	return docCommentGroupRaw(toLineComments(clang.MacroRawComment(decl)))
+	raw := clang.RawCommentsOf(decl)
+	return docCommentGroupRaw(toLineComments(raw.Text()))
 }
 
 func docCommentGroupRaw(comments []*ast.Comment) *ast.CommentGroup {

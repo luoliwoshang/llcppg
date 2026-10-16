@@ -5,6 +5,8 @@ package py
 // Values for PY_RELEASE_LEVEL
 const RELEASE_LEVEL_ALPHA = 10
 const RELEASE_LEVEL_BETA = 11
+
+// For release candidates
 const RELEASE_LEVEL_GAMMA = 12
 
 // For release candidates

@@ -98,7 +98,7 @@ func testFromDir(t *testing.T, sel, relDir string, lang cl.Language, genPubFile 
 		for i, srcFile := range srcFiles {
 			presumedFile := filepath.Join(pkgDir, srcFile)
 			u, err := idx.ParseTranslationUnit(
-				clang.DetailedPreprocessingRecord, presumedFile, "-x", cltest.LanguageOf(lang))
+				clang.DetailedPreprocessingRecord, presumedFile, "-x", cltest.LanguageOf(lang), "-fparse-all-comments")
 			if err != nil {
 				t.Fatal("ParseTranslationUnit failed:", err)
 			}

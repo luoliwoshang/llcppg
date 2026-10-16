@@ -1,0 +1,39 @@
+[
+	{
+		"name": "MAX_SIZE",
+		"preceding": "// Maximum size limit."
+	},
+	{
+		"name": "z_deflateInit",
+		"preceding": "/** Initialize for deflation. */"
+	},
+	{
+		"name": "Z",
+		"preceding": "/*\n * Init for deflation.\n */"
+	},
+	{
+		"name": "X",
+		"preceding": "// line one\n// line two"
+	},
+	{
+		"name": "NODOC"
+	},
+	{
+		"name": "B",
+		"preceding": "// b"
+	},
+	{
+		"name": "X_NODOC"
+	},
+	{
+		"name": "Z_NODOC"
+	},
+	{
+		"name": "x",
+		"preceding": "// x doc"
+	},
+	{
+		"name": "z",
+		"inline": "// z inline doc"
+	}
+]
