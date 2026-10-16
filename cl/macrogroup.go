@@ -75,11 +75,12 @@ type macroGrouper struct {
 	expected  string         // expected last macro name; non-empty => configured group
 	cur       []clang.Cursor // members accumulated for the current group
 
-	// nonMacro maps a header file to the sorted first lines of non-macro
-	// declarations in it. libclang visits all macro definitions before any
-	// regular declaration, so a non-macro node is never interleaved with macros
-	// during the walk; instead its position is used to validate configured
-	// ranges (only macro definitions may lie inside a range).
+	// nonMacro maps a header file to the first lines of non-macro declarations in
+	// it, in visit order (not sorted). libclang visits all macro definitions
+	// before any regular declaration, so a non-macro node is never interleaved
+	// with macros during the walk; instead its position is used to validate
+	// configured ranges (only macro definitions may lie inside a range).
+	// Populated only when there are configured groups to validate.
 	nonMacro map[string][]int
 
 	matched map[string]bool // MacroGroup keys that have been matched (first macro seen)
@@ -136,12 +137,23 @@ func newMacroGrouper() *macroGrouper {
 	}
 }
 
-// macroGroupEnabled reports whether macro grouping should run. Automatic
-// detection is always on; a non-nil MacroGroup config additionally enables
-// configured groups. Grouping is a no-op layout change when there is nothing to
-// group, so it is always safe to enable.
+// macroGroupEnabled reports whether the macro-grouping preload pass should run.
+// It is currently always on: automatic detection of adjacent constant-macro
+// runs needs the pass regardless of whether a MacroGroup config is set, and
+// grouping is a no-op layout change when there is nothing to group, so it is
+// always safe to run. Configured groups are not gated here; they are driven
+// purely by the contents of p.macroGroup (empty => automatic detection only).
+// This method exists as the single seam through which grouping could be made
+// opt-out in the future.
 func (p *pkgCtx) macroGroupEnabled() bool {
 	return true
+}
+
+// hasConfiguredGroups reports whether any configured MacroGroup range exists.
+// The non-macro line bookkeeping used to validate configured ranges is only
+// needed when this is true.
+func (p *pkgCtx) hasConfiguredGroups() bool {
+	return len(p.macroGroup) > 0
 }
 
 func (p *pkgCtx) grouper() *macroGrouper {
@@ -187,10 +199,14 @@ func (p *pkgCtx) groupVisit(decl clang.Cursor) {
 		// A non-macro declaration (or a function-like macro) is not a group
 		// member. Record its line so a configured range that straddles it can be
 		// rejected. Function-like macros are recorded too, since they may not sit
-		// inside a configured range of object-like constant macros.
-		file, firstLine, _ := macroExtentLines(decl)
-		if file != "" {
-			g.nonMacro[file] = append(g.nonMacro[file], firstLine)
+		// inside a configured range of object-like constant macros. This is only
+		// needed to validate configured ranges, so it is skipped (along with its
+		// per-node clang extent lookup) when there are no configured groups.
+		if p.hasConfiguredGroups() {
+			file, firstLine, _ := macroExtentLines(decl)
+			if file != "" {
+				g.nonMacro[file] = append(g.nonMacro[file], firstLine)
+			}
 		}
 		return
 	}
@@ -231,24 +247,35 @@ func (p *pkgCtx) groupVisit(decl clang.Cursor) {
 		if g.hasCur {
 			g.closeAuto(p)
 		}
-		g.start(decl, file, firstLine, lastLine)
-		g.expected = last
+		if last == name {
+			// A range whose first and last macro are identical describes a single
+			// macro, which is not a group. Report it directly instead of letting it
+			// fall through to the misleading "last macro not found" error.
+			p.errorf(decl, "MacroGroup %q..%q: first and last macro are the same (a group needs at least two macros)",
+				name, last)
+			g.matched[name] = true
+			return
+		}
+		g.start(decl, file, firstLine, lastLine, last)
 		g.matched[name] = true
 		return
 	}
 	if !g.hasCur {
-		g.start(decl, file, firstLine, lastLine)
+		g.start(decl, file, firstLine, lastLine, "")
 		return
 	}
 	if file != g.prevFile || firstLine != g.prevLine+1 {
 		g.closeAuto(p)
-		g.start(decl, file, firstLine, lastLine)
+		g.start(decl, file, firstLine, lastLine, "")
 		return
 	}
 	g.appendMember(decl, file, lastLine)
 }
 
-func (g *macroGrouper) start(decl clang.Cursor, file string, firstLine, lastLine int) {
+// start opens a new current group at decl. expected is the awaited last macro
+// name for a configured group, or "" for an automatic group; it is the single
+// place g.expected is assigned when a group opens.
+func (g *macroGrouper) start(decl clang.Cursor, file string, firstLine, lastLine int, expected string) {
 	g.first = decl
 	g.firstFile = file
 	g.firstLine = firstLine
@@ -256,7 +283,7 @@ func (g *macroGrouper) start(decl clang.Cursor, file string, firstLine, lastLine
 	g.prevLine = lastLine
 	g.cur = []clang.Cursor{decl}
 	g.hasCur = true
-	g.expected = ""
+	g.expected = expected
 }
 
 func (g *macroGrouper) appendMember(decl clang.Cursor, file string, lastLine int) {
@@ -295,18 +322,22 @@ func (g *macroGrouper) record(p *pkgCtx) {
 	g.reset()
 }
 
-// closeAuto closes an in-progress automatic group. A group of a single macro is
-// not a group and is discarded.
+// closeAuto closes an in-progress automatic group. It defers to record, which
+// keeps groups of two or more members and discards a single-macro run (not a
+// group). The separate name marks, at each call site, that an automatic run is
+// ending (vs. a configured range closing explicitly on its last macro).
 func (g *macroGrouper) closeAuto(p *pkgCtx) {
 	g.record(p)
 }
 
-// finish flushes any in-progress group at the end of the input and reports
-// configuration errors: an unterminated configured range, and any MacroGroup key
-// that never matched a macro.
+// groupFinish flushes any in-progress group at the end of the input and reports
+// the remaining configuration errors: an unterminated configured range (the
+// last macro was never found after the first), any MacroGroup key that never
+// matched a macro (checkUnmatchedKeys), and any configured range that straddles
+// a non-macro declaration (validateConfiguredRanges).
 func (p *pkgCtx) groupFinish() {
 	if !p.macroGroupEnabled() || p.mgroup == nil {
-		p.checkUnmatchedKeys(nil)
+		p.checkUnmatchedKeys()
 		return
 	}
 	g := p.mgroup
@@ -321,7 +352,7 @@ func (p *pkgCtx) groupFinish() {
 			g.closeAuto(p)
 		}
 	}
-	p.checkUnmatchedKeys(g.matched)
+	p.checkUnmatchedKeys()
 	g.validateConfiguredRanges(p)
 }
 
@@ -336,8 +367,11 @@ func (g *macroGrouper) validateConfiguredRanges(p *pkgCtx) {
 		}
 		for _, line := range g.nonMacro[rec.file] {
 			if line > rec.firstLine && line < rec.lastLine {
-				p.errCnt++
-				p.failFastLog("MacroGroup %q..%q: non-macro declaration inside range (line %d)",
+				// Reported through errorf (like the other configured-range errors)
+				// so the message carries the first macro's source position and the
+				// errCnt/fail-fast bookkeeping stays in one place. The offending
+				// line is still named explicitly since it differs from the group.
+				p.errorf(rec.members[0], "MacroGroup %q..%q: non-macro declaration inside range (line %d)",
 					first, clang.String(rec.members[len(rec.members)-1]), line)
 				delete(g.records, first)
 				for _, m := range rec.members {
@@ -350,17 +384,28 @@ func (g *macroGrouper) validateConfiguredRanges(p *pkgCtx) {
 }
 
 // checkUnmatchedKeys reports every MacroGroup first-macro key that never matched
-// a macro definition.
-func (p *pkgCtx) checkUnmatchedKeys(matched map[string]bool) {
+// a macro definition. These keys have no corresponding cursor (the macro was
+// never seen), so the error cannot carry a source position. It reads the matched
+// set from p.mgroup directly, so it is correct even when no grouper was ever
+// created (p.mgroup == nil => nothing matched).
+func (p *pkgCtx) checkUnmatchedKeys() {
+	var matched map[string]bool
+	if p.mgroup != nil {
+		matched = p.mgroup.matched
+	}
 	for first := range p.macroGroup {
 		if !matched[first] {
-			p.errCnt++
-			p.failFastLog("MacroGroup: unknown first macro %q", first)
+			p.errorNoPos("MacroGroup: unknown first macro %q", first)
 		}
 	}
 }
 
-func (p *pkgCtx) failFastLog(format string, args ...any) {
+// errorNoPos reports a MacroGroup configuration error that has no source
+// position (the offending macro was never seen). It mirrors errorf's errCnt and
+// fail-fast bookkeeping so every MacroGroup error is counted the same way; it
+// just cannot prefix a file:line position.
+func (p *pkgCtx) errorNoPos(format string, args ...any) {
+	p.errCnt++
 	log.Printf(format, args...)
 	p.checkFailFast()
 }
@@ -556,4 +601,3 @@ func evalMacro(ctx *pkgCtx, decl clang.Cursor) (v any, ok bool) {
 	}
 	return evalConstExpr(ctx, tu, tokens[1:])
 }
-

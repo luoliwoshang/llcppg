@@ -102,6 +102,11 @@ func TestMacroGroupErrors(t *testing.T) {
 			src:   "#define A 1\n#define B 2\n#define C 3\n#define D 4\n",
 			group: map[string]string{"A": "C", "B": "D"},
 		},
+		{
+			name:  "first and last macro are the same",
+			src:   "#define A 1\n#define B 2\n",
+			group: map[string]string{"A": "A"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -70,7 +70,9 @@ type Config struct {
 
 	// MacroGroup declares groups of related constant macros emitted together as a
 	// single Go `const ( ... )` block (optional). It maps the first macro of a
-	// group to its last macro. See https://github.com/goplus/llcppg/issues/1064.
+	// group to its last macro (original C macro names, before MacroPrefix
+	// stripping or renaming); the first and last macro must live in the same
+	// header file. See https://github.com/goplus/llcppg/issues/1064.
 	MacroGroup map[string]string `json:"MacroGroup"`
 
 	// MacroPrefix specifies the prefix to remove from C/C++ macro names when
