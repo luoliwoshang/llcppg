@@ -47,7 +47,7 @@ const TEXT = 1
 // for compatibility with 1.2.2 and earlier
 const ASCII = 1
 
-// for compatibility with 1.2.2 and earlier
+// Possible values of the data_type field for deflate()
 const UNKNOWN = 2
 
 // The deflate compression method (the only one supported in this version)

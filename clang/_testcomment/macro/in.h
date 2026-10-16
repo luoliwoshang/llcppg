@@ -28,3 +28,9 @@ int x;
 
 int z; // z inline doc
 #define Z_NODOC 1
+
+#define Z_BINARY   0 // binary mode
+#define Z_TEXT     1
+#define Z_ASCII    Z_TEXT   /* for compatibility with 1.2.2 and earlier */
+#define Z_UNKNOWN  2
+/* Possible values of the data_type field for deflate() */

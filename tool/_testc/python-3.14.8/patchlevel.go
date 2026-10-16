@@ -9,7 +9,7 @@ const RELEASE_LEVEL_BETA = 11
 // For release candidates
 const RELEASE_LEVEL_GAMMA = 12
 
-// For release candidates
+// Serial should be 0 here
 const RELEASE_LEVEL_FINAL = 15
 
 // --start constants--

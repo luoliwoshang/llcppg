@@ -29,6 +29,21 @@
 		"name": "Z_NODOC"
 	},
 	{
+		"name": "Z_BINARY",
+		"inline": "// binary mode"
+	},
+	{
+		"name": "Z_TEXT"
+	},
+	{
+		"name": "Z_ASCII",
+		"inline": "/* for compatibility with 1.2.2 and earlier */"
+	},
+	{
+		"name": "Z_UNKNOWN",
+		"trailing": "/* Possible values of the data_type field for deflate() */"
+	},
+	{
 		"name": "x",
 		"preceding": "// x doc"
 	},

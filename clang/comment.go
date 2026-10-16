@@ -128,7 +128,10 @@ func precedingRawComment(src []byte, start int) string {
 	if i >= 2 && src[i-1] == '/' && src[i-2] == '*' {
 		for j := i - 2; j >= 1; j-- {
 			if src[j-1] == '/' && src[j] == '*' {
-				return string(src[j-1 : i])
+				if blank(src, j-1) {
+					return string(src[j-1 : i])
+				}
+				break
 			}
 		}
 		return ""
@@ -243,6 +246,20 @@ func lineStart(src []byte, pos int) int {
 		pos--
 	}
 	return pos
+}
+
+func blank(src []byte, pos int) bool {
+	for pos > 0 {
+		switch src[pos-1] {
+		case '\n':
+			return true
+		case ' ', '\t':
+			pos--
+		default:
+			return false
+		}
+	}
+	return true
 }
 
 // trimLeadingSpace drops leading spaces and tabs from b without copying.
