@@ -122,6 +122,8 @@ func testFromDir(t *testing.T, sel, relDir string, lang cl.Language, genPubFile 
 			TypeSuffix:      conf.TypeSuffix,
 			MacroIgnore:     conf.MacroIgnore,
 			MacroFunc:       conf.MacroFunc,
+			MacroGroup:      conf.MacroGroup,
+			MacroPrefix:     conf.MacroPrefix,
 			CFlags:          conf.CFlags,
 			ForceCamelCase:  conf.ForceCamelCase,
 			LoadLibcPubFile: conf.LoadLibcPubFile,

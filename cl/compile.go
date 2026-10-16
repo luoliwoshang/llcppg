@@ -125,6 +125,16 @@ type Config struct {
 	// See https://github.com/goplus/llcppg/issues/1051.
 	MacroFunc map[string]string
 
+	// MacroGroup declares groups of related constant macros that are emitted
+	// together as a single Go `const ( ... )` block (optional). It maps the
+	// first macro of a group to its last macro; every macro definition between
+	// them in source order (inclusive) belongs to the group, regardless of blank
+	// lines or comments. Names are the original C macro names, before MacroPrefix
+	// stripping or renaming. Configured groups take priority over automatic
+	// detection, which groups runs of adjacent constant macros of the same type.
+	// See https://github.com/goplus/llcppg/issues/1064.
+	MacroGroup map[string]string
+
 	// TypeIgnore specifies a list of C/C++ type names to be ignored (optional).
 	TypeIgnore []string
 
@@ -290,6 +300,7 @@ func NewPackage(pkgPath, pkgName string, files []Source, conf *Config) (ret Pack
 		nsIgnore: conf.NSIgnore, typePrefix: conf.TypePrefix, typeSuffix: conf.TypeSuffix,
 		newCheck: newCheck, fnPrefix: conf.FuncPrefix, enumPrefix: conf.EnumPrefix, rename: rename,
 		macroPrefix: conf.MacroPrefix, macroIgnore: conf.MacroIgnore, macroFunc: conf.MacroFunc,
+		macroGroup: conf.MacroGroup,
 		varPrefix: conf.VarPrefix, typeIgnore: conf.TypeIgnore, typdecls: typdecls,
 		fnIgnore: conf.FuncIgnore, classes: conf.Class, nonClasses: conf.NonClass,
 		pkgOf: conf.PackageOf, nameLookup: nameLookup, pubLookup: conf.PubFileLookup,
@@ -332,6 +343,13 @@ func loadFiles(ctx *pkgCtx, files []Source, myPkgPath string, goFileOf func(head
 	pkgOf := ctx.pkgOf
 	scope := &ctx.scopeCtx
 	lastSeen := ctx.lastSeen
+
+	// First pass: record macro group boundaries over the same filtered node
+	// stream that the emission pass below walks, without mutating lastSeen. This
+	// lets loadMacroConst (in the second pass) emit a whole group when it reaches
+	// the group's first macro, which requires the group's end to be known already.
+	preloadMacroGroups(ctx, files, myPkgPath)
+
 	for _, f := range files {
 		ctx.thisSeen = make(map[string]none) // reset for each file
 		clang.VisitChildren(f.Cursor(), func(decl, parent clang.Cursor) clang.ChildVisitResult {

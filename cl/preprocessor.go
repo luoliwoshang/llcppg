@@ -61,6 +61,21 @@ func loadMacroConst(ctx *pkgCtx, decl clang.Cursor) {
 		return
 	}
 
+	// Macro grouping: a recorded group is emitted as a whole when its first macro
+	// is reached; the remaining members are skipped here since they are emitted by
+	// the group. A redefined macro name can reach this point more than once, so
+	// the group is emitted only on the first encounter.
+	if grp := ctx.macroGroupOf(origName); grp != nil {
+		if !grp.emitted {
+			grp.emitted = true
+			emitMacroGroup(ctx, grp)
+		}
+		return
+	}
+	if ctx.isGroupMember(origName) {
+		return // emitted as part of its group's first macro
+	}
+
 	tu := clang.TU(decl)
 	tokens, dispose := tu.Tokenize(decl.Extent())
 	defer dispose()
