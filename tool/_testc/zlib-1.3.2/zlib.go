@@ -56,10 +56,6 @@ const DEFLATED = 8
 // for initializing zalloc, zfree, opaque
 const NULL = 0
 
-// The application can compare zlibVersion and ZLIB_VERSION for consistency.
-// If the first character differs, the library code actually used is not
-// compatible with the zlib.h header file used by the application.  This check
-// is automatically made by deflateInit and inflateInit.
 type StreamS struct {
 	DataType c.Int
 }
@@ -78,13 +74,10 @@ type GzFileS struct {
 type ULong = c.Ulong
 type SizeT = c.Ulong
 type Off64T = c.LongLong
-
-// The application can compare zlibVersion and ZLIB_VERSION for consistency.
-// If the first character differs, the library code actually used is not
-// compatible with the zlib.h header file used by the application.  This check
-// is automatically made by deflateInit and inflateInit.
 type Stream = StreamS
 type Streamp = *Stream
+
+// semi-opaque gzip file descriptor
 type GzFile = *GzFileS
 
 // llgo:link Streamp.DeflateInit C._llcppg_deflateInit
@@ -117,13 +110,13 @@ func (self GzFile) Gzgetc() c.Int {
 	return 0
 }
 
-// basic functions
+// The application can compare zlibVersion and ZLIB_VERSION for consistency.
+// If the first character differs, the library code actually used is not
+// compatible with the zlib.h header file used by the application.  This check
+// is automatically made by deflateInit and inflateInit.
 //
 //go:linkname Version C.zlibVersion
 func Version() *c.Char
-
-//go:linkname DeflateCopy C.deflateCopy
-func DeflateCopy(dest Streamp, source Streamp) c.Int
 
 // Sets the destination stream as a complete copy of the source stream.
 //
@@ -139,10 +132,8 @@ func DeflateCopy(dest Streamp, source Streamp) c.Int
 // (such as zalloc being Z_NULL).  msg is left unchanged in both source and
 // destination.
 //
-// llgo:link Streamp.DeflateReset C.deflateReset
-func (self Streamp) DeflateReset() c.Int {
-	return 0
-}
+//go:linkname DeflateCopy C.deflateCopy
+func DeflateCopy(dest Streamp, source Streamp) c.Int
 
 // This function is equivalent to deflateEnd followed by deflateInit, but
 // does not free and reallocate the internal compression state.  The stream
@@ -152,11 +143,30 @@ func (self Streamp) DeflateReset() c.Int {
 // deflateReset returns Z_OK if success, or Z_STREAM_ERROR if the source
 // stream state was inconsistent (such as zalloc or state being Z_NULL).
 //
+// llgo:link Streamp.DeflateReset C.deflateReset
+func (self Streamp) DeflateReset() c.Int {
+	return 0
+}
+
 // llgo:link Streamp.DeflateBound C.deflateBound
 func (self Streamp) DeflateBound(sourceLen ULong) ULong {
 	return 0
 }
 
+// deflateBound() returns an upper bound on the compressed size after
+// deflation of sourceLen bytes.  It must be called after deflateInit() or
+// deflateInit2(), and after deflateSetHeader(), if used.  This would be used
+// to allocate an output buffer for deflation in a single pass, and so would be
+// called before deflate().  If that first deflate() call is provided the
+// sourceLen input bytes, an output buffer allocated to the size returned by
+// deflateBound(), and the flush value Z_FINISH, then deflate() is guaranteed
+// to return Z_STREAM_END.  Note that it is possible for the compressed size to
+// be larger than the value returned by deflateBound() if flush options other
+// than Z_FINISH or Z_NO_FLUSH are used.
+//
+// delfateBound_z() is the same, but takes and returns a size_t length.  Note
+// that a long is 32 bits on Windows.
+//
 // llgo:link Streamp.DeflateBoundZ C.deflateBound_z
 func (self Streamp) DeflateBoundZ(sourceLen SizeT) SizeT {
 	return 0
@@ -190,9 +200,6 @@ func (self Streamp) InflateBackInit_(windowBits c.Int, window *uint8, version *c
 	return 0
 }
 
-//go:linkname Gzdopen C.gzdopen
-func Gzdopen(fd c.Int, mode *c.Char) GzFile
-
 // Associate a gzFile with the file descriptor fd.  File descriptors are
 // obtained from calls like open, dup, creat, pipe or fileno (if the file has
 // been previously opened with fopen).  The mode parameter is as in gzopen. An
@@ -215,11 +222,29 @@ func Gzdopen(fd c.Int, mode *c.Char) GzFile
 // used until the next gz* read, write, seek, or close operation, so gzdopen
 // will not detect if fd is invalid (unless fd is -1).
 //
+//go:linkname Gzdopen C.gzdopen
+func Gzdopen(fd c.Int, mode *c.Char) GzFile
+
+// Set the internal buffer size used by this library's functions for file to
+// size.  The default buffer size is 8192 bytes.  This function must be called
+// after gzopen() or gzdopen(), and before any other calls that read or write
+// the file.  The buffer memory allocation is always deferred to the first read
+// or write.  Three times that size in buffer space is allocated.  A larger
+// buffer size of, for example, 64K or 128K bytes will noticeably increase the
+// speed of decompression (reading).
+//
+// The new buffer size also affects the maximum length for gzprintf().
+//
+// gzbuffer() returns 0 on success, or -1 on failure, such as being called
+// too late.
+//
 // llgo:link GzFile.Gzbuffer C.gzbuffer
 func (self GzFile) Gzbuffer(size c.Uint) c.Int {
 	return 0
 }
 
+// backward compatibility
+//
 // llgo:link GzFile.Gzgetc_ C.gzgetc_
 func (self GzFile) Gzgetc_() c.Int {
 	return 0

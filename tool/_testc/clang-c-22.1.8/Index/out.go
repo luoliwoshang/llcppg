@@ -427,18 +427,13 @@ const (
 	Cursor_ObjCDynamicDecl CursorKind = 38
 	// An access specifier.
 	Cursor_CXXAccessSpecifier CursorKind = 39
-	// An access specifier.
-	Cursor_FirstDecl CursorKind = 1
-	// An access specifier.
-	Cursor_LastDecl CursorKind = 39
-	// An access specifier.
-	Cursor_FirstRef CursorKind = 40
-	// An access specifier.
+	Cursor_FirstDecl          CursorKind = 1
+	Cursor_LastDecl           CursorKind = 39
+	// References
+	Cursor_FirstRef          CursorKind = 40
 	Cursor_ObjCSuperClassRef CursorKind = 40
-	// An access specifier.
-	Cursor_ObjCProtocolRef CursorKind = 41
-	// An access specifier.
-	Cursor_ObjCClassRef CursorKind = 42
+	Cursor_ObjCProtocolRef   CursorKind = 41
+	Cursor_ObjCClassRef      CursorKind = 42
 	// A reference to a type declaration.
 	//
 	// A type reference occurs anywhere where a type is named but not
@@ -452,20 +447,7 @@ const (
 	// The typedef is a declaration of size_type (CXCursor_TypedefDecl),
 	// while the type of the variable "size" is referenced. The cursor
 	// referenced by the type of size is the typedef for size_type.
-	Cursor_TypeRef CursorKind = 43
-	// A reference to a type declaration.
-	//
-	// A type reference occurs anywhere where a type is named but not
-	// declared. For example, given:
-	//
-	// \code
-	// typedef unsigned size_type;
-	// size_type size;
-	// \endcode
-	//
-	// The typedef is a declaration of size_type (CXCursor_TypedefDecl),
-	// while the type of the variable "size" is referenced. The cursor
-	// referenced by the type of size is the typedef for size_type.
+	Cursor_TypeRef          CursorKind = 43
 	Cursor_CXXBaseSpecifier CursorKind = 44
 	// A reference to a class template, function template, template
 	// template parameter, or class template partial specialization.
@@ -527,29 +509,15 @@ const (
 	// A reference to a variable that occurs in some non-expression
 	// context, e.g., a C++ lambda capture list.
 	Cursor_VariableRef CursorKind = 50
-	// A reference to a variable that occurs in some non-expression
-	// context, e.g., a C++ lambda capture list.
-	Cursor_LastRef CursorKind = 50
-	// A reference to a variable that occurs in some non-expression
-	// context, e.g., a C++ lambda capture list.
-	Cursor_FirstInvalid CursorKind = 70
-	// A reference to a variable that occurs in some non-expression
-	// context, e.g., a C++ lambda capture list.
-	Cursor_InvalidFile CursorKind = 70
-	// A reference to a variable that occurs in some non-expression
-	// context, e.g., a C++ lambda capture list.
-	Cursor_NoDeclFound CursorKind = 71
-	// A reference to a variable that occurs in some non-expression
-	// context, e.g., a C++ lambda capture list.
+	Cursor_LastRef     CursorKind = 50
+	// Error conditions
+	Cursor_FirstInvalid   CursorKind = 70
+	Cursor_InvalidFile    CursorKind = 70
+	Cursor_NoDeclFound    CursorKind = 71
 	Cursor_NotImplemented CursorKind = 72
-	// A reference to a variable that occurs in some non-expression
-	// context, e.g., a C++ lambda capture list.
-	Cursor_InvalidCode CursorKind = 73
-	// A reference to a variable that occurs in some non-expression
-	// context, e.g., a C++ lambda capture list.
-	Cursor_LastInvalid CursorKind = 73
-	// A reference to a variable that occurs in some non-expression
-	// context, e.g., a C++ lambda capture list.
+	Cursor_InvalidCode    CursorKind = 73
+	Cursor_LastInvalid    CursorKind = 73
+	// Expressions
 	Cursor_FirstExpr CursorKind = 100
 	// An expression whose specific kind is not exposed via this
 	// interface.
@@ -696,7 +664,18 @@ const (
 	// };
 	// \endcode
 	Cursor_SizeOfPackExpr CursorKind = 143
-	Cursor_LambdaExpr     CursorKind = 144
+	// Represents a C++ lambda expression that produces a local function
+	// object.
+	//
+	// \code
+	// void abssort(float *x, unsigned N) {
+	//   std::sort(x, x + N,
+	//             [](float a, float b) {
+	//               return std::abs(a) < std::abs(b);
+	//             });
+	// }
+	// \endcode
+	Cursor_LambdaExpr CursorKind = 144
 	// Objective-c Boolean Literal.
 	Cursor_ObjCBoolLiteralExpr CursorKind = 145
 	// Represents the "self" expression in an Objective-C method.
@@ -723,9 +702,8 @@ const (
 	Cursor_CXXParenListInitExpr CursorKind = 155
 	//  Represents a C++26 pack indexing expression.
 	Cursor_PackIndexingExpr CursorKind = 156
-	//  Represents a C++26 pack indexing expression.
-	Cursor_LastExpr CursorKind = 156
-	//  Represents a C++26 pack indexing expression.
+	Cursor_LastExpr         CursorKind = 156
+	// Statements
 	Cursor_FirstStmt CursorKind = 200
 	// A statement whose specific kind is not exposed via this
 	// interface.
@@ -776,8 +754,7 @@ const (
 	Cursor_ReturnStmt CursorKind = 214
 	// A GCC inline assembly statement extension.
 	Cursor_GCCAsmStmt CursorKind = 215
-	// A GCC inline assembly statement extension.
-	Cursor_AsmStmt CursorKind = 215
+	Cursor_AsmStmt    CursorKind = 215
 	// Objective-C's overall \@try-\@catch-\@finally statement.
 	Cursor_ObjCAtTryStmt CursorKind = 216
 	// Objective-C's \@catch statement.
@@ -1001,182 +978,78 @@ const (
 	Cursor_OpenACCAtomicConstruct CursorKind = 332
 	// OpenACC cache Construct.
 	Cursor_OpenACCCacheConstruct CursorKind = 333
-	// OpenACC cache Construct.
-	Cursor_LastStmt CursorKind = 333
+	Cursor_LastStmt              CursorKind = 333
 	// Cursor that represents the translation unit itself.
 	//
 	// The translation unit cursor exists primarily to act as the root
 	// cursor for traversing the contents of a translation unit.
 	Cursor_TranslationUnit CursorKind = 350
-	// Cursor that represents the translation unit itself.
-	//
-	// The translation unit cursor exists primarily to act as the root
-	// cursor for traversing the contents of a translation unit.
+	// Attributes
 	Cursor_FirstAttr CursorKind = 400
 	// An attribute whose specific kind is not exposed via this
 	// interface.
-	Cursor_UnexposedAttr CursorKind = 400
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_IBActionAttr CursorKind = 401
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_IBOutletAttr CursorKind = 402
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_IBOutletCollectionAttr CursorKind = 403
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_CXXFinalAttr CursorKind = 404
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_CXXOverrideAttr CursorKind = 405
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_AnnotateAttr CursorKind = 406
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_AsmLabelAttr CursorKind = 407
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_PackedAttr CursorKind = 408
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_PureAttr CursorKind = 409
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_ConstAttr CursorKind = 410
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_NoDuplicateAttr CursorKind = 411
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_CUDAConstantAttr CursorKind = 412
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_CUDADeviceAttr CursorKind = 413
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_CUDAGlobalAttr CursorKind = 414
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_CUDAHostAttr CursorKind = 415
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_CUDASharedAttr CursorKind = 416
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_VisibilityAttr CursorKind = 417
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_DLLExport CursorKind = 418
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_DLLImport CursorKind = 419
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_NSReturnsRetained CursorKind = 420
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_NSReturnsNotRetained CursorKind = 421
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_NSReturnsAutoreleased CursorKind = 422
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_NSConsumesSelf CursorKind = 423
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_NSConsumed CursorKind = 424
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_ObjCException CursorKind = 425
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_ObjCNSObject CursorKind = 426
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_ObjCIndependentClass CursorKind = 427
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_ObjCPreciseLifetime CursorKind = 428
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_ObjCReturnsInnerPointer CursorKind = 429
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_ObjCRequiresSuper CursorKind = 430
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_ObjCRootClass CursorKind = 431
-	// An attribute whose specific kind is not exposed via this
-	// interface.
+	Cursor_UnexposedAttr             CursorKind = 400
+	Cursor_IBActionAttr              CursorKind = 401
+	Cursor_IBOutletAttr              CursorKind = 402
+	Cursor_IBOutletCollectionAttr    CursorKind = 403
+	Cursor_CXXFinalAttr              CursorKind = 404
+	Cursor_CXXOverrideAttr           CursorKind = 405
+	Cursor_AnnotateAttr              CursorKind = 406
+	Cursor_AsmLabelAttr              CursorKind = 407
+	Cursor_PackedAttr                CursorKind = 408
+	Cursor_PureAttr                  CursorKind = 409
+	Cursor_ConstAttr                 CursorKind = 410
+	Cursor_NoDuplicateAttr           CursorKind = 411
+	Cursor_CUDAConstantAttr          CursorKind = 412
+	Cursor_CUDADeviceAttr            CursorKind = 413
+	Cursor_CUDAGlobalAttr            CursorKind = 414
+	Cursor_CUDAHostAttr              CursorKind = 415
+	Cursor_CUDASharedAttr            CursorKind = 416
+	Cursor_VisibilityAttr            CursorKind = 417
+	Cursor_DLLExport                 CursorKind = 418
+	Cursor_DLLImport                 CursorKind = 419
+	Cursor_NSReturnsRetained         CursorKind = 420
+	Cursor_NSReturnsNotRetained      CursorKind = 421
+	Cursor_NSReturnsAutoreleased     CursorKind = 422
+	Cursor_NSConsumesSelf            CursorKind = 423
+	Cursor_NSConsumed                CursorKind = 424
+	Cursor_ObjCException             CursorKind = 425
+	Cursor_ObjCNSObject              CursorKind = 426
+	Cursor_ObjCIndependentClass      CursorKind = 427
+	Cursor_ObjCPreciseLifetime       CursorKind = 428
+	Cursor_ObjCReturnsInnerPointer   CursorKind = 429
+	Cursor_ObjCRequiresSuper         CursorKind = 430
+	Cursor_ObjCRootClass             CursorKind = 431
 	Cursor_ObjCSubclassingRestricted CursorKind = 432
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_ObjCExplicitProtocolImpl CursorKind = 433
-	// An attribute whose specific kind is not exposed via this
-	// interface.
+	Cursor_ObjCExplicitProtocolImpl  CursorKind = 433
 	Cursor_ObjCDesignatedInitializer CursorKind = 434
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_ObjCRuntimeVisible CursorKind = 435
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_ObjCBoxable CursorKind = 436
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_FlagEnum CursorKind = 437
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_ConvergentAttr CursorKind = 438
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_WarnUnusedAttr CursorKind = 439
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_WarnUnusedResultAttr CursorKind = 440
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_AlignedAttr CursorKind = 441
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_LastAttr CursorKind = 441
-	// An attribute whose specific kind is not exposed via this
-	// interface.
+	Cursor_ObjCRuntimeVisible        CursorKind = 435
+	Cursor_ObjCBoxable               CursorKind = 436
+	Cursor_FlagEnum                  CursorKind = 437
+	Cursor_ConvergentAttr            CursorKind = 438
+	Cursor_WarnUnusedAttr            CursorKind = 439
+	Cursor_WarnUnusedResultAttr      CursorKind = 440
+	Cursor_AlignedAttr               CursorKind = 441
+	Cursor_LastAttr                  CursorKind = 441
+	// Preprocessing
 	Cursor_PreprocessingDirective CursorKind = 500
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_MacroDefinition CursorKind = 501
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_MacroExpansion CursorKind = 502
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_MacroInstantiation CursorKind = 502
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_InclusionDirective CursorKind = 503
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_FirstPreprocessing CursorKind = 500
-	// An attribute whose specific kind is not exposed via this
-	// interface.
-	Cursor_LastPreprocessing CursorKind = 503
+	Cursor_MacroDefinition        CursorKind = 501
+	Cursor_MacroExpansion         CursorKind = 502
+	Cursor_MacroInstantiation     CursorKind = 502
+	Cursor_InclusionDirective     CursorKind = 503
+	Cursor_FirstPreprocessing     CursorKind = 500
+	Cursor_LastPreprocessing      CursorKind = 503
 	// A module import declaration.
-	Cursor_ModuleImportDecl CursorKind = 600
-	// A module import declaration.
+	Cursor_ModuleImportDecl      CursorKind = 600
 	Cursor_TypeAliasTemplateDecl CursorKind = 601
 	// A static_assert or _Static_assert node
 	Cursor_StaticAssert CursorKind = 602
 	// a friend declaration.
 	Cursor_FriendDecl CursorKind = 603
 	// a concept declaration.
-	Cursor_ConceptDecl CursorKind = 604
-	// a concept declaration.
+	Cursor_ConceptDecl    CursorKind = 604
 	Cursor_FirstExtraDecl CursorKind = 600
-	// a concept declaration.
-	Cursor_LastExtraDecl CursorKind = 604
+	Cursor_LastExtraDecl  CursorKind = 604
 	// A code completion overload candidate.
 	Cursor_OverloadCandidate CursorKind = 700
 )
@@ -1262,9 +1135,15 @@ const (
 type TLSKind c.Uint
 
 const (
-	TLS_None    TLSKind = 0
+	// Describe the "thread-local storage (TLS) kind" of the declaration
+	// referred to by a cursor.
+	TLS_None TLSKind = 0
+	// Describe the "thread-local storage (TLS) kind" of the declaration
+	// referred to by a cursor.
 	TLS_Dynamic TLSKind = 1
-	TLS_Static  TLSKind = 2
+	// Describe the "thread-local storage (TLS) kind" of the declaration
+	// referred to by a cursor.
+	TLS_Static TLSKind = 2
 )
 
 // Describes the kind of type
@@ -1276,471 +1155,159 @@ const (
 	// A type whose specific kind is not exposed via this
 	// interface.
 	Type_Unexposed TypeKind = 1
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Void TypeKind = 2
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Bool TypeKind = 3
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Char_U TypeKind = 4
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_UChar TypeKind = 5
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Char16 TypeKind = 6
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Char32 TypeKind = 7
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_UShort TypeKind = 8
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_UInt TypeKind = 9
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_ULong TypeKind = 10
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_ULongLong TypeKind = 11
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_UInt128 TypeKind = 12
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Char_S TypeKind = 13
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_SChar TypeKind = 14
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_WChar TypeKind = 15
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Short TypeKind = 16
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Int TypeKind = 17
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Long TypeKind = 18
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_LongLong TypeKind = 19
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Int128 TypeKind = 20
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Float TypeKind = 21
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Double TypeKind = 22
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_LongDouble TypeKind = 23
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_NullPtr TypeKind = 24
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Overload TypeKind = 25
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Dependent TypeKind = 26
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_ObjCId TypeKind = 27
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_ObjCClass TypeKind = 28
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_ObjCSel TypeKind = 29
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Float128 TypeKind = 30
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Half TypeKind = 31
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Float16 TypeKind = 32
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_ShortAccum TypeKind = 33
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Accum TypeKind = 34
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_LongAccum TypeKind = 35
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_UShortAccum TypeKind = 36
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_UAccum TypeKind = 37
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_ULongAccum TypeKind = 38
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_BFloat16 TypeKind = 39
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Ibm128 TypeKind = 40
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_FirstBuiltin TypeKind = 2
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_LastBuiltin TypeKind = 40
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Complex TypeKind = 100
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Pointer TypeKind = 101
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_BlockPointer TypeKind = 102
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_LValueReference TypeKind = 103
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_RValueReference TypeKind = 104
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Record TypeKind = 105
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Enum TypeKind = 106
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Typedef TypeKind = 107
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_ObjCInterface TypeKind = 108
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_ObjCObjectPointer TypeKind = 109
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_FunctionNoProto TypeKind = 110
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_FunctionProto TypeKind = 111
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_ConstantArray TypeKind = 112
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Vector TypeKind = 113
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_IncompleteArray TypeKind = 114
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_VariableArray TypeKind = 115
-	// A type whose specific kind is not exposed via this
-	// interface.
+	// Builtin types
+	Type_Void                TypeKind = 2
+	Type_Bool                TypeKind = 3
+	Type_Char_U              TypeKind = 4
+	Type_UChar               TypeKind = 5
+	Type_Char16              TypeKind = 6
+	Type_Char32              TypeKind = 7
+	Type_UShort              TypeKind = 8
+	Type_UInt                TypeKind = 9
+	Type_ULong               TypeKind = 10
+	Type_ULongLong           TypeKind = 11
+	Type_UInt128             TypeKind = 12
+	Type_Char_S              TypeKind = 13
+	Type_SChar               TypeKind = 14
+	Type_WChar               TypeKind = 15
+	Type_Short               TypeKind = 16
+	Type_Int                 TypeKind = 17
+	Type_Long                TypeKind = 18
+	Type_LongLong            TypeKind = 19
+	Type_Int128              TypeKind = 20
+	Type_Float               TypeKind = 21
+	Type_Double              TypeKind = 22
+	Type_LongDouble          TypeKind = 23
+	Type_NullPtr             TypeKind = 24
+	Type_Overload            TypeKind = 25
+	Type_Dependent           TypeKind = 26
+	Type_ObjCId              TypeKind = 27
+	Type_ObjCClass           TypeKind = 28
+	Type_ObjCSel             TypeKind = 29
+	Type_Float128            TypeKind = 30
+	Type_Half                TypeKind = 31
+	Type_Float16             TypeKind = 32
+	Type_ShortAccum          TypeKind = 33
+	Type_Accum               TypeKind = 34
+	Type_LongAccum           TypeKind = 35
+	Type_UShortAccum         TypeKind = 36
+	Type_UAccum              TypeKind = 37
+	Type_ULongAccum          TypeKind = 38
+	Type_BFloat16            TypeKind = 39
+	Type_Ibm128              TypeKind = 40
+	Type_FirstBuiltin        TypeKind = 2
+	Type_LastBuiltin         TypeKind = 40
+	Type_Complex             TypeKind = 100
+	Type_Pointer             TypeKind = 101
+	Type_BlockPointer        TypeKind = 102
+	Type_LValueReference     TypeKind = 103
+	Type_RValueReference     TypeKind = 104
+	Type_Record              TypeKind = 105
+	Type_Enum                TypeKind = 106
+	Type_Typedef             TypeKind = 107
+	Type_ObjCInterface       TypeKind = 108
+	Type_ObjCObjectPointer   TypeKind = 109
+	Type_FunctionNoProto     TypeKind = 110
+	Type_FunctionProto       TypeKind = 111
+	Type_ConstantArray       TypeKind = 112
+	Type_Vector              TypeKind = 113
+	Type_IncompleteArray     TypeKind = 114
+	Type_VariableArray       TypeKind = 115
 	Type_DependentSizedArray TypeKind = 116
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_MemberPointer TypeKind = 117
-	// A type whose specific kind is not exposed via this
-	// interface.
-	Type_Auto TypeKind = 118
+	Type_MemberPointer       TypeKind = 117
+	Type_Auto                TypeKind = 118
 	// Represents a type that was referred to using an elaborated type keyword.
 	//
 	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
 	Type_Elaborated TypeKind = 119
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
+	// OpenCL PipeType.
 	Type_Pipe TypeKind = 120
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage1dRO TypeKind = 121
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage1dArrayRO TypeKind = 122
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage1dBufferRO TypeKind = 123
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dRO TypeKind = 124
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dArrayRO TypeKind = 125
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dDepthRO TypeKind = 126
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dArrayDepthRO TypeKind = 127
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dMSAARO TypeKind = 128
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dArrayMSAARO TypeKind = 129
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dMSAADepthRO TypeKind = 130
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dArrayMSAADepthRO TypeKind = 131
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage3dRO TypeKind = 132
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage1dWO TypeKind = 133
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage1dArrayWO TypeKind = 134
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage1dBufferWO TypeKind = 135
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dWO TypeKind = 136
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dArrayWO TypeKind = 137
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dDepthWO TypeKind = 138
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dArrayDepthWO TypeKind = 139
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dMSAAWO TypeKind = 140
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dArrayMSAAWO TypeKind = 141
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dMSAADepthWO TypeKind = 142
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dArrayMSAADepthWO TypeKind = 143
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage3dWO TypeKind = 144
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage1dRW TypeKind = 145
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage1dArrayRW TypeKind = 146
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage1dBufferRW TypeKind = 147
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dRW TypeKind = 148
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dArrayRW TypeKind = 149
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dDepthRW TypeKind = 150
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dArrayDepthRW TypeKind = 151
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dMSAARW TypeKind = 152
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dArrayMSAARW TypeKind = 153
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dMSAADepthRW TypeKind = 154
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage2dArrayMSAADepthRW TypeKind = 155
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLImage3dRW TypeKind = 156
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLSampler TypeKind = 157
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLEvent TypeKind = 158
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLQueue TypeKind = 159
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLReserveID TypeKind = 160
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_ObjCObject TypeKind = 161
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_ObjCTypeParam TypeKind = 162
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_Attributed TypeKind = 163
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLIntelSubgroupAVCMcePayload TypeKind = 164
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLIntelSubgroupAVCImePayload TypeKind = 165
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLIntelSubgroupAVCRefPayload TypeKind = 166
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLIntelSubgroupAVCSicPayload TypeKind = 167
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLIntelSubgroupAVCMceResult TypeKind = 168
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLIntelSubgroupAVCImeResult TypeKind = 169
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLIntelSubgroupAVCRefResult TypeKind = 170
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLIntelSubgroupAVCSicResult TypeKind = 171
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
+	// OpenCL builtin types.
+	Type_OCLImage1dRO                                         TypeKind = 121
+	Type_OCLImage1dArrayRO                                    TypeKind = 122
+	Type_OCLImage1dBufferRO                                   TypeKind = 123
+	Type_OCLImage2dRO                                         TypeKind = 124
+	Type_OCLImage2dArrayRO                                    TypeKind = 125
+	Type_OCLImage2dDepthRO                                    TypeKind = 126
+	Type_OCLImage2dArrayDepthRO                               TypeKind = 127
+	Type_OCLImage2dMSAARO                                     TypeKind = 128
+	Type_OCLImage2dArrayMSAARO                                TypeKind = 129
+	Type_OCLImage2dMSAADepthRO                                TypeKind = 130
+	Type_OCLImage2dArrayMSAADepthRO                           TypeKind = 131
+	Type_OCLImage3dRO                                         TypeKind = 132
+	Type_OCLImage1dWO                                         TypeKind = 133
+	Type_OCLImage1dArrayWO                                    TypeKind = 134
+	Type_OCLImage1dBufferWO                                   TypeKind = 135
+	Type_OCLImage2dWO                                         TypeKind = 136
+	Type_OCLImage2dArrayWO                                    TypeKind = 137
+	Type_OCLImage2dDepthWO                                    TypeKind = 138
+	Type_OCLImage2dArrayDepthWO                               TypeKind = 139
+	Type_OCLImage2dMSAAWO                                     TypeKind = 140
+	Type_OCLImage2dArrayMSAAWO                                TypeKind = 141
+	Type_OCLImage2dMSAADepthWO                                TypeKind = 142
+	Type_OCLImage2dArrayMSAADepthWO                           TypeKind = 143
+	Type_OCLImage3dWO                                         TypeKind = 144
+	Type_OCLImage1dRW                                         TypeKind = 145
+	Type_OCLImage1dArrayRW                                    TypeKind = 146
+	Type_OCLImage1dBufferRW                                   TypeKind = 147
+	Type_OCLImage2dRW                                         TypeKind = 148
+	Type_OCLImage2dArrayRW                                    TypeKind = 149
+	Type_OCLImage2dDepthRW                                    TypeKind = 150
+	Type_OCLImage2dArrayDepthRW                               TypeKind = 151
+	Type_OCLImage2dMSAARW                                     TypeKind = 152
+	Type_OCLImage2dArrayMSAARW                                TypeKind = 153
+	Type_OCLImage2dMSAADepthRW                                TypeKind = 154
+	Type_OCLImage2dArrayMSAADepthRW                           TypeKind = 155
+	Type_OCLImage3dRW                                         TypeKind = 156
+	Type_OCLSampler                                           TypeKind = 157
+	Type_OCLEvent                                             TypeKind = 158
+	Type_OCLQueue                                             TypeKind = 159
+	Type_OCLReserveID                                         TypeKind = 160
+	Type_ObjCObject                                           TypeKind = 161
+	Type_ObjCTypeParam                                        TypeKind = 162
+	Type_Attributed                                           TypeKind = 163
+	Type_OCLIntelSubgroupAVCMcePayload                        TypeKind = 164
+	Type_OCLIntelSubgroupAVCImePayload                        TypeKind = 165
+	Type_OCLIntelSubgroupAVCRefPayload                        TypeKind = 166
+	Type_OCLIntelSubgroupAVCSicPayload                        TypeKind = 167
+	Type_OCLIntelSubgroupAVCMceResult                         TypeKind = 168
+	Type_OCLIntelSubgroupAVCImeResult                         TypeKind = 169
+	Type_OCLIntelSubgroupAVCRefResult                         TypeKind = 170
+	Type_OCLIntelSubgroupAVCSicResult                         TypeKind = 171
 	Type_OCLIntelSubgroupAVCImeResultSingleReferenceStreamout TypeKind = 172
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLIntelSubgroupAVCImeResultDualReferenceStreamout TypeKind = 173
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLIntelSubgroupAVCImeSingleReferenceStreamin TypeKind = 174
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLIntelSubgroupAVCImeDualReferenceStreamin TypeKind = 175
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
+	Type_OCLIntelSubgroupAVCImeResultDualReferenceStreamout   TypeKind = 173
+	Type_OCLIntelSubgroupAVCImeSingleReferenceStreamin        TypeKind = 174
+	Type_OCLIntelSubgroupAVCImeDualReferenceStreamin          TypeKind = 175
+	// Old aliases for AVC OpenCL extension types.
 	Type_OCLIntelSubgroupAVCImeResultSingleRefStreamout TypeKind = 172
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLIntelSubgroupAVCImeResultDualRefStreamout TypeKind = 173
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLIntelSubgroupAVCImeSingleRefStreamin TypeKind = 174
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_OCLIntelSubgroupAVCImeDualRefStreamin TypeKind = 175
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_ExtVector TypeKind = 176
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_Atomic TypeKind = 177
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_BTFTagAttributed TypeKind = 178
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_HLSLResource TypeKind = 179
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
+	Type_OCLIntelSubgroupAVCImeResultDualRefStreamout   TypeKind = 173
+	Type_OCLIntelSubgroupAVCImeSingleRefStreamin        TypeKind = 174
+	Type_OCLIntelSubgroupAVCImeDualRefStreamin          TypeKind = 175
+	Type_ExtVector                                      TypeKind = 176
+	Type_Atomic                                         TypeKind = 177
+	Type_BTFTagAttributed                               TypeKind = 178
+	// HLSL Types
+	Type_HLSLResource           TypeKind = 179
 	Type_HLSLAttributedResource TypeKind = 180
-	// Represents a type that was referred to using an elaborated type keyword.
-	//
-	// E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
-	Type_HLSLInlineSpirv TypeKind = 181
+	Type_HLSLInlineSpirv        TypeKind = 181
 )
 
 // Describes the calling convention of a function type
 type CallingConv c.Uint
 
 const (
-	CallingConv_Default            CallingConv = 0
-	CallingConv_C                  CallingConv = 1
-	CallingConv_X86StdCall         CallingConv = 2
-	CallingConv_X86FastCall        CallingConv = 3
-	CallingConv_X86ThisCall        CallingConv = 4
-	CallingConv_X86Pascal          CallingConv = 5
-	CallingConv_AAPCS              CallingConv = 6
-	CallingConv_AAPCS_VFP          CallingConv = 7
-	CallingConv_X86RegCall         CallingConv = 8
-	CallingConv_IntelOclBicc       CallingConv = 9
-	CallingConv_Win64              CallingConv = 10
+	CallingConv_Default      CallingConv = 0
+	CallingConv_C            CallingConv = 1
+	CallingConv_X86StdCall   CallingConv = 2
+	CallingConv_X86FastCall  CallingConv = 3
+	CallingConv_X86ThisCall  CallingConv = 4
+	CallingConv_X86Pascal    CallingConv = 5
+	CallingConv_AAPCS        CallingConv = 6
+	CallingConv_AAPCS_VFP    CallingConv = 7
+	CallingConv_X86RegCall   CallingConv = 8
+	CallingConv_IntelOclBicc CallingConv = 9
+	CallingConv_Win64        CallingConv = 10
+	// Alias for compatibility with older versions of API.
 	CallingConv_X86_64Win64        CallingConv = 10
 	CallingConv_X86_64SysV         CallingConv = 11
 	CallingConv_X86VectorCall      CallingConv = 12
@@ -1791,7 +1358,8 @@ const (
 	TemplateArgumentKind_TemplateExpansion TemplateArgumentKind = 6
 	TemplateArgumentKind_Expression        TemplateArgumentKind = 7
 	TemplateArgumentKind_Pack              TemplateArgumentKind = 8
-	TemplateArgumentKind_Invalid           TemplateArgumentKind = 9
+	// Indicates an error case, preventing the kind from being deduced.
+	TemplateArgumentKind_Invalid TemplateArgumentKind = 9
 )
 
 type TypeNullabilityKind c.Uint
@@ -2304,9 +1872,6 @@ const (
 	Eval_UnExposed      EvalResultKind = 0
 )
 
-// \defgroup CINDEX_HIGH Higher level API functions
-//
-// @{
 type VisitorResult c.Uint
 
 const (
@@ -2668,8 +2233,7 @@ const (
 	BinaryOperator_OrAssign BinaryOperatorKind = 32
 	// Comma operator.
 	BinaryOperator_Comma BinaryOperatorKind = 33
-	// Comma operator.
-	BinaryOperator_Last BinaryOperatorKind = 33
+	BinaryOperator_Last  BinaryOperatorKind = 33
 )
 
 // Describes the kind of unary operators.
@@ -2750,12 +2314,6 @@ type CursorVisitor = func(_llcppg_param1 Cursor, _llcppg_param2 Cursor, _llcppg_
 // Opaque pointer representing a policy that controls pretty printing
 // for \c clang_getCursorPrettyPrinted.
 type PrintingPolicy uintptr
-
-// \defgroup CINDEX_MODULE Module introspection
-//
-// The functions in this group provide access to information about modules.
-//
-// @{
 type Module uintptr
 
 // A semantic string that describes a code-completion result.
@@ -2818,7 +2376,7 @@ type IndexAction uintptr
 // llgo:type C
 type FieldVisitor = func(_llcppg_param1 Cursor, _llcppg_param2 ClientData) VisitorResult
 
-// @}
+// CINDEX_DEPRECATED - disabled to silence MSVC deprecation warnings
 type Remapping uintptr
 
 // Provides a shared context for creating translation units.
@@ -5131,113 +4689,46 @@ func (_llcppg_param1 Cursor) ObjCManglings() *CXString.StringSet {
 	return nil
 }
 
-// Given a CXCursor_GCCAsmStmt cursor, return the assembly template string.
-// As per LLVM IR Assembly Template language, template placeholders for
-// inputs and outputs are either of the form $N where N is a decimal number
-// as an index into the input-output specification,
-// or ${N:M} where N is a decimal number also as an index into the
-// input-output specification and M is the template argument modifier.
-// The index N in both cases points into the the total inputs and outputs,
-// or more specifically, into the list of outputs followed by the inputs,
-// starting from index 0 as the first available template argument.
-//
-// This function also returns a valid empty string if the cursor does not point
-// at a GCC inline assembly block.
-//
-// Users are responsible for releasing the allocation of returned string via
-// \c clang_disposeString.
-//
 // llgo:link Cursor.GCCAssemblyTemplate C.clang_Cursor_getGCCAssemblyTemplate
 func (_llcppg_param1 Cursor) GCCAssemblyTemplate() CXString.String {
 	return CXString.String{}
 }
 
-// Given a CXCursor_GCCAsmStmt cursor, check if the assembly block has goto
-// labels.
-// This function also returns 0 if the cursor does not point at a GCC inline
-// assembly block.
-//
 // llgo:link Cursor.IsGCCAssemblyHasGoto C.clang_Cursor_isGCCAssemblyHasGoto
 func (_llcppg_param1 Cursor) IsGCCAssemblyHasGoto() c.Uint {
 	return 0
 }
 
-// Given a CXCursor_GCCAsmStmt cursor, count the number of outputs.
-// This function also returns 0 if the cursor does not point at a GCC inline
-// assembly block.
-//
 // llgo:link Cursor.GCCAssemblyNumOutputs C.clang_Cursor_getGCCAssemblyNumOutputs
 func (_llcppg_param1 Cursor) GCCAssemblyNumOutputs() c.Uint {
 	return 0
 }
 
-// Given a CXCursor_GCCAsmStmt cursor, count the number of inputs.
-// This function also returns 0 if the cursor does not point at a GCC inline
-// assembly block.
-//
 // llgo:link Cursor.GCCAssemblyNumInputs C.clang_Cursor_getGCCAssemblyNumInputs
 func (_llcppg_param1 Cursor) GCCAssemblyNumInputs() c.Uint {
 	return 0
 }
 
-// Given a CXCursor_GCCAsmStmt cursor, get the constraint and expression cursor
-// to the Index-th input.
-// This function returns 1 when the cursor points at a GCC inline assembly
-// statement, `Index` is within bounds and both the `Constraint` and `Expr` are
-// not NULL.
-// Otherwise, this function returns 0 but leaves `Constraint` and `Expr`
-// intact.
-//
-// Users are responsible for releasing the allocation of `Constraint` via
-// \c clang_disposeString.
-//
 // llgo:link Cursor.GCCAssemblyInput C.clang_Cursor_getGCCAssemblyInput
 func (Cursor Cursor) GCCAssemblyInput(Index c.Uint, Constraint *CXString.String, Expr *Cursor) c.Uint {
 	return 0
 }
 
-// Given a CXCursor_GCCAsmStmt cursor, get the constraint and expression cursor
-// to the Index-th output.
-// This function returns 1 when the cursor points at a GCC inline assembly
-// statement, `Index` is within bounds and both the `Constraint` and `Expr` are
-// not NULL.
-// Otherwise, this function returns 0 but leaves `Constraint` and `Expr`
-// intact.
-//
-// Users are responsible for releasing the allocation of `Constraint` via
-// \c clang_disposeString.
-//
 // llgo:link Cursor.GCCAssemblyOutput C.clang_Cursor_getGCCAssemblyOutput
 func (Cursor Cursor) GCCAssemblyOutput(Index c.Uint, Constraint *CXString.String, Expr *Cursor) c.Uint {
 	return 0
 }
 
-// Given a CXCursor_GCCAsmStmt cursor, count the clobbers in it.
-// This function also returns 0 if the cursor does not point at a GCC inline
-// assembly block.
-//
 // llgo:link Cursor.GCCAssemblyNumClobbers C.clang_Cursor_getGCCAssemblyNumClobbers
 func (Cursor Cursor) GCCAssemblyNumClobbers() c.Uint {
 	return 0
 }
 
-// Given a CXCursor_GCCAsmStmt cursor, get the Index-th clobber of it.
-// This function returns a valid empty string if the cursor does not point
-// at a GCC inline assembly block or `Index` is out of bounds.
-//
-// Users are responsible for releasing the allocation of returned string via
-// \c clang_disposeString.
-//
 // llgo:link Cursor.GCCAssemblyClobber C.clang_Cursor_getGCCAssemblyClobber
 func (Cursor Cursor) GCCAssemblyClobber(Index c.Uint) CXString.String {
 	return CXString.String{}
 }
 
-// Given a CXCursor_GCCAsmStmt cursor, check if the inline assembly is
-// `volatile`.
-// This function returns 0 if the cursor does not point at a GCC inline
-// assembly block.
-//
 // llgo:link Cursor.IsGCCAssemblyVolatile C.clang_Cursor_isGCCAssemblyVolatile
 func (Cursor Cursor) IsGCCAssemblyVolatile() c.Uint {
 	return 0
@@ -5702,12 +5193,7 @@ func (TU TranslationUnit) AnnotateTokens(Tokens *Token, NumTokens c.Uint, Cursor
 func (TU TranslationUnit) DisposeTokens(Tokens *Token, NumTokens c.Uint) {
 }
 
-// \defgroup CINDEX_DEBUG Debugging facilities
-//
-// These routines are used for testing and debugging, only, and should not
-// be relied upon.
-//
-// @{
+// for debug/testing
 //
 // llgo:link CursorKind.Spelling C.clang_getCursorKindSpelling
 func (Kind CursorKind) Spelling() CXString.String {

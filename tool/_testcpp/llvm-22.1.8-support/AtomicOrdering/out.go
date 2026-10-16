@@ -29,9 +29,10 @@ const (
 type AtomicOrdering c.Uint
 
 const (
-	AtomicOrdering_NotAtomic              AtomicOrdering = 0
-	AtomicOrdering_Unordered              AtomicOrdering = 1
-	AtomicOrdering_Monotonic              AtomicOrdering = 2
+	AtomicOrdering_NotAtomic AtomicOrdering = 0
+	AtomicOrdering_Unordered AtomicOrdering = 1
+	AtomicOrdering_Monotonic AtomicOrdering = 2
+	// Consume = 3,  // Not specified yet.
 	AtomicOrdering_Acquire                AtomicOrdering = 4
 	AtomicOrdering_Release                AtomicOrdering = 5
 	AtomicOrdering_AcquireRelease         AtomicOrdering = 6

@@ -24,6 +24,8 @@ const CAN_START_THREADS = 1
 type UintptrT = c.UintptrT
 type IntptrT = c.IntptrT
 type SsizeT = c.SsizeT
+
+// Py_uhash_t is the unsigned equivalent needed to calculate numeric hash.
 type HashT = SsizeT
 type UhashT = c.SizeT
 
