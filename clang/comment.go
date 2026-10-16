@@ -27,7 +27,8 @@ import (
 // cursor, including the comment markers (e.g. "/** ... */" or "///"). It returns
 // an empty string if the cursor has no associated comment.
 func RawComment(entity clang.Cursor) string {
-	return GoStringAndDispose(entity.RawCommentText())
+	raw := RawCommentsOf(entity)
+	return raw.Text()
 }
 
 // -----------------------------------------------------------------------------

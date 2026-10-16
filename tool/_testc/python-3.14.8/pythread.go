@@ -61,6 +61,8 @@ type X_tssT struct {
 	X_key           pthread.Key
 }
 type ThreadTypeLock uintptr
+
+// opaque
 type TssT = X_tssT
 type Object = X_object
 

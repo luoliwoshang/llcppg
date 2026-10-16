@@ -63,6 +63,8 @@ func (strm Streamp) Reset_(flags c.Int, version *c.Char) {
 func (strm Streamp) Flush_() {
 }
 
+// Return the library version.
+//
 //go:linkname Version_ C.version_
 func Version_() c.Int
 

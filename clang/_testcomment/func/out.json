@@ -1,0 +1,29 @@
+[
+	{
+		"name": "ZEXTERN"
+	},
+	{
+		"name": "ZEXPORT"
+	},
+	{
+		"name": "FAR"
+	},
+	{
+		"name": "zlibVersion",
+		"trailing": "/* The application can compare zlibVersion and ZLIB_VERSION for consistency.\n   If the first character differs, the library code actually used is not\n   compatible with the zlib.h header file used by the application.  This check\n   is automatically made by deflateInit and inflateInit.\n */"
+	},
+	{
+		"name": "z_stream_s"
+	},
+	{
+		"name": "deflateCopy",
+		"trailing": "/*\n     Sets the destination stream as a complete copy of the source stream.\n\n     This function can be useful when several compression strategies will be\n   tried, for example when there are several ways of pre-processing the input\n   data with a filter.  The streams that will be discarded should then be freed\n   by calling deflateEnd.  Note that deflateCopy duplicates the internal\n   compression state which can be quite large, so this strategy is slow and can\n   consume lots of memory.\n\n     deflateCopy returns Z_OK if success, Z_MEM_ERROR if there was not\n   enough memory, Z_STREAM_ERROR if the source stream state was inconsistent\n   (such as zalloc being Z_NULL).  msg is left unchanged in both source and\n   destination.\n*/"
+	},
+	{
+		"name": "deflateBound"
+	},
+	{
+		"name": "deflateBound_z",
+		"trailing": "/*\n     deflateBound() returns an upper bound on the compressed size after\n   deflation of sourceLen bytes.  It must be called after deflateInit() or\n   deflateInit2(), and after deflateSetHeader(), if used.  This would be used\n   to allocate an output buffer for deflation in a single pass, and so would be\n   called before deflate().  If that first deflate() call is provided the\n   sourceLen input bytes, an output buffer allocated to the size returned by\n   deflateBound(), and the flush value Z_FINISH, then deflate() is guaranteed\n   to return Z_STREAM_END.  Note that it is possible for the compressed size to\n   be larger than the value returned by deflateBound() if flush options other\n   than Z_FINISH or Z_NO_FLUSH are used.\n\n     delfateBound_z() is the same, but takes and returns a size_t length.  Note\n   that a long is 32 bits on Windows.\n*/"
+	}
+]
