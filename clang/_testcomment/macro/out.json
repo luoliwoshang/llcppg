@@ -1,0 +1,54 @@
+[
+	{
+		"name": "MAX_SIZE",
+		"preceding": "// Maximum size limit."
+	},
+	{
+		"name": "z_deflateInit",
+		"preceding": "/** Initialize for deflation. */"
+	},
+	{
+		"name": "Z",
+		"preceding": "/*\n * Init for deflation.\n */"
+	},
+	{
+		"name": "X",
+		"preceding": "// line one\n// line two"
+	},
+	{
+		"name": "NODOC"
+	},
+	{
+		"name": "B",
+		"preceding": "// b"
+	},
+	{
+		"name": "X_NODOC"
+	},
+	{
+		"name": "Z_NODOC"
+	},
+	{
+		"name": "Z_BINARY",
+		"inline": "// binary mode"
+	},
+	{
+		"name": "Z_TEXT"
+	},
+	{
+		"name": "Z_ASCII",
+		"inline": "/* for compatibility with 1.2.2 and earlier */"
+	},
+	{
+		"name": "Z_UNKNOWN",
+		"trailing": "/* Possible values of the data_type field for deflate() */"
+	},
+	{
+		"name": "x",
+		"preceding": "// x doc"
+	},
+	{
+		"name": "z",
+		"inline": "// z inline doc"
+	}
+]

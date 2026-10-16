@@ -16,6 +16,13 @@ int deflateInit_(z_streamp strm, int level, const char *version, int stream_size
 
 void reset_(z_streamp strm, int flags, const char *version);
 
+void flush_(z_streamp strm);
+
+int version_(void); // Return the library version.
+
+// Release internal buffers.
+void cleanup_(z_streamp strm);
+
 #define z_gzgetc(g) \
         ((g)->have ? ((g)->have--, (g)->pos++, *((g)->next)++) : (gzgetc_)(g))
 
@@ -25,3 +32,7 @@ void reset_(z_streamp strm, int flags, const char *version);
 
 #define z_reset(strm, flags) \
         reset_((strm), (flags), "1.3")
+
+#define z_flush(strm) \
+        flush_((strm))
+// Flush any pending output.

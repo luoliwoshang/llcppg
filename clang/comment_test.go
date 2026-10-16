@@ -17,14 +17,57 @@
 package clang
 
 import (
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+	"os"
 	"strings"
 	"testing"
+
+	lc "github.com/llarhub/clang-c"
+	"github.com/qiniu/x/test"
+	"github.com/qiniu/x/test/testutil"
 )
 
-// TestPrecedingComment exercises the source-scanning that recovers a macro's
-// doc comment, which libclang does not associate with macro cursors. The marker
-// "@" in each source marks the byte MacroRawComment would scan back from (the
-// start of the "#define" line); it is stripped before the call.
+type declDoc struct {
+	Name string `json:"name"`
+	RawComments
+}
+
+func TestRawComments(t *testing.T) {
+	testutil.FromDir(t, "", "./_testcomment", func(t *testing.T, pkgDir string) {
+		idx := CreateIndex(1, 1)
+		defer idx.Dispose()
+
+		hfile := pkgDir + "/in.h"
+		tu, err := idx.ParseTranslationUnit(DetailedPreprocessingRecord, hfile, "-x", "c++", "-fparse-all-comments")
+		if err != nil {
+			t.Fatalf("failed to parse translation unit: %v", err)
+		}
+		defer tu.Dispose()
+
+		var doc []declDoc
+		VisitChildren(tu.Cursor(), func(cur, parent Cursor) ChildVisitResult {
+			at := PresumedFile(cur.Location())
+			if at != hfile {
+				return Continue
+			}
+			switch cur.Kind {
+			case lc.Cursor_MacroDefinition, lc.Cursor_FunctionDecl, lc.Cursor_VarDecl,
+				lc.Cursor_ClassDecl, lc.Cursor_StructDecl, lc.Cursor_EnumDecl:
+				doc = append(doc, declDoc{
+					Name:        String(cur),
+					RawComments: RawCommentsOf(cur),
+				})
+			}
+			return Continue
+		})
+
+		b, _ := json.Marshal(doc, jsontext.Multiline(true))
+		bExp, _ := os.ReadFile(pkgDir + "/out.json")
+		test.Diff(t, pkgDir+"/out.json.txt", b, bExp)
+	})
+}
+
 func TestPrecedingComment(t *testing.T) {
 	tests := []struct {
 		name string
@@ -89,9 +132,101 @@ func TestPrecedingComment(t *testing.T) {
 				t.Fatalf("test source missing '@' marker")
 			}
 			src := tt.src[:at] + tt.src[at+1:]
-			got := precedingComment([]byte(src), at)
+			got := precedingRawComment([]byte(src), at)
 			if got != tt.want {
 				t.Errorf("precedingComment:\n got: %q\nwant: %q", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFollowingComment(t *testing.T) {
+	tests := []struct {
+		name string
+		src  string // "@" marks the scan start (end of the macro extent)
+		want string
+	}{
+		{
+			name: "line_comment_below",
+			src:  "#define X 1@\n/// Maximum size limit.\n",
+			want: "/// Maximum size limit.",
+		},
+		{
+			name: "block_comment_below",
+			src:  "#define Z 1@\n/** Init for deflation. */\n",
+			want: "/** Init for deflation. */",
+		},
+		{
+			name: "multiline_block_below",
+			src:  "#define Z 1@\n/*\n * Init for deflation.\n */\n",
+			want: "/*\n * Init for deflation.\n */",
+		},
+		{
+			name: "consecutive_line_comments",
+			src:  "#define X 1@\n// line one\n// line two\nint y;\n",
+			want: "// line one\n// line two",
+		},
+		{
+			name: "blank_line_detaches",
+			src:  "#define X 1@\n\n/// detached doc\n",
+			want: "",
+		},
+		{
+			name: "inline_comment_not_trailing",
+			src:  "#define X 1@ // inline\n",
+			want: "",
+		},
+		{
+			// An inline comment on the macro's own line stops the scan: macros
+			// have no inline slot, and the trailing position is only consulted
+			// when the macro line ends in whitespace. This keeps the rule simple;
+			// mixing an inline and a trailing comment on one macro does not occur
+			// in practice.
+			name: "inline_block_stops_scan",
+			src:  "#define X 1@ /* inline */\n/// below\n",
+			want: "",
+		},
+		{
+			name: "code_below_no_comment",
+			src:  "#define X 1@\nint y;\n",
+			want: "",
+		},
+		{
+			name: "next_decl_comment_detached_by_blank",
+			src:  "#define X 1@\n\n/// doc for next\n#define Y 2\n",
+			want: "",
+		},
+		{
+			name: "comment_at_file_end_no_newline",
+			src:  "#define X 1@\n/// doc",
+			want: "/// doc",
+		},
+		{
+			name: "no_comment_at_eof",
+			src:  "#define X 1@",
+			want: "",
+		},
+		{
+			name: "crlf_line_comment_below",
+			src:  "#define X 1@\r\n/// doc\r\nint y;\r\n",
+			want: "/// doc",
+		},
+		{
+			name: "crlf_consecutive_line_comments",
+			src:  "#define X 1@\r\n// a\r\n// b\r\nint y;\r\n",
+			want: "// a\r\n// b",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			at := strings.IndexByte(tt.src, '@')
+			if at < 0 {
+				t.Fatalf("test source missing '@' marker")
+			}
+			src := tt.src[:at] + tt.src[at+1:]
+			isTrailing, got := followingRawComment([]byte(src), at)
+			if isTrailing != 0 && got != tt.want {
+				t.Errorf("followingComment:\n got: %q\nwant: %q", got, tt.want)
 			}
 		})
 	}

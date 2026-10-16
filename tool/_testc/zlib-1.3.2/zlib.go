@@ -13,6 +13,8 @@ const SYNC_FLUSH = 2
 const FULL_FLUSH = 3
 const FINISH = 4
 const BLOCK = 5
+
+// Allowed flush values; see deflate() and inflate() below for details
 const TREES = 6
 const OK = 0
 const STREAM_END = 1
@@ -22,23 +24,36 @@ const STREAM_ERROR = -2
 const DATA_ERROR = -3
 const MEM_ERROR = -4
 const BUF_ERROR = -5
+
+// Return codes for the compression/decompression functions. Negative values
+// are errors, positive values are used for special but normal events.
 const VERSION_ERROR = -6
 const NO_COMPRESSION = 0
 const BEST_SPEED = 1
 const BEST_COMPRESSION = 9
+
+// compression levels
 const DEFAULT_COMPRESSION = -1
 const FILTERED = 1
 const HUFFMAN_ONLY = 2
 const RLE = 3
 const FIXED = 4
+
+// compression strategy; see deflateInit2() below for details
 const DEFAULT_STRATEGY = 0
 const BINARY = 0
 const TEXT = 1
-const ASCII = 1
 
 // for compatibility with 1.2.2 and earlier
+const ASCII = 1
+
+// Possible values of the data_type field for deflate()
 const UNKNOWN = 2
+
+// The deflate compression method (the only one supported in this version)
 const DEFLATED = 8
+
+// for initializing zalloc, zfree, opaque
 const NULL = 0
 
 // The application can compare zlibVersion and ZLIB_VERSION for consistency.
@@ -72,9 +87,6 @@ type Stream = StreamS
 type Streamp = *Stream
 type GzFile = *GzFileS
 
-// deflateInit and inflateInit are macros to allow checking the zlib version
-// and the compiler's view of z_stream:
-//
 // llgo:link Streamp.DeflateInit C._llcppg_deflateInit
 func (self Streamp) DeflateInit(level c.Int) c.Int {
 	return 0

@@ -9,7 +9,7 @@ require (
 	github.com/goplus/lib v0.6.1
 	github.com/goplus/mod v0.22.1
 	github.com/llarhub/clang-c v0.9.1
-	github.com/qiniu/x v1.19.2
+	github.com/qiniu/x v1.19.3
 	golang.org/x/mod v0.42.0
 	golang.org/x/text v0.42.0
 )

@@ -30,37 +30,72 @@ func RawComment(entity clang.Cursor) string {
 	return GoStringAndDispose(entity.RawCommentText())
 }
 
-// MacroRawComment retrieves the raw documentation comment immediately preceding
-// a macro definition. libclang does not associate doc comments with macro
-// definition cursors (clang_Cursor_getRawCommentText returns "" for them), so
-// RawComment is always empty for a #define. This recovers the comment by
-// scanning the source text that precedes the macro.
-//
-// A comment counts as the macro's doc only when it sits on the line(s) directly
-// above the #define with no blank line in between; a blank line detaches it. The
-// returned string keeps the original comment markers so it can be fed to the
-// same comment-normalizing logic as RawComment. It returns "" when there is no
-// such comment.
-func MacroRawComment(entity clang.Cursor) string {
+// -----------------------------------------------------------------------------
+
+// RawComments represents the raw documentation comments associated with a declaration,
+// including preceding, trailing, and inline comments.
+type RawComments struct {
+	// A preceding comment counts as the declaration's leading doc only when it sits
+	// on the line(s) directly above the declaration with no blank line in between;
+	// a blank line detaches it. The string keeps the original comment markers so it
+	// can be fed to the same comment-normalizing logic as RawComment. It can be ""
+	// when there is no such comment.
+	Preceding string `json:"preceding,omitempty"`
+
+	// A trailing comment is considered part of the declaration's documentation
+	// only when it appears on the line immediately below the declaration with no
+	// blank line in between.
+	Trailing string `json:"trailing,omitempty"`
+
+	// An inline comment is considered part of the declaration's documentation
+	// only when it appears on the same line as the declaration.
+	Inline string `json:"inline,omitempty"`
+}
+
+func (raw *RawComments) Text() string {
+	if raw.Preceding != "" {
+		return raw.Preceding
+	}
+	if raw.Inline != "" {
+		return raw.Inline
+	}
+	return raw.Trailing
+}
+
+// RawCommentsOf returns the raw documentation comments associated with the given
+// cursor, including the preceding, trailing, and inline comments. Each comment
+// retains its original markers (e.g., "/** ... */" or "///"). If a particular
+// type of comment is not present, the corresponding field in the returned
+// RawComments struct will be an empty string.
+func RawCommentsOf(entity clang.Cursor) (ret RawComments) {
 	var file File
 	var offset c.Uint
-	entity.Extent().Start().Expansion(&file, nil, nil, &offset)
+	rg := entity.Extent()
+	rg.Start().Expansion(&file, nil, nil, &offset)
 	if file == InvalidFile {
-		return ""
+		return
 	}
 	src := TU(entity).FileContents(file)
-	// The macro cursor's extent starts at the macro name, i.e. after the
+	// A macro cursor's extent starts at the macro name, i.e. after the
 	// "#define " keyword, so a comment on the preceding line is not directly
 	// behind it. Back up to the start of the macro's own line first, then scan
 	// for an adjacent comment above it.
-	return precedingComment(src, lineStart(src, int(offset)))
+	ret.Preceding = precedingRawComment(src, lineStart(src, int(offset)))
+	if ret.Preceding != "" {
+		return
+	}
+	var end c.Uint
+	rg.End().Expansion(nil, nil, nil, &end)
+	isTrailing, raw := followingRawComment(src, int(end))
+	if isTrailing == 0 {
+		ret.Inline = raw
+	} else {
+		ret.Trailing = raw
+	}
+	return
 }
 
-// precedingComment returns the comment block (with markers) that immediately
-// precedes the byte at start in src, or "" when none is adjacent. "Adjacent"
-// means only whitespace (and at most one newline) separates the comment from
-// start, so a blank line between the comment and the declaration detaches it.
-func precedingComment(src []byte, start int) string {
+func precedingRawComment(src []byte, start int) string {
 	if start > len(src) {
 		start = len(src)
 	}
@@ -93,7 +128,10 @@ func precedingComment(src []byte, start int) string {
 	if i >= 2 && src[i-1] == '/' && src[i-2] == '*' {
 		for j := i - 2; j >= 1; j-- {
 			if src[j-1] == '/' && src[j] == '*' {
-				return string(src[j-1 : i])
+				if blank(src, j-1) {
+					return string(src[j-1 : i])
+				}
+				break
 			}
 		}
 		return ""
@@ -125,12 +163,103 @@ func precedingComment(src []byte, start int) string {
 	return string(trimLeadingSpace(src[first:i]))
 }
 
+func followingRawComment(src []byte, end int) (newlines int, raw string) {
+	if end < 0 {
+		return
+	}
+	// Walk forward over the remainder of the declaration's line, then over at
+	// most one newline onto the line below. A second newline means a blank line
+	// gap, which detaches any comment.
+	i := end
+	for i < len(src) {
+		switch src[i] {
+		case ' ', '\t', '\r', ';':
+			i++
+			continue
+		case '\n':
+			if newlines++; newlines > 1 {
+				return
+			}
+			i++
+			continue
+		}
+		break
+	}
+	if i >= len(src) {
+		return
+	}
+
+	// A block comment starts with "/*".
+	if i+1 < len(src) && src[i] == '/' && src[i+1] == '*' {
+		for j := i + 2; j+1 < len(src); j++ {
+			if src[j] == '*' && src[j+1] == '/' {
+				raw = string(src[i : j+2])
+				return
+			}
+		}
+		return
+	}
+
+	// Otherwise collect a run of adjacent single-line comments ("//", "///",
+	// "//!"). Each must begin a line with only whitespace before it.
+	if !hasPrefix(src[i:], "//") {
+		return
+	}
+	first := i
+	last := i
+	for i < len(src) {
+		le := lineEndAt(src, i)
+		if !hasPrefix(trimLeadingSpace(src[i:le]), "//") {
+			break
+		}
+		last = le
+		// Advance to the start of the next line: skip the trimmed "\r" (if any)
+		// and the "\n". If there is no newline, we are at EOF.
+		nl := le
+		for nl < len(src) && src[nl] != '\n' {
+			nl++
+		}
+		if nl >= len(src) {
+			break
+		}
+		i = nl + 1
+	}
+	raw = string(src[first:last])
+	return
+}
+
+// lineEndAt returns the index of the newline (or len(src)) that terminates the
+// line containing pos, trimming a trailing "\r" so CRLF endings are excluded.
+func lineEndAt(src []byte, pos int) int {
+	for pos < len(src) && src[pos] != '\n' {
+		pos++
+	}
+	if pos > 0 && src[pos-1] == '\r' {
+		pos--
+	}
+	return pos
+}
+
 // lineStart returns the index of the first byte of the line containing pos.
 func lineStart(src []byte, pos int) int {
 	for pos > 0 && src[pos-1] != '\n' {
 		pos--
 	}
 	return pos
+}
+
+func blank(src []byte, pos int) bool {
+	for pos > 0 {
+		switch src[pos-1] {
+		case '\n':
+			return true
+		case ' ', '\t':
+			pos--
+		default:
+			return false
+		}
+	}
+	return true
 }
 
 // trimLeadingSpace drops leading spaces and tabs from b without copying.

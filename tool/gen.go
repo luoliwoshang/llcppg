@@ -348,7 +348,7 @@ func (p Module) IncludeDir(modPath string) (includeDir string, err error) {
 // ParseFlags constructs the command-line flags for parsing C/C++ source files with clang.
 func ParseFlags(includeDirs []string, lang string) []string {
 	n := len(includeDirs)
-	flags := make([]string, n+2)
+	flags := make([]string, n+2, n+4)
 	for i, dir := range includeDirs {
 		flags[i] = "-I" + dir
 	}

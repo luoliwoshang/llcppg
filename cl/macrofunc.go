@@ -160,11 +160,8 @@ type clangMacroFunc struct {
 }
 
 func (fn *clangMacroFunc) RawComment() string {
-	raw := clang.MacroRawComment(fn.Cursor)
-	if raw == "" {
-		raw = clang.RawComment(fn.ref)
-	}
-	return raw
+	raw := clang.RawCommentsOf(fn.Cursor)
+	return raw.Text()
 }
 
 func (fn *clangMacroFunc) NumArguments() c.Int {
