@@ -68,10 +68,6 @@ func TestRawComments(t *testing.T) {
 	})
 }
 
-// TestPrecedingComment exercises the source-scanning that recovers a macro's
-// doc comment, which libclang does not associate with macro cursors. The marker
-// "@" in each source marks the byte MacroRawComment would scan back from (the
-// start of the "#define" line); it is stripped before the call.
 func TestPrecedingComment(t *testing.T) {
 	tests := []struct {
 		name string
@@ -144,11 +140,6 @@ func TestPrecedingComment(t *testing.T) {
 	}
 }
 
-// TestFollowingComment exercises the source-scanning that recovers a macro's
-// trailing comment (issue #1056: for macros, a trailing comment on the line
-// directly below the #define is used when there is no leading comment). The
-// marker "@" in each source marks the byte MacroRawComment scans forward from
-// (the end of the macro's extent); it is stripped before the call.
 func TestFollowingComment(t *testing.T) {
 	tests := []struct {
 		name string

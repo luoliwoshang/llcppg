@@ -165,7 +165,7 @@ func precedingRawComment(src []byte, start int) string {
 
 func followingRawComment(src []byte, end int) (newlines int, raw string) {
 	if end < 0 {
-		end = 0
+		return
 	}
 	// Walk forward over the remainder of the declaration's line, then over at
 	// most one newline onto the line below. A second newline means a blank line
