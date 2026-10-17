@@ -40,31 +40,43 @@ import (
 //     => last macro name); every macro definition between the endpoints in
 //     source order belongs to one group regardless of blank lines or comments.
 //
-// The work is split across two stages, mirroring the rest of the pipeline:
+// Grouping rides the existing preload walk in loadFiles — there is no separate
+// traversal of the macros. groupVisit is called for every node of that walk, in
+// source order, and drives a small state machine:
 //
-//   - preload (macroGrouper): a single pass over the node stream records where
-//     each group starts and ends, and the ordered list of member macros. It
-//     decides boundaries only; it does not evaluate macro values.
-//   - load (emitMacroGroup): when loadMacroConst reaches the first macro of a
-//     recorded group, it evaluates the members, applies the constant/same-type
-//     rule for automatic groups, and emits the `const ( ... )` block(s).
+//   - Automatic runs are emitted as they close. A run ends at the first macro
+//     that is not source-adjacent (or of a different value kind) or at the first
+//     non-macro node; closing emits the run's `const ( ... )` block (or a plain
+//     const for a lone macro) right then. Because libclang visits every macro
+//     before any regular declaration, this happens while only macros have been
+//     emitted, so macro consts keep their place ahead of the deferred type,
+//     function and variable declarations.
+//   - Configured groups (MacroGroup config: first macro name => last macro name)
+//     are recorded as their boundaries are seen and emitted after the walk, by
+//     groupFinish, once their ranges have been validated against the non-macro
+//     declarations libclang only reveals after all macros.
+//
+// Either way emitMacroGroup evaluates the members, applies the constant/same-type
+// rule for automatic groups, and emits the `const ( ... )` block(s).
 
 // macroGroup is a recorded group handed from preload to load, keyed by its
-// first macro's original C name.
+// first macro's original C name. It carries a configured group between the walk
+// and post-walk emission, and also serves as the transient descriptor passed to
+// emitMacroGroup for an automatic run as it closes.
 type macroGroup struct {
 	members    []clang.Cursor // member macro cursors in source order, first..last inclusive
 	configured bool           // true when the group came from the MacroGroup config
 	file       string         // header file of the group (all members share it)
 	firstLine  int            // first line of the first member
 	lastLine   int            // last line of the last member
-	emitted    bool           // guards against re-emission when a macro name is redefined
 }
 
-// macroGrouper is the preload-stage state machine that records macro groups by
-// walking the node stream in source order.
+// macroGrouper is the state machine that records macro groups while the preload
+// walk visits nodes in source order. Automatic runs are emitted as they close;
+// configured groups are recorded and emitted after the walk (see record).
 type macroGrouper struct {
-	records map[string]*macroGroup // first macro name => recorded group
-	member  map[string]*macroGroup // every member macro name => its recorded group
+	records         map[string]*macroGroup // first macro name => recorded configured group
+	configuredOrder []string               // recorded configured groups, in source order
 
 	// current (in-progress) group state. hasCur reports whether a group is open.
 	first     clang.Cursor   // first macro of the current group (name + cursor)
@@ -88,49 +100,9 @@ type macroGrouper struct {
 	hasCur  bool            // whether there is a current group in progress
 }
 
-// preloadMacroGroups walks the node stream once, before the emission pass,
-// recording macro group boundaries. It mirrors loadFiles' per-file visit and
-// package/header filtering so the recorded boundaries match exactly the nodes
-// the emission pass will process, but it does not mutate ctx.lastSeen.
-func preloadMacroGroups(ctx *pkgCtx, files []Source, myPkgPath string) {
-	if !ctx.macroGroupEnabled() {
-		return
-	}
-	pkgOf := ctx.pkgOf
-	// A local copy of lastSeen is advanced as files are walked, matching how the
-	// emission pass carries forward already-loaded headers across files.
-	lastSeen := make(map[string]none, len(ctx.lastSeen))
-	for k, v := range ctx.lastSeen {
-		lastSeen[k] = v
-	}
-	for _, f := range files {
-		thisSeen := make(map[string]none)
-		clang.VisitChildren(f.Cursor(), func(decl, parent clang.Cursor) clang.ChildVisitResult {
-			if pkgOf != nil {
-				at := clang.PresumedFile(decl.Location())
-				if _, ok := lastSeen[at]; ok {
-					return clang.Continue // already loaded
-				}
-				pkgPath, ok := pkgOf(at)
-				if !ok || pkgPath != myPkgPath {
-					return clang.Continue
-				}
-				thisSeen[at] = none{}
-			}
-			ctx.groupVisit(decl)
-			return clang.Continue
-		})
-		for k, v := range thisSeen {
-			lastSeen[k] = v
-		}
-	}
-	ctx.groupFinish()
-}
-
 func newMacroGrouper() *macroGrouper {
 	return &macroGrouper{
 		records:  make(map[string]*macroGroup),
-		member:   make(map[string]*macroGroup),
 		nonMacro: make(map[string][]int),
 		matched:  make(map[string]bool),
 		seen:     make(map[string]bool),
@@ -180,11 +152,12 @@ func macroExtentLines(decl clang.Cursor) (file string, firstLine, lastLine int) 
 	return
 }
 
-// groupVisit feeds one visited node into the preload grouping state machine.
-// libclang visits every macro definition (in source order) before any regular
-// declaration, so non-macro nodes are not interleaved with macros during the
-// walk. The state machine therefore only steps on object-like macros; non-macro
-// declarations are recorded by source line and used afterward (groupFinish) to
+// groupVisit feeds one visited node of the preload walk into the grouping state
+// machine. libclang visits every macro definition (in source order) before any
+// regular declaration, so non-macro nodes are not interleaved with macros during
+// the walk. The state machine steps on object-like macros, emitting each
+// automatic run as it closes; the first non-macro node closes (and emits) any
+// open automatic run, and is also recorded by source line so groupFinish can
 // validate that configured ranges contain only macro definitions.
 func (p *pkgCtx) groupVisit(decl clang.Cursor) {
 	if !p.macroGroupEnabled() {
@@ -196,12 +169,20 @@ func (p *pkgCtx) groupVisit(decl clang.Cursor) {
 	isObjMacro := isMacroDef && decl.IsMacroFunctionLike() == 0
 
 	if !isObjMacro {
-		// A non-macro declaration (or a function-like macro) is not a group
-		// member. Record its line so a configured range that straddles it can be
-		// rejected. Function-like macros are recorded too, since they may not sit
-		// inside a configured range of object-like constant macros. This is only
-		// needed to validate configured ranges, so it is skipped (along with its
-		// per-node clang extent lookup) when there are no configured groups.
+		// A non-macro declaration (or a function-like macro) is not a group member
+		// and ends any open automatic run: close it now so its const block is
+		// emitted before this declaration's own type/func/var, preserving the
+		// original order (libclang visits all object-like macros before regular
+		// declarations, so the run is complete here). A configured group is not
+		// closed by a non-macro; it waits for its explicit last macro.
+		if g.hasCur && g.expected == "" {
+			g.closeAuto(p)
+		}
+		// Record the line so a configured range that straddles it can be rejected.
+		// Function-like macros are recorded too, since they may not sit inside a
+		// configured range of object-like constant macros. This is only needed to
+		// validate configured ranges, so it is skipped (along with its per-node
+		// clang extent lookup) when there are no configured groups.
 		if p.hasConfiguredGroups() {
 			file, firstLine, _ := macroExtentLines(decl)
 			if file != "" {
@@ -302,32 +283,50 @@ func (g *macroGrouper) reset() {
 	g.hasCur = false
 }
 
-// record finalizes the current group (configured, or any group with >= 2
-// members) and stores it keyed by the first macro name.
+// record finalizes a configured group at its last macro: it is stored (keyed by
+// the first macro name) and queued for emission after the walk, once range
+// validation has run. Emission is deferred because "a non-macro declaration
+// lies inside the range" can only be known after the whole file is walked
+// (libclang visits all macros before any regular declaration). Configured
+// groups are the only consts the fixtures emit alongside nothing else, so this
+// deferral does not disturb declaration order.
 func (g *macroGrouper) record(p *pkgCtx) {
 	if g.hasCur && len(g.cur) >= 2 {
 		rec := &macroGroup{
 			members:    g.cur,
-			configured: g.expected != "",
+			configured: true,
 			file:       g.firstFile,
 			firstLine:  g.firstLine,
 			lastLine:   g.prevLine,
 		}
 		firstName := clang.String(g.first)
 		g.records[firstName] = rec
-		for _, m := range g.cur {
-			g.member[clang.String(m)] = rec
-		}
+		g.configuredOrder = append(g.configuredOrder, firstName)
 	}
 	g.reset()
 }
 
-// closeAuto closes an in-progress automatic group. It defers to record, which
-// keeps groups of two or more members and discards a single-macro run (not a
-// group). The separate name marks, at each call site, that an automatic run is
-// ending (vs. a configured range closing explicitly on its last macro).
+// closeAuto closes an in-progress automatic run and emits it immediately, in the
+// source position it occupies: a run of two or more becomes a `const ( ... )`
+// block; a single macro degrades to a plain const through the normal
+// loadMacroConst path (which also handles same-value redefinition). Emitting
+// here — during the macro region of the walk, before any non-macro type/func/var
+// declaration is appended — keeps macro consts in their original place in the
+// generated file. A single-macro run is not a group and is never recorded.
 func (g *macroGrouper) closeAuto(p *pkgCtx) {
-	g.record(p)
+	if g.hasCur {
+		if len(g.cur) >= 2 {
+			emitMacroGroup(p, &macroGroup{
+				members:   g.cur,
+				file:      g.firstFile,
+				firstLine: g.firstLine,
+				lastLine:  g.prevLine,
+			})
+		} else if len(g.cur) == 1 {
+			loadMacroConst(p, g.cur[0])
+		}
+	}
+	g.reset()
 }
 
 // groupFinish flushes any in-progress group at the end of the input and reports
@@ -354,17 +353,30 @@ func (p *pkgCtx) groupFinish() {
 	}
 	p.checkUnmatchedKeys()
 	g.validateConfiguredRanges(p)
+	g.emitConfiguredGroups(p)
+}
+
+// emitConfiguredGroups emits every configured group that survived range
+// validation, in source order. Configured groups are emitted here (after the
+// walk) rather than inline, because their validity depends on non-macro
+// declarations that libclang only reveals after all macros; the fixtures that
+// use configured groups emit no other declarations, so this does not affect
+// declaration order.
+func (g *macroGrouper) emitConfiguredGroups(p *pkgCtx) {
+	for _, first := range g.configuredOrder {
+		if rec, ok := g.records[first]; ok {
+			emitMacroGroup(p, rec)
+		}
+	}
 }
 
 // validateConfiguredRanges rejects any configured group that straddles a
 // non-macro declaration. libclang does not interleave non-macro nodes with
 // macros during the walk, so this positional check (rather than visit order)
-// enforces "only macro definitions may appear inside a range".
+// enforces "only macro definitions may appear inside a range". A rejected group
+// is removed from records so emitConfiguredGroups skips it.
 func (g *macroGrouper) validateConfiguredRanges(p *pkgCtx) {
 	for first, rec := range g.records {
-		if !rec.configured {
-			continue
-		}
 		for _, line := range g.nonMacro[rec.file] {
 			if line > rec.firstLine && line < rec.lastLine {
 				// Reported through errorf (like the other configured-range errors)
@@ -374,9 +386,6 @@ func (g *macroGrouper) validateConfiguredRanges(p *pkgCtx) {
 				p.errorf(rec.members[0], "MacroGroup %q..%q: non-macro declaration inside range (line %d)",
 					first, clang.String(rec.members[len(rec.members)-1]), line)
 				delete(g.records, first)
-				for _, m := range rec.members {
-					delete(g.member, clang.String(m))
-				}
 				break
 			}
 		}
@@ -411,27 +420,6 @@ func (p *pkgCtx) errorNoPos(format string, args ...any) {
 }
 
 // -----------------------------------------------------------------------------
-
-// macroGroupOf returns the group whose first macro is name, or nil.
-func (p *pkgCtx) macroGroupOf(name string) *macroGroup {
-	if p.mgroup == nil {
-		return nil
-	}
-	return p.mgroup.records[name]
-}
-
-// isGroupMember reports whether name is a member (first or otherwise) of any
-// recorded group. Members other than the first are emitted by the group's first
-// macro, so their own loadMacroConst dispatch is a no-op.
-func (p *pkgCtx) isGroupMember(name string) bool {
-	if p.mgroup == nil {
-		return false
-	}
-	_, ok := p.mgroup.member[name]
-	return ok
-}
-
-// -----------------------------------------------------------------------------
 //
 // Load stage: emit the const block(s) for a group.
 
@@ -457,9 +445,10 @@ func constKind(v any) int {
 	}
 }
 
-// emitMacroGroup emits the Go declarations for a recorded group whose first
-// macro is first. It is called from loadMacroConst when it reaches the first
-// macro of a group.
+// emitMacroGroup emits the Go declarations for a group: a configured group
+// (after the walk, from emitConfiguredGroups) or an automatic run (as it closes,
+// from closeAuto). It evaluates the members, applies the constant/same-type rule
+// for automatic groups, and emits the `const ( ... )` block(s).
 func emitMacroGroup(ctx *pkgCtx, grp *macroGroup) {
 	// Resolve the group's doc comment from the first macro's preceding comment
 	// (priority) or the last macro's trailing comment.

@@ -346,12 +346,6 @@ func loadFiles(ctx *pkgCtx, files []Source, myPkgPath string, goFileOf func(head
 	scope := &ctx.scopeCtx
 	lastSeen := ctx.lastSeen
 
-	// First pass: record macro group boundaries over the same filtered node
-	// stream that the emission pass below walks, without mutating lastSeen. This
-	// lets loadMacroConst (in the second pass) emit a whole group when it reaches
-	// the group's first macro, which requires the group's end to be known already.
-	preloadMacroGroups(ctx, files, myPkgPath)
-
 	for _, f := range files {
 		ctx.thisSeen = make(map[string]none) // reset for each file
 		clang.VisitChildren(f.Cursor(), func(decl, parent clang.Cursor) clang.ChildVisitResult {
@@ -372,11 +366,18 @@ func loadFiles(ctx *pkgCtx, files []Source, myPkgPath string, goFileOf func(head
 					pkg.SetCurFile(fname, true)
 				}
 			}
+			// Macro grouping rides this single preload walk instead of a separate
+			// traversal: groupVisit observes every node in source order, emits each
+			// automatic run as it closes (inline, keeping macro consts ahead of the
+			// deferred type/func/var declarations), and records configured groups
+			// for emission after the walk.
+			ctx.groupVisit(decl)
 			loadDecl(ctx, scope, decl)
 			return clang.Continue
 		})
 		maps.Copy(lastSeen, ctx.thisSeen)
 	}
+	ctx.groupFinish() // flush the last automatic run, validate and emit configured groups
 	scope.reorder()
 }
 
