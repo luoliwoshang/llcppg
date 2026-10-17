@@ -7,48 +7,56 @@ import (
 	_ "unsafe"
 )
 
-const NO_FLUSH = 0
-const PARTIAL_FLUSH = 1
-const SYNC_FLUSH = 2
-const FULL_FLUSH = 3
-const FINISH = 4
-const BLOCK = 5
-
 // Allowed flush values; see deflate() and inflate() below for details
-const TREES = 6
-const OK = 0
-const STREAM_END = 1
-const NEED_DICT = 2
-const ERRNO = -1
-const STREAM_ERROR = -2
-const DATA_ERROR = -3
-const MEM_ERROR = -4
-const BUF_ERROR = -5
+const (
+	NO_FLUSH      = 0
+	PARTIAL_FLUSH = 1
+	SYNC_FLUSH    = 2
+	FULL_FLUSH    = 3
+	FINISH        = 4
+	BLOCK         = 5
+	TREES         = 6
+)
 
 // Return codes for the compression/decompression functions. Negative values
 // are errors, positive values are used for special but normal events.
-const VERSION_ERROR = -6
-const NO_COMPRESSION = 0
-const BEST_SPEED = 1
-const BEST_COMPRESSION = 9
+const (
+	OK            = 0
+	STREAM_END    = 1
+	NEED_DICT     = 2
+	ERRNO         = -1
+	STREAM_ERROR  = -2
+	DATA_ERROR    = -3
+	MEM_ERROR     = -4
+	BUF_ERROR     = -5
+	VERSION_ERROR = -6
+)
 
 // compression levels
-const DEFAULT_COMPRESSION = -1
-const FILTERED = 1
-const HUFFMAN_ONLY = 2
-const RLE = 3
-const FIXED = 4
+const (
+	NO_COMPRESSION      = 0
+	BEST_SPEED          = 1
+	BEST_COMPRESSION    = 9
+	DEFAULT_COMPRESSION = -1
+)
 
 // compression strategy; see deflateInit2() below for details
-const DEFAULT_STRATEGY = 0
-const BINARY = 0
-const TEXT = 1
-
-// for compatibility with 1.2.2 and earlier
-const ASCII = 1
+const (
+	FILTERED         = 1
+	HUFFMAN_ONLY     = 2
+	RLE              = 3
+	FIXED            = 4
+	DEFAULT_STRATEGY = 0
+)
 
 // Possible values of the data_type field for deflate()
-const UNKNOWN = 2
+const (
+	BINARY = 0
+	TEXT   = 1
+	// for compatibility with 1.2.2 and earlier
+	ASCII   = 1
+	UNKNOWN = 2
+)
 
 // The deflate compression method (the only one supported in this version)
 const DEFLATED = 8

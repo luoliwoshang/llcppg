@@ -14,8 +14,10 @@ import (
 //
 // The policy about the libclang API was always to keep it source and ABI
 // compatible, thus CINDEX_VERSION_MAJOR is expected to remain stable.
-const CINDEX_VERSION_MAJOR = 0
-const CINDEX_VERSION_MINOR = 64
+const (
+	CINDEX_VERSION_MAJOR = 0
+	CINDEX_VERSION_MINOR = 64
+)
 
 // Provides the contents of a file that has not yet been saved to disk.
 //
