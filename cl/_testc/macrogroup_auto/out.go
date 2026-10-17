@@ -18,6 +18,8 @@ const (
 	Z_UNKNOWN = 2
 )
 const SOLO = 42
-const INT_A = 1
-const STR_B = "two"
-const INT_C = 3
+const (
+	INT_A = 1
+	STR_B = "two"
+	INT_C = 3
+)

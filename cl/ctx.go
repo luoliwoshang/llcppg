@@ -191,8 +191,8 @@ type pkgCtx struct {
 
 	fileBases map[clang.File]int // clang.File => base
 
+	mgroup       *macroGrouper           // macro grouping current state
 	macroVals    map[string]any          // macroName => value
-	mgroup       *macroGrouper           // macro grouping state machine (nil until first macro)
 	ovobjs       map[string]*overloadObj // objUSR => overload object
 	types        map[string]typeObj      // c/c++ fullName => type name object (include external types)
 	typdecls     map[string]typDecl      // c/c++ fullName => type declaration object (only local types)

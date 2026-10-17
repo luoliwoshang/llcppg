@@ -7,14 +7,18 @@ const (
 	TRUE  = 1
 	FALSE = 0
 )
-const THREE = 3
-const FVAL = 3.14
+const (
+	THREE = 3
+	FVAL  = 3.14
+)
 const (
 	MASK = -1
 	TWO  = 2
 )
-const MATH_OP = 5.0
-const BIT_OP = 3
+const (
+	MATH_OP = 5.0
+	BIT_OP  = 3
+)
 
 type BOOL = c.Char
 type PBOOL = *c.Char

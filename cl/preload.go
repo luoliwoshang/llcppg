@@ -234,13 +234,6 @@ func loadDecl(ctx *pkgCtx, scope *scopeCtx, decl clang.Cursor) {
 		})
 	case lc.Cursor_EnumDecl:
 		loadEnum(ctx, decl)
-	case lc.Cursor_MacroDefinition:
-		if decl.IsMacroFunctionLike() != 0 {
-			preloadMacroFunc(ctx, decl)
-		}
-		// Object-like macro consts are emitted by the grouper (driven from the
-		// loadFiles walk via groupVisit), not here: automatic runs are emitted as
-		// they close and configured groups after the walk. See cl/macrogroup.go.
 	case lc.Cursor_InclusionDirective:
 		loadInclude(ctx, decl)
 	case lc.Cursor_Namespace:

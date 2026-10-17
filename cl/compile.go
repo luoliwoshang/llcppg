@@ -366,18 +366,14 @@ func loadFiles(ctx *pkgCtx, files []Source, myPkgPath string, goFileOf func(head
 					pkg.SetCurFile(fname, true)
 				}
 			}
-			// Macro grouping rides this single preload walk instead of a separate
-			// traversal: groupVisit observes every node in source order, emits each
-			// automatic run as it closes (inline, keeping macro consts ahead of the
-			// deferred type/func/var declarations), and records configured groups
-			// for emission after the walk.
-			ctx.groupVisit(decl)
-			loadDecl(ctx, scope, decl)
+			if !groupVisit(ctx, decl) {
+				loadDecl(ctx, scope, decl)
+			}
 			return clang.Continue
 		})
+		groupClose(ctx)
 		maps.Copy(lastSeen, ctx.thisSeen)
 	}
-	ctx.groupFinish() // flush the last automatic run, validate and emit configured groups
 	scope.reorder()
 }
 
