@@ -160,12 +160,9 @@ type pkgCtx struct {
 
 	wrapFileHeader string
 
-	newCheck  matcher
-	mthdCheck matcher
-	typeAbbr  matcher // Go type name => abbreviated name(s), used in function names
-
-	methodPrefix map[string]string // Go type name => literal method prefix in C names
-
+	newCheck    matcher
+	mthdCheck   matcher
+	typeAbbr    matcher // Go type name => abbreviated name(s), used in function names
 	nsPrefix    []string
 	fnPrefix    []string
 	varPrefix   []string
@@ -186,6 +183,8 @@ type pkgCtx struct {
 	nsIgnore    []string          // C/C++ namespace names to be ignored
 
 	typeAliasCache map[string]types.Type
+
+	methodPrefix map[string]string // Go type name => literal method prefix in C names
 
 	nameLookup func(manglingName string) (archivePath string, ok bool)
 	pubLookup  func(pkgPath string) (pubFile string, ok bool)

@@ -162,15 +162,14 @@ type Config struct {
 	// names (optional). See https://github.com/xgo-dev/llcppg/issues/958.
 	TypeAbbr []string
 
-	// MethodPrefix specifies a literal prefix to remove from the names of methods
-	// associated with a Go type (optional). The key is the Go type name and the value
-	// is the prefix in the original C/C++ function name. See
-	// https://github.com/goplus/llcppg/issues/1061.
-	MethodPrefix map[string]string
-
 	// TypePrefix/TypeSuffix specifies the prefix/suffix to remove from C/C++ type names
 	// when generating Go type names (optional).
 	TypePrefix, TypeSuffix []string
+
+	// MethodPrefix specifies a literal prefix to remove from the names of methods associated
+	// with a Go type (optional). The key is the Go type name and the value is the prefix in
+	// the original C/C++ function name. See https://github.com/goplus/llcppg/issues/1061.
+	MethodPrefix map[string]string
 
 	// EnumPrefix specifies the prefix to remove from C/C++ enum value names when generating
 	// Go const names (optional).

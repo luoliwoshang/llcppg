@@ -90,6 +90,11 @@ type Config struct {
 	// Go const names (optional).
 	MacroPrefix []string `json:"MacroPrefix"`
 
+	// MethodPrefix specifies a literal prefix to remove from the names of methods associated
+	// with a Go type (optional). The key is the Go type name and the value is the prefix in
+	// the original C/C++ function name. See https://github.com/goplus/llcppg/issues/1061.
+	MethodPrefix map[string]string `json:"MethodPrefix"`
+
 	// TypePrefix/TypeSuffix specifies the prefix/suffix to remove from C/C++ type names
 	// when generating Go type names (optional).
 	TypePrefix []string `json:"TypePrefix"`
@@ -98,12 +103,6 @@ type Config struct {
 	// TypeAbbr specifies abbreviated name for Go type names and will be used in function
 	// names (optional). See https://github.com/xgo-dev/llcppg/issues/958.
 	TypeAbbr []string `json:"TypeAbbr"`
-
-	// MethodPrefix specifies a literal prefix to remove from the names of methods
-	// associated with a Go type (optional). The key is the Go type name and the value
-	// is the prefix in the original C/C++ function name. See
-	// https://github.com/goplus/llcppg/issues/1061.
-	MethodPrefix map[string]string `json:"MethodPrefix"`
 
 	// Rename specifies a mapping of C/C++ names to Go names (optional). If a name is present
 	// in the map, it will be renamed to the corresponding Go name.

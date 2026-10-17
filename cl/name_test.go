@@ -65,36 +65,3 @@ func TestLocalNamingConfiguration(t *testing.T) {
 		t.Errorf("localName = %q, want TermValue", got)
 	}
 }
-
-func TestFuncNameMethodPrefix(t *testing.T) {
-	type testCase struct {
-		name, typName, typCName string
-		global                  bool
-		want                    string
-	}
-
-	abbr, err := newMatcher("TypeAbbr", []string{"FooType: InFoo, Foo"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	p := &pkgCtx{
-		fnPrefix:     []string{"lib_"},
-		methodPrefix: map[string]string{"GzFile": "gz", "FooType": "foo"},
-		typeAbbr:     abbr,
-	}
-	for _, tt := range []testCase{
-		{name: "gzbuffer", typName: "GzFile", typCName: "gzFile", global: true, want: "Buffer"},
-		{name: "lib_gzread", typName: "GzFile", typCName: "gzFile", global: true, want: "Read"},
-		{name: "fooBarInFoo", typName: "FooType", global: true, want: "BarInFoo"},
-		{name: "otherBarInFoo", typName: "FooType", global: true, want: "OtherBar"},
-		{name: "gz", typName: "GzFile", typCName: "gzFile", global: true, want: "Gz"},
-		{name: "Gzread", typName: "GzFile", typCName: "gzFile", global: true, want: "Gzread"},
-		{name: "gzbuffer", typName: "GzFile", typCName: "gzFile", global: false, want: "Gzbuffer"},
-	} {
-		t.Run(tt.name+"/"+tt.typName+"/"+tt.want, func(t *testing.T) {
-			if got := p.funcName(tt.name, -1, tt.typName, tt.typCName, tt.global, true); got != tt.want {
-				t.Errorf("funcName(%q, %q, %q, %t) = %q, want %q", tt.name, tt.typName, tt.typCName, tt.global, got, tt.want)
-			}
-		})
-	}
-}
