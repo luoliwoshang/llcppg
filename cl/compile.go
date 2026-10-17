@@ -150,6 +150,12 @@ type Config struct {
 	// names (optional). See https://github.com/xgo-dev/llcppg/issues/958.
 	TypeAbbr []string
 
+	// MethodPrefix specifies a literal prefix to remove from the names of methods
+	// associated with a Go type (optional). The key is the Go type name and the value
+	// is the prefix in the original C/C++ function name. See
+	// https://github.com/goplus/llcppg/issues/1061.
+	MethodPrefix map[string]string
+
 	// TypePrefix/TypeSuffix specifies the prefix/suffix to remove from C/C++ type names
 	// when generating Go type names (optional).
 	TypePrefix, TypeSuffix []string
@@ -285,7 +291,8 @@ func NewPackage(pkgPath, pkgName string, files []Source, conf *Config) (ret Pack
 		llgo: llgo, fset: pkg.Fset, lang: conf.Language, failFast: conf.FailFast,
 		keepDoc: !conf.DontKeepDoc, stdRecvName: conf.UseStdRecvName, cflags: conf.CFlags,
 		wrapFileHeader: conf.WrapFileHeader, forceCamelCase: conf.ForceCamelCase,
-		typeAbbr: typeAbbr, typeAlias: conf.TypeAlias, typeAliasCache: make(map[string]types.Type),
+		typeAbbr: typeAbbr, methodPrefix: conf.MethodPrefix,
+		typeAlias: conf.TypeAlias, typeAliasCache: make(map[string]types.Type),
 		nsPrefix: conf.NSPrefix, mthdCheck: methodCheck, fieldAlias: conf.FieldAlias,
 		nsIgnore: conf.NSIgnore, typePrefix: conf.TypePrefix, typeSuffix: conf.TypeSuffix,
 		newCheck: newCheck, fnPrefix: conf.FuncPrefix, enumPrefix: conf.EnumPrefix, rename: rename,

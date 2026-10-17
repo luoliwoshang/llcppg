@@ -160,9 +160,12 @@ type pkgCtx struct {
 
 	wrapFileHeader string
 
-	newCheck    matcher
-	mthdCheck   matcher
-	typeAbbr    matcher // Go type name => abbreviated name(s), used in function names
+	newCheck  matcher
+	mthdCheck matcher
+	typeAbbr  matcher // Go type name => abbreviated name(s), used in function names
+
+	methodPrefix map[string]string // Go type name => literal method prefix in C names
+
 	nsPrefix    []string
 	fnPrefix    []string
 	varPrefix   []string
