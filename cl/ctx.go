@@ -181,6 +181,7 @@ type pkgCtx struct {
 	typeIgnore  []string          // C/C++ type names to be ignored
 	macroIgnore []string          // C/C++ macro names to be ignored
 	macroFunc   map[string]string // function-like macro name => reference function name
+	macroGroup  map[string]string // first macro name => last macro name (MacroGroup config)
 	fnIgnore    []string          // C/C++ function names to be ignored
 	nsIgnore    []string          // C/C++ namespace names to be ignored
 
@@ -193,6 +194,7 @@ type pkgCtx struct {
 
 	fileBases map[clang.File]int // clang.File => base
 
+	mgroup       *macroGrouper           // macro grouping current state
 	macroVals    map[string]any          // macroName => value
 	ovobjs       map[string]*overloadObj // objUSR => overload object
 	types        map[string]typeObj      // c/c++ fullName => type name object (include external types)

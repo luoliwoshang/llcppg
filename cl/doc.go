@@ -150,17 +150,6 @@ func (p *pkgCtx) docCommentGroup(decl clang.Cursor) *ast.CommentGroup {
 	return docCommentGroupRaw(p.docComments(decl))
 }
 
-// docCommentGroupMacro is docCommentGroup for macro definitions. libclang does
-// not attach doc comments to macro cursors, so the raw comment is recovered
-// from the source text preceding the #define rather than via RawComment.
-func (p *pkgCtx) docCommentGroupMacro(decl clang.Cursor) *ast.CommentGroup {
-	if !p.keepDoc {
-		return nil
-	}
-	raw := clang.RawCommentsOf(decl)
-	return docCommentGroupRaw(toLineComments(raw.Text()))
-}
-
 func docCommentGroupRaw(comments []*ast.Comment) *ast.CommentGroup {
 	if len(comments) == 0 {
 		return nil

@@ -52,7 +52,7 @@ func loadInclude(ctx *pkgCtx, decl clang.Cursor) {
 
 // -----------------------------------------------------------------------------
 
-func loadMacroConst(ctx *pkgCtx, decl clang.Cursor) {
+func emitMacroConst(defs *gogen.ConstDefs, ctx *pkgCtx, decl clang.Cursor, docRaw string, grouped bool) {
 	origName := clang.String(decl)
 	if ctx.isMacroIgnored(origName) {
 		if debugCompileDecl {
@@ -74,19 +74,56 @@ func loadMacroConst(ctx *pkgCtx, decl clang.Cursor) {
 					return // allow redefinition with the same value
 				}
 			}
-			pkg := ctx.pkg
-			pkgTypes := pkg.Types
-			name := ctx.macroName(origName)
-			defs := pkg.NewConstDefs(pkgTypes.Scope())
-			if doc := ctx.docCommentGroupMacro(decl); doc != nil {
+			at := defs.NewPos()
+			if grouped {
+				at.Doc = docCommentGroupRaw(toLineComments(docRaw))
+			} else {
+				raw := clang.RawCommentsOf(decl)
+				doc := docCommentGroupRaw(toLineComments(raw.Text()))
 				defs.SetComments(doc)
 			}
-			defs.New(func(cb *gogen.CodeBuilder) int {
+			name := ctx.macroName(origName)
+			defs.NewAt(at, func(cb *gogen.CodeBuilder) int {
 				cb.Val(v)
 				return 1
 			}, 0, goNodePos(ctx, decl), nil, name)
 			ctx.macroVals[origName] = v
 		}
+	}
+}
+
+func loadMacroConst(ctx *pkgCtx, defs *gogen.ConstDefs, decl clang.Cursor) {
+	emitMacroConst(defs, ctx, decl, "", false)
+}
+
+func loadMacroConstGroup(ctx *pkgCtx, defs *gogen.ConstDefs, items []clang.Cursor) {
+	firstRaw := clang.RawCommentsOf(items[0])
+	lastRaw := clang.RawCommentsOf(items[len(items)-1])
+
+	// Resolve the group's doc comment from the first macro's preceding comment
+	// (priority) or the last macro's trailing comment.
+	var docRaw string
+	if firstRaw.Preceding != "" {
+		docRaw, firstRaw.Preceding = firstRaw.Preceding, ""
+	} else if lastRaw.Trailing != "" {
+		docRaw, lastRaw.Trailing = lastRaw.Trailing, ""
+	}
+
+	if docRaw != "" {
+		doc := docCommentGroupRaw(toLineComments(docRaw))
+		defs.SetComments(doc)
+	}
+
+	for i, m := range items {
+		var raw clang.RawComments
+		if i == 0 {
+			raw = firstRaw
+		} else if i == len(items)-1 {
+			raw = lastRaw
+		} else {
+			raw = clang.RawCommentsOf(m)
+		}
+		emitMacroConst(defs, ctx, m, raw.Text(), true)
 	}
 }
 

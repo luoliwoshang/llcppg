@@ -140,6 +140,17 @@ type Config struct {
 	// See https://github.com/goplus/llcppg/issues/1051.
 	MacroFunc map[string]string `json:"MacroFunc"`
 
+	// MacroGroup declares groups of related constant macros emitted together as a
+	// single Go `const ( ... )` block (optional). It maps the first macro of a
+	// group to its last macro; every macro definition between them in source order
+	// (inclusive) belongs to the group, regardless of blank lines or comments.
+	// Names are the original C macro names, before MacroPrefix stripping or
+	// renaming. The first and last macro must live in the same header file: a
+	// range that crosses a header boundary is a configuration error. Configured
+	// groups take priority over automatic detection.
+	// See https://github.com/goplus/llcppg/issues/1064.
+	MacroGroup map[string]string `json:"MacroGroup"`
+
 	// NSIgnore specifies a list of C/C++ namespaces to be ignored (optional).
 	NSIgnore []string `json:"NSIgnore"`
 
