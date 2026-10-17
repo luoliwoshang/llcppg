@@ -234,12 +234,6 @@ func loadDecl(ctx *pkgCtx, scope *scopeCtx, decl clang.Cursor) {
 		})
 	case lc.Cursor_EnumDecl:
 		loadEnum(ctx, decl)
-	case lc.Cursor_MacroDefinition:
-		if decl.IsMacroFunctionLike() != 0 {
-			preloadMacroFunc(ctx, decl)
-		} else {
-			loadMacroConst(ctx, decl)
-		}
 	case lc.Cursor_InclusionDirective:
 		loadInclude(ctx, decl)
 	case lc.Cursor_Namespace:

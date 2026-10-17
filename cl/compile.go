@@ -125,6 +125,18 @@ type Config struct {
 	// See https://github.com/goplus/llcppg/issues/1051.
 	MacroFunc map[string]string
 
+	// MacroGroup declares groups of related constant macros that are emitted
+	// together as a single Go `const ( ... )` block (optional). It maps the
+	// first macro of a group to its last macro; every macro definition between
+	// them in source order (inclusive) belongs to the group, regardless of blank
+	// lines or comments. Names are the original C macro names, before MacroPrefix
+	// stripping or renaming. The first and last macro must live in the same
+	// header file: a range that crosses a header boundary is a configuration
+	// error. Configured groups take priority over automatic detection, which
+	// groups runs of adjacent constant macros of the same type.
+	// See https://github.com/goplus/llcppg/issues/1064.
+	MacroGroup map[string]string
+
 	// TypeIgnore specifies a list of C/C++ type names to be ignored (optional).
 	TypeIgnore []string
 
@@ -288,8 +300,9 @@ func NewPackage(pkgPath, pkgName string, files []Source, conf *Config) (ret Pack
 		typeAbbr: typeAbbr, typeAlias: conf.TypeAlias, typeAliasCache: make(map[string]types.Type),
 		nsPrefix: conf.NSPrefix, mthdCheck: methodCheck, fieldAlias: conf.FieldAlias,
 		nsIgnore: conf.NSIgnore, typePrefix: conf.TypePrefix, typeSuffix: conf.TypeSuffix,
-		newCheck: newCheck, fnPrefix: conf.FuncPrefix, enumPrefix: conf.EnumPrefix, rename: rename,
-		macroPrefix: conf.MacroPrefix, macroIgnore: conf.MacroIgnore, macroFunc: conf.MacroFunc,
+		newCheck: newCheck, fnPrefix: conf.FuncPrefix, enumPrefix: conf.EnumPrefix,
+		macroPrefix: conf.MacroPrefix, macroIgnore: conf.MacroIgnore,
+		macroFunc: conf.MacroFunc, macroGroup: conf.MacroGroup, rename: rename,
 		varPrefix: conf.VarPrefix, typeIgnore: conf.TypeIgnore, typdecls: typdecls,
 		fnIgnore: conf.FuncIgnore, classes: conf.Class, nonClasses: conf.NonClass,
 		pkgOf: conf.PackageOf, nameLookup: nameLookup, pubLookup: conf.PubFileLookup,
@@ -332,6 +345,7 @@ func loadFiles(ctx *pkgCtx, files []Source, myPkgPath string, goFileOf func(head
 	pkgOf := ctx.pkgOf
 	scope := &ctx.scopeCtx
 	lastSeen := ctx.lastSeen
+
 	for _, f := range files {
 		ctx.thisSeen = make(map[string]none) // reset for each file
 		clang.VisitChildren(f.Cursor(), func(decl, parent clang.Cursor) clang.ChildVisitResult {
@@ -352,9 +366,12 @@ func loadFiles(ctx *pkgCtx, files []Source, myPkgPath string, goFileOf func(head
 					pkg.SetCurFile(fname, true)
 				}
 			}
-			loadDecl(ctx, scope, decl)
+			if !groupVisit(ctx, decl) {
+				loadDecl(ctx, scope, decl)
+			}
 			return clang.Continue
 		})
+		groupClose(ctx)
 		maps.Copy(lastSeen, ctx.thisSeen)
 	}
 	scope.reorder()
